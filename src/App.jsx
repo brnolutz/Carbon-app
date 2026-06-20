@@ -808,7 +808,6 @@ function RoutineScreen({plan,onClose,onStart,onNavigate}){
   const[chartMode,setChartMode]=useState("vol");
   const[selEx,setSelEx]=useState(null);
 
-  // Build chart data from saved sessions matching this plan
   const sessions=useMemo(()=>{
     return loadSavedSessions()
       .filter(s=>s.name&&s.name.toLowerCase().includes(plan.label.toLowerCase()))
@@ -828,16 +827,21 @@ function RoutineScreen({plan,onClose,onStart,onNavigate}){
     <div style={{position:"fixed",inset:0,zIndex:700,background:"#080A0E",overflowY:"auto",paddingTop:52}}>
       {/* Header */}
       <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"14px 16px"}}>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <button onClick={onClose} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
-          <div>
-            <div style={{fontSize:11,fontWeight:700,color:C.sub,letterSpacing:"0.08em",textTransform:"uppercase"}}>{plan.name}</div>
-            <div style={{fontSize:18,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>{plan.label}</div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <button onClick={onClose} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
+            <div style={{fontSize:13,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.06em"}}>Rotina</div>
           </div>
+          <button style={{fontSize:12,fontWeight:700,color:C.blueXL,background:"none",border:"none",cursor:"pointer",padding:"6px 10px"}}>Editar</button>
         </div>
       </div>
 
-      <div style={{padding:"16px 16px 120px"}}>
+      <div style={{padding:"20px 16px 120px"}}>
+        {/* Title */}
+        <div style={{marginBottom:16}}>
+          <div style={{fontSize:22,fontWeight:900,color:C.text,letterSpacing:"-0.5px",marginBottom:2}}>{plan.name} — {plan.label.toUpperCase()}</div>
+        </div>
+
         {/* Iniciar button */}
         <button onClick={onStart} style={{width:"100%",padding:"14px",background:C.grad,border:"none",borderRadius:14,color:"#fff",fontSize:15,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:20}}>
           <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
@@ -845,55 +849,78 @@ function RoutineScreen({plan,onClose,onStart,onNavigate}){
         </button>
 
         {/* Volume chart */}
-        {chartData.length>0&&<div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:16}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+        {chartData.length>0&&<div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:20}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
             <div>
               <div style={{fontSize:22,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{chartData[chartData.length-1]?.y.toFixed(chartMode==="vol"?1:0)}{chartMode==="vol"?"t":chartMode==="sets"?" séries":" min"}</div>
-              {lastSession&&<div style={{fontSize:10,color:C.blueXL}}>{new Date(lastSession.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"numeric",month:"short"})}</div>}
+              {lastSession&&<div style={{fontSize:10,color:C.blueXL,marginTop:2}}>{new Date(lastSession.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"numeric",month:"short"})}</div>}
             </div>
-            <div style={{display:"flex",gap:6}}>
-              {[{k:"vol",l:"Volume"},{k:"sets",l:"Séries"},{k:"dur",l:"Tempo"}].map(m=>(
-                <button key={m.k} onClick={()=>setChartMode(m.k)} style={{padding:"4px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:chartMode===m.k?C.blueM+"66":C.surface,border:"1px solid "+(chartMode===m.k?C.blueL:C.border),color:chartMode===m.k?C.blueXL:C.sub}}>{m.l}</button>
+            <div style={{display:"flex",gap:5}}>
+              {[{k:"vol",l:"Volume"},{k:"sets",l:"Repetições"},{k:"dur",l:"Duração"}].map(m=>(
+                <button key={m.k} onClick={()=>setChartMode(m.k)} style={{padding:"4px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:chartMode===m.k?C.blueXL:C.surface,border:"1px solid "+(chartMode===m.k?C.blueXL:C.border),color:chartMode===m.k?"#fff":C.sub}}>{m.l}</button>
               ))}
             </div>
           </div>
-          {/* Line chart */}
-          <div style={{position:"relative",height:100,marginTop:12}}>
-            <svg width="100%" height="100%" viewBox={`0 0 ${Math.max(chartData.length*40,200)} 100`} preserveAspectRatio="none">
-              <polyline
-                points={chartData.map((d,i)=>`${i*(Math.max(chartData.length*40,200)-20)/(Math.max(chartData.length,2)-1)+10},${90-((d.y/maxY)*80)}`).join(" ")}
-                fill="none" stroke={C.blueXL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              />
-              {chartData.map((d,i)=>(
-                <circle key={i} cx={i*(Math.max(chartData.length*40,200)-20)/(Math.max(chartData.length,2)-1)+10} cy={90-((d.y/maxY)*80)} r="3" fill={C.blueXL}/>
-              ))}
+          <div style={{position:"relative",height:120,marginTop:8}}>
+            <svg width="100%" height="100%" viewBox={`0 0 400 120`} preserveAspectRatio="none">
+              <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={C.blueXL} stopOpacity="0.3"/><stop offset="100%" stopColor={C.blueXL} stopOpacity="0"/></linearGradient></defs>
+              {chartData.length>1&&<polygon points={[
+                ...chartData.map((d,i)=>`${i*(380)/(chartData.length-1)+10},${110-((d.y/maxY)*95)}`),
+                `${390},110`,`10,110`
+              ].join(" ")} fill="url(#cg)"/>}
+              <polyline points={chartData.map((d,i)=>`${chartData.length>1?i*(380)/(chartData.length-1)+10:200},${110-((d.y/maxY)*95)}`).join(" ")} fill="none" stroke={C.blueXL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              {chartData.map((d,i)=><circle key={i} cx={chartData.length>1?i*(380)/(chartData.length-1)+10:200} cy={110-((d.y/maxY)*95)} r="3" fill={C.blueXL}/>)}
             </svg>
           </div>
           <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
-            {chartData.length>0&&<span style={{fontSize:9,color:C.muted}}>{chartData[0].label}</span>}
-            {chartData.length>1&&<span style={{fontSize:9,color:C.muted}}>{chartData[chartData.length-1].label}</span>}
+            <span style={{fontSize:9,color:C.muted}}>{chartData[0]?.label}</span>
+            <span style={{fontSize:9,color:C.muted}}>{chartData[chartData.length-1]?.label}</span>
           </div>
         </div>}
 
-        {/* Exercises list */}
-        <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>Exercícios</div>
+        {/* Exercises list with series detail */}
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+          <div style={{fontSize:13,fontWeight:700,color:C.text}}>Exercícios</div>
+          <button style={{fontSize:12,fontWeight:700,color:C.blueXL,background:"none",border:"none",cursor:"pointer"}}>Editar Rotina</button>
+        </div>
+
         {plan.exercises.map((ex,i)=>{
           const hist=HIST[ex.name]||[];
           const lastSet=hist[hist.length-1];
-          const bestW=lastSet?Math.max(...lastSet.sets.map(s=>s.w||0)):0;
-          const lastSets=lastSet?.sets.length||ex.sets.length;
           const gc=GC[ex.group]||C.blueL;
+          const restMin=ex.rest>=60?Math.floor(ex.rest/60)+"min"+(ex.rest%60>0?" "+ex.rest%60+"s":""):ex.rest+"s";
           return(
-            <button key={i} onClick={()=>setSelEx(ex.name)} style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"12px 16px",marginBottom:8,cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:12}}>
-              <div style={{width:36,height:36,borderRadius:10,background:gc+"18",border:"1px solid "+gc+"33",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                <div style={{width:8,height:8,borderRadius:"50%",background:gc}}/>
+            <div key={i} style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,marginBottom:10,overflow:"hidden"}}>
+              {/* Exercise header */}
+              <button onClick={()=>setSelEx(ex.name)} style={{width:"100%",padding:"12px 16px",background:"none",border:"none",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:12}}>
+                <div style={{width:36,height:36,borderRadius:10,background:gc+"18",border:"1px solid "+gc+"33",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <div style={{width:8,height:8,borderRadius:"50%",background:gc}}/>
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:14,fontWeight:700,color:gc,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ex.name}</div>
+                </div>
+                <svg width="14" height="14" fill="none" stroke={C.muted} strokeWidth="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+              {/* Rest time */}
+              <div style={{padding:"0 16px 8px",display:"flex",alignItems:"center",gap:6}}>
+                <svg width="12" height="12" fill="none" stroke={C.blueXL} strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span style={{fontSize:11,color:C.blueXL}}>Descanso: {restMin}</span>
               </div>
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ex.name}</div>
-                <div style={{fontSize:11,color:C.sub}}>{lastSets} séries{bestW>0?" · "+bestW+"kg":""}</div>
+              {/* Series table */}
+              <div style={{borderTop:"1px solid "+C.border}}>
+                <div style={{display:"grid",gridTemplateColumns:"40px 1fr 1fr 1fr",padding:"6px 16px",borderBottom:"1px solid "+C.border}}>
+                  {["SÉRIE","KG","REPS",""].map((h,i)=><div key={i} style={{fontSize:9,fontWeight:700,color:C.muted,letterSpacing:"0.06em"}}>{h}</div>)}
+                </div>
+                {ex.sets.map((s,si)=>(
+                  <div key={si} style={{display:"grid",gridTemplateColumns:"40px 1fr 1fr 1fr",padding:"8px 16px",borderBottom:si<ex.sets.length-1?"1px solid "+C.border+"44":"none",alignItems:"center"}}>
+                    <div style={{fontSize:13,fontWeight:700,color:C.sub}}>{si+1}</div>
+                    <div style={{fontSize:13,color:C.text,fontWeight:600}}>{s.w>0?s.w:"—"}</div>
+                    <div style={{fontSize:13,color:C.text,fontWeight:600}}>{s.r}</div>
+                    <div/>
+                  </div>
+                ))}
               </div>
-              <svg width="14" height="14" fill="none" stroke={C.muted} strokeWidth="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
+            </div>
           );
         })}
       </div>
