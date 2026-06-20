@@ -22,14 +22,10 @@ const GC = {
 
 // Carbon geometric logo — wireframe stone SVG
 function CarbonLogo({size=32,color="#3B82F6",strokeWidth=1.2}){
+  // Use the actual stone wireframe image as the logo
   return(
-    <svg width={size} height={size} viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="24,4 40,14 40,34 24,44 8,34 8,14" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinejoin="round"/>
-      <polygon points="24,4 40,14 24,20 8,14" fill="none" stroke={color} strokeWidth={strokeWidth*0.7} strokeLinejoin="round" opacity="0.6"/>
-      <polygon points="8,14 24,20 24,44 8,34" fill="none" stroke={color} strokeWidth={strokeWidth*0.7} strokeLinejoin="round" opacity="0.4"/>
-      <polygon points="40,14 24,20 24,44 40,34" fill="none" stroke={color} strokeWidth={strokeWidth*0.7} strokeLinejoin="round" opacity="0.5"/>
-      <line x1="24" y1="4" x2="24" y2="20" stroke={color} strokeWidth={strokeWidth*0.5} opacity="0.35"/>
-    </svg>
+    <img src="/carbon-logo.jpg" alt="Carbon" width={size} height={size}
+      style={{objectFit:"contain",borderRadius:size*0.12,display:"block"}}/>
   );
 }
 const EX_GROUP = {
@@ -3279,11 +3275,11 @@ function LoginScreen(){
       <div style={{position:"relative",zIndex:1,width:"100%",maxWidth:340,display:"flex",flexDirection:"column",alignItems:"center"}}>
         {/* Logo */}
         <div style={{textAlign:"center",marginBottom:44}}>
-          <div style={{display:"flex",justifyContent:"center",marginBottom:16}}>
-            <CarbonLogo size={52} color="rgba(255,255,255,0.9)" strokeWidth={1.3}/>
+          <div style={{display:"flex",justifyContent:"center",marginBottom:14}}>
+            <CarbonLogo size={64} color="rgba(255,255,255,0.9)" strokeWidth={1.3}/>
           </div>
-          <div style={{fontSize:24,fontWeight:700,color:"#FFFFFF",letterSpacing:"0.26em",textTransform:"uppercase",textShadow:"0 2px 20px rgba(0,0,0,0.8)"}}>Carbon</div>
-          <div style={{fontSize:10,fontWeight:600,color:C.blueXL,letterSpacing:"0.24em",textTransform:"uppercase",marginTop:6,textShadow:"0 2px 12px rgba(0,0,0,0.9)"}}>Você no Shape</div>
+          <div style={{fontSize:16,fontWeight:700,color:"#FFFFFF",letterSpacing:"0.32em",textTransform:"uppercase",textShadow:"0 2px 20px rgba(0,0,0,0.8)"}}>Carbon</div>
+          <div style={{fontSize:9,fontWeight:600,color:C.blueXL,letterSpacing:"0.28em",textTransform:"uppercase",marginTop:5,textShadow:"0 2px 12px rgba(0,0,0,0.9)"}}>Você no Shape</div>
         </div>
 
         {/* Form */}
@@ -3342,7 +3338,7 @@ function CarbonIntro({onDone}){
         transform:visible?"translateY(0)":"translateY(12px)",
         transition:"transform 1.4s ease",
       }}>
-        <CarbonLogo size={52} color="#ffffff" strokeWidth={1.2}/>
+        <CarbonLogo size={72} color="#ffffff" strokeWidth={1.2}/>
         <div style={{
           fontSize:28,fontWeight:700,color:"#FFFFFF",
           letterSpacing:"0.28em",textTransform:"uppercase",
