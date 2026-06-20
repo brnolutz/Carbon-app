@@ -332,12 +332,15 @@ function GlassCard({children,style={},onClick}){
 // ── Global top bar — Carbon logo strip shown on every screen ──
 function GlobalHeader(){
   return(
-    <div style={{position:"fixed",top:0,left:0,right:0,zIndex:200,paddingTop:"env(safe-area-inset-top,44px)",background:"rgba(8,10,14,0.88)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
-      <div style={{padding:"8px 20px 10px",display:"flex",alignItems:"center",gap:8}}>
-        <CarbonLogo size={18} color={C.blueXL} strokeWidth={1.6}/>
-        <span style={{fontSize:12,fontWeight:700,letterSpacing:"0.2em",textTransform:"uppercase",color:"#FFFFFF"}}>Carbon</span>
+    <>
+      <style>{`:root{--gh:calc(56px + env(safe-area-inset-top,0px))}`}</style>
+      <div style={{position:"fixed",top:0,left:0,right:0,zIndex:300,paddingTop:"env(safe-area-inset-top,0px)",background:"rgba(8,10,14,0.88)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+        <div style={{padding:"10px 20px 10px",display:"flex",alignItems:"center",gap:8}}>
+          <CarbonLogo size={18} color={C.blueXL} strokeWidth={1.6}/>
+          <span style={{fontSize:12,fontWeight:700,letterSpacing:"0.2em",textTransform:"uppercase",color:"#FFFFFF"}}>Carbon</span>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -460,7 +463,7 @@ function WorkoutDetail({session,onClose}){
   const weekday=new Date(session.date+"T12:00:00").toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
   return(
     <div style={{position:"fixed",inset:0,zIndex:600,background:C.bg,overflowY:"auto"}}>
-      <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,padding:"80px 16px 14px"}}>
+      <div style={{position:"sticky",top:"var(--gh)",zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,padding:"14px 16px 14px"}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onClose} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
           <div style={{fontSize:16,fontWeight:700,color:C.text}}>Detalhe do Treino</div>
@@ -569,7 +572,7 @@ function ExerciciosBrowserScreen({onNavigate}){
   });
   return(
     <div style={{background:"#080A0E",minHeight:"100vh",paddingBottom:100}}>
-      <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,padding:"80px 16px 14px"}}>
+      <div style={{position:"sticky",top:"var(--gh)",zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,padding:"14px 16px 14px"}}>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
           <button onClick={()=>onNavigate("home")} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
           <div style={{fontSize:18,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Exercícios</div>
@@ -657,7 +660,7 @@ function HomeScreen({onNavigate,onStartWorkout}){
 
       {/* ── Header ── */}
       {/* ── Greeting ── */}
-      <div style={{padding:"80px 20px 0"}}>
+      <div style={{padding:"var(--gh) 20px 0"}}>
         <div style={{padding:"14px 0 0"}}>
         <div style={{fontSize:11,fontWeight:600,color:C.sub,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:2}}>{getGreeting()},</div>
         <div style={{fontSize:34,fontWeight:900,color:C.text,letterSpacing:"-1.5px",lineHeight:1}}>{USER.name}<span style={{color:C.blueXL}}>.</span></div>
@@ -979,7 +982,7 @@ function ExerciseGallery({onAdd,onClose}){
   const[selGroup,setSelGroup]=useState("Peito");
   return(
     <div style={{position:"fixed",inset:0,zIndex:500,background:"#000000EE",backdropFilter:"blur(12px)",display:"flex",flexDirection:"column"}}>
-      <div style={{padding:"80px 16px 16px",borderBottom:"1px solid "+C.border,background:C.surface}}>
+      <div style={{padding:"var(--gh) 16px 16px",borderBottom:"1px solid "+C.border,background:C.surface}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
           <div style={{fontSize:20,fontWeight:800,color:C.text}}>Adicionar exercício</div>
           <button onClick={onClose} style={{width:34,height:34,borderRadius:99,background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
@@ -1136,7 +1139,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
   if(finishedSession){
     const s=finishedSession;
     return(
-      <div style={{background:"#080A0E",minHeight:"100dvh",padding:"80px 20px 120px"}}>
+      <div style={{background:"#080A0E",minHeight:"100dvh",padding:"var(--gh) 20px 120px"}}>
         <div style={{textAlign:"center",marginBottom:28}}>
           <div style={{fontSize:56,marginBottom:10}}>🏆</div>
           <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-1px",marginBottom:4}}>Treino salvo!</div>
@@ -1190,7 +1193,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
     const estimateDur=(p)=>Math.round(p.exercises.reduce((t,e)=>t+e.sets.length*(1.5+(e.rest||90)/60),0));
     return(
       <div style={{background:"#080A0E",minHeight:"100dvh",position:"relative"}}>
-        <div style={{padding:"80px 20px 8px"}}>
+        <div style={{padding:"var(--gh) 20px 8px"}}>
           <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>
             {isActive?"Treino Ativo":"Meus Treinos"}
           </div>
@@ -1325,7 +1328,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
       handleEnd();
     }
     return(
-      <div style={{background:"#080A0E",minHeight:"100dvh",padding:"80px 20px 120px"}}>
+      <div style={{background:"#080A0E",minHeight:"100dvh",padding:"var(--gh) 20px 120px"}}>
         <div style={{textAlign:"center",marginBottom:32}}>
           <div style={{fontSize:52,marginBottom:12}}>🏋️</div>
           <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-1px",marginBottom:4}}>Treino concluído!</div>
@@ -1398,7 +1401,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
 @keyframes prFlash{0%{transform:scale(1);box-shadow:0 0 0 0 #F59E0B00}20%{transform:scale(1.04);box-shadow:0 0 32px 6px #F59E0BCC}100%{transform:scale(1);box-shadow:0 0 12px 2px #F59E0B44}}
 @keyframes prTextBounce{0%{opacity:0;transform:scale(0.8)}60%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
       `}</style>
-      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,padding:"80px 16px 10px"}}>
+      <div style={{position:"sticky",top:"var(--gh)",zIndex:50,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,padding:"14px 16px 10px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
           <button onClick={()=>{setScreen("plans");onMinimize&&onMinimize();}} style={{width:30,height:30,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="#6B7FA3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -1536,7 +1539,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
       )}
       {showReorder&&(
         <div style={{position:"fixed",inset:0,zIndex:500,background:C.bg,display:"flex",flexDirection:"column"}}>
-          <div style={{background:C.surface,padding:"80px 20px 16px",borderBottom:"1px solid "+C.border,textAlign:"center"}}><div style={{fontSize:17,fontWeight:700,color:C.text}}>Reordenar</div></div>
+          <div style={{background:C.surface,padding:"var(--gh) 20px 16px",borderBottom:"1px solid "+C.border,textAlign:"center"}}><div style={{fontSize:17,fontWeight:700,color:C.text}}>Reordenar</div></div>
           <div style={{flex:1,overflow:"auto",padding:"8px 0"}}>
             {reorderList.map((exItem,i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 20px",borderBottom:"1px solid "+C.border+"44"}}>
@@ -1601,8 +1604,8 @@ function ExercicioScreen({name,onNavigate}){
 
   return(
     <div style={{background:"#080A0E",minHeight:"100dvh",display:"flex",flexDirection:"column",paddingBottom:100}}>
-      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border}}>
-        <div style={{padding:"80px 16px 0"}}>
+      <div style={{position:"sticky",top:"var(--gh)",zIndex:50,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border}}>
+        <div style={{padding:"var(--gh) 16px 0"}}>
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:4}}>
             <button onClick={()=>onNavigate("treino")} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
             <div>
@@ -1714,7 +1717,7 @@ function HistoricoScreen({onNavigate}){
 
   return(
     <div style={{background:"#080A0E",minHeight:"100dvh"}}>
-      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid "+C.border,padding:"80px 16px 14px"}}>
+      <div style={{position:"sticky",top:"var(--gh)",zIndex:50,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid "+C.border,padding:"14px 16px 14px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:14}}>
           <div style={{fontSize:28,fontWeight:900,color:"#FFFFFF",letterSpacing:"-0.5px"}}>Histórico</div>
           <div style={{textAlign:"right"}}>
@@ -1819,7 +1822,7 @@ function MuscleDetailScreen({muscles,onBack,onNavigate}){
   const maxVol=Math.max(...Object.values(muscleVol).map(v=>v.vol),1);
 
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh",padding:"80px 20px 120px"}}>
+    <div style={{background:"#080A0E",minHeight:"100dvh",padding:"var(--gh) 20px 120px"}}>
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
         <button onClick={onBack} style={{width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:C.text,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
         <div style={{fontSize:18,fontWeight:800,color:C.text}}>Distribuição Muscular</div>
@@ -1922,7 +1925,7 @@ function ProgressDetailScreen({onBack,onNavigate}){
   const maxY=Math.max(...weekData.map(w=>w[mode]||0),0.01);
   const avgPerWeekVal=weekData.length>0?(totals[mode]/weekData.length):0;
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh",padding:"80px 20px 140px"}}>
+    <div style={{background:"#080A0E",minHeight:"100dvh",padding:"var(--gh) 20px 140px"}}>
       {/* Header */}
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
         <button onClick={onBack} style={{width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:C.text,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
@@ -2130,7 +2133,7 @@ function StrengthDetailScreen({onBack}){
   const exDelta=exPrev>0?Math.round((exLast-exPrev)/exPrev*100):0;
 
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh",padding:"80px 20px 140px"}}>
+    <div style={{background:"#080A0E",minHeight:"100dvh",padding:"var(--gh) 20px 140px"}}>
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
         <button onClick={onBack} style={{width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:C.text,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
         <div>
@@ -2350,7 +2353,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
     for(let i=0;i<firstDay;i++) cells.push(null);
     for(let d=1;d<=daysInMonth;d++) cells.push(d);
     return(
-      <div style={{background:"#080A0E",minHeight:"100dvh",padding:"80px 20px 120px"}}>
+      <div style={{background:"#080A0E",minHeight:"100dvh",padding:"var(--gh) 20px 120px"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24}}>
           <button onClick={()=>setShowCalendar(false)} style={{width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:C.text,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
           <div style={{fontSize:18,fontWeight:800,color:C.text}}>Calendário</div>
@@ -2403,7 +2406,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   return(
     <div style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingBottom:120}}>
       <style>{`.prog-bar{transition:height 0.4s ease;}`}</style>
-      <div style={{padding:"80px 20px 0",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+      <div style={{padding:"var(--gh) 20px 0",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
         <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Meu Progresso</div>
         <button onClick={()=>setShowCalendar(true)} style={{width:32,height:32,borderRadius:10,background:C.card,border:"1px solid "+C.border,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="3" stroke={C.sub} strokeWidth="1.8"/><path d="M3 9h18M8 2v4M16 2v4" stroke={C.sub} strokeWidth="1.8" strokeLinecap="round"/></svg>
@@ -2749,7 +2752,7 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
 
   return(
     <div style={{background:"#080A0E",minHeight:"100vh",paddingBottom:120}}>
-      <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid "+C.border,padding:"80px 20px 14px"}}>
+      <div style={{position:"sticky",top:"var(--gh)",zIndex:10,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid "+C.border,padding:"14px 20px 14px"}}>
         <div style={{fontSize:24,fontWeight:900,color:"#FFFFFF",letterSpacing:"-0.5px"}}>Meu Corpo</div>
       </div>
       <div style={{padding:"12px 16px 0"}}>
@@ -3044,11 +3047,11 @@ ${ctx}
   const showChips=messages.length===1&&!loading;
 
   return(
-    <div style={{display:"flex",flexDirection:"column",height:"100dvh",background:"#080A0E"}}>
+    <div style={{display:"flex",flexDirection:"column",height:"100dvh",paddingTop:"var(--gh)",background:"#080A0E"}}>
       <style>{`@keyframes fgpulse{0%,100%{opacity:0.3;transform:scale(0.75)}50%{opacity:1;transform:scale(1)}}`}</style>
 
       {/* Header */}
-      <div style={{flexShrink:0,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid "+C.border,padding:"80px 20px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+      <div style={{flexShrink:0,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid "+C.border,padding:"14px 20px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <div>
           <div style={{fontSize:22,fontWeight:900,color:"#FFFFFF",letterSpacing:"-0.5px",lineHeight:1}}>AI Coach</div>
           <div style={{fontSize:10,fontWeight:600,color:C.blueXL,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Powered by Claude</div>
