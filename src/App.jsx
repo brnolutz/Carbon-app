@@ -23,13 +23,8 @@ const GC = {
 // Carbon geometric logo — wireframe stone SVG
 function CarbonLogo({size=32,color="#3B82F6",strokeWidth=1.2}){
   return(
-    <img src="/carbon-logo.jpg" alt="Carbon" width={size} height={size}
-      style={{
-        objectFit:"contain",
-        display:"block",
-        mixBlendMode:"screen",
-        // screen mode: pure black = transparent, white lines = white → blends naturally on any dark bg
-      }}/>
+    <img src="/carbon-logo.png" alt="Carbon" width={size} height={size}
+      style={{objectFit:"contain",display:"block"}}/>
   );
 }
 const EX_GROUP = {
@@ -330,11 +325,11 @@ function buildSets(plan){
 // ─── BOTTOM NAV ──────────────────────────────────────────────
 function BottomNav({active,onNavigate}){
   const tabs=[
-    {k:"home",     l:"Home",      i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/></svg>},
-    {k:"treino",   l:"Treino",    i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>},
-    {k:"progresso",l:"Progresso", i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>},
-    {k:"corpo",    l:"Corpo",     i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>},
-    {k:"coach",    l:"Coach",     i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>},
+    {k:"home",     l:"Home",      i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1H15v-5h-6v5H5a1 1 0 0 1-1-1z" strokeLinejoin="round"/></svg>},
+    {k:"treino",   l:"Treino",    i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>},
+    {k:"progresso",l:"Progresso", i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><line x1="5" y1="19" x2="19" y2="5"/><polyline points="9 5 19 5 19 15"/></svg>},
+    {k:"corpo",    l:"Corpo",     i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>},
+    {k:"coach",    l:"Coach",     i:<svg width="18" height="18" fill="currentColor" stroke="none" viewBox="0 0 24 24"><path d="M12 2l1.2 7.8L21 12l-7.8 1.2L12 21l-1.2-7.8L3 12l7.8-1.2z"/></svg>},
   ];
   return(
     <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,paddingBottom:"env(safe-area-inset-bottom,8px)",paddingLeft:12,paddingRight:12}}>
