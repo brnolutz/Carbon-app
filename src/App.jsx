@@ -338,7 +338,7 @@ function BottomNav({active,onNavigate}){
   ];
   return(
     <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,paddingBottom:"env(safe-area-inset-bottom,8px)",paddingLeft:12,paddingRight:12}}>
-      <div style={{background:"rgba(8,10,14,0.94)",backdropFilter:"blur(32px)",WebkitBackdropFilter:"blur(32px)",borderRadius:36,border:"1px solid rgba(255,255,255,0.07)",boxShadow:"0 8px 40px rgba(0,0,0,0.5)",display:"flex",justifyContent:"space-around",alignItems:"center",padding:"6px 8px 8px",marginBottom:8}}>
+      <div style={{background:"rgba(6,7,10,0.75)",backdropFilter:"blur(40px)",WebkitBackdropFilter:"blur(40px)",borderRadius:36,border:"1px solid rgba(255,255,255,0.05)",boxShadow:"0 8px 32px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.04)",display:"flex",justifyContent:"space-around",alignItems:"center",padding:"6px 8px 8px",marginBottom:8}}>
         {tabs.map(tab=>{
           const isActive=tab.k===active;
           return(
@@ -903,29 +903,65 @@ function RestTimer({seconds,onDone,onSkip}){
   );
 }
 
+function WarmupSection({exWarm,exIdx,updateSet,markDone}){
+  const[open,setOpen]=useState(false);
+  const doneCnt=exWarm.filter(s=>s.done).length;
+  return(
+    <div style={{padding:"0 12px 6px"}}>
+      <button onClick={()=>setOpen(o=>!o)} style={{width:"100%",background:"none",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,padding:"7px 12px",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer",marginBottom:open?8:0}}>
+        <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:C.amber}}>Aquecimento {doneCnt>0?`${doneCnt}/${exWarm.length} ✓`:""}</span>
+        <span style={{color:C.muted,fontSize:11,transform:open?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
+      </button>
+      {open&&exWarm.map((set,wi)=>(
+        <div key={wi} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 0",borderBottom:"1px solid rgba(255,255,255,0.04)",opacity:set.done?0.5:1}}>
+          <div style={{width:22,height:22,borderRadius:6,background:C.amber+"18",border:"1px solid "+C.amber+"33",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:800,color:C.amber,flexShrink:0}}>W{wi+1}</div>
+          <SmartInput value={set.w} onChange={v=>updateSet(exIdx,wi,"w",v)} readOnly={set.done} unit="kg" color={C.amber}/>
+          <span style={{color:C.muted,fontSize:11}}>×</span>
+          <SmartInput value={set.r} onChange={v=>updateSet(exIdx,wi,"r",v)} readOnly={set.done} unit="reps" integer color={C.amber}/>
+          <button onClick={()=>markDone(wi,exIdx)} style={{width:30,height:30,borderRadius:7,flexShrink:0,background:set.done?C.amber+"22":"rgba(255,255,255,0.03)",border:"1px solid "+(set.done?C.amber+"44":"rgba(255,255,255,0.08)"),color:set.done?C.amber:C.muted,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>{set.done?"✓":"○"}</button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function ExerciseHistory({exName,currentSets}){
+  const[open,setOpen]=useState(false);
   const hist=getHistory(exName);
   const bestEver=getBestORM(exName);const bestEverW=getBestW(exName);
-  if(!hist.length)return(<div style={{background:C.surface,border:"1px solid "+C.border,borderRadius:12,padding:"12px 14px",marginBottom:16}}><div style={{fontSize:11,color:C.muted,fontWeight:600}}>Primeira vez neste exercício 🎯</div></div>);
   let currentBest=0;
   currentSets.forEach(s=>{if(s.w>0&&s.r>0){const v=orm(s.w,s.r);if(v>currentBest)currentBest=v;}});
   const currentMaxW=currentSets.filter(s=>s.w>0).reduce((a,s)=>Math.max(a,s.w),0);
   const isPR=(currentBest>bestEver&&currentBest>0)||(currentMaxW>bestEverW&&currentMaxW>0);
+  const lastSession=hist[0];
+  const lastStr=lastSession?`${lastSession.sets[0]?.w}kg × ${lastSession.sets[0]?.r} · ${fmtDate(lastSession.d)}`:"Primeira vez";
   return(
-    <div style={{background:C.surface,border:"1px solid "+(isPR?C.amber+"88":C.border),borderRadius:14,padding:"14px",marginBottom:16,transition:"border-color 0.3s"}}>
-      <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:C.sub,marginBottom:10}}>Histórico recente</div>
-      {hist.map((session,i)=>{
-        const bestSet=session.sets.reduce((a,b)=>orm(b.w,b.r)>orm(a.w,a.r)?b:a,session.sets[0]);
-        const avgRpe=session.sets.filter(s=>s.rpe).length>0?(session.sets.filter(s=>s.rpe).reduce((s,s2)=>s+s2.rpe,0)/session.sets.filter(s=>s.rpe).length).toFixed(1):null;
-        const rpeColor=avgRpe?(avgRpe<=7?C.mint:avgRpe<=8.5?C.amber:C.coral):null;
-        return(<div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:i<hist.length-1?"1px solid "+C.border+"88":"none"}}>
-          <div style={{width:6,height:6,borderRadius:"50%",background:i===0?C.blueXL:C.muted,flexShrink:0}}/>
-          <div style={{fontSize:11,color:C.sub,width:60,flexShrink:0}}>{fmtDate(session.d)}</div>
-          <div style={{flex:1}}><span style={{fontSize:13,fontWeight:700,color:i===0?C.text:C.sub}}>{bestSet.w}kg × {bestSet.r}</span><span style={{fontSize:11,color:C.muted,marginLeft:6}}>{session.sets.length} séries</span></div>
-          {avgRpe&&<div style={{fontSize:11,fontWeight:700,color:rpeColor,flexShrink:0}}>RPE {avgRpe}</div>}
-        </div>);
-      })}
-      {bestEver>0&&!isPR&&<div style={{marginTop:8,paddingTop:8,borderTop:"1px solid "+C.border+"44",fontSize:11,color:C.muted}}>Recorde: <span style={{color:C.text,fontWeight:700}}>{bestEver}kg 1RM</span></div>}
+    <div style={{marginBottom:12}}>
+      <button onClick={()=>setOpen(o=>!o)} style={{width:"100%",background:"rgba(255,255,255,0.03)",border:"1px solid "+(isPR?C.amber+"55":"rgba(255,255,255,0.06)"),borderRadius:12,padding:"10px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:isPR?C.amber:C.muted}}>{isPR?"🏆 Novo PR":"Histórico"}</span>
+          {!open&&lastSession&&<span style={{fontSize:11,color:C.sub}}>{lastStr}</span>}
+        </div>
+        <span style={{color:C.muted,fontSize:12,transform:open?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
+      </button>
+      {open&&(
+        <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:"0 0 12px 12px",borderTop:"none",padding:"10px 14px"}}>
+          {!hist.length?<div style={{fontSize:11,color:C.muted}}>Primeira vez neste exercício 🎯</div>:
+            hist.map((session,i)=>{
+              const bestSet=session.sets.reduce((a,b)=>orm(b.w,b.r)>orm(a.w,a.r)?b:a,session.sets[0]);
+              const avgRpe=session.sets.filter(s=>s.rpe).length>0?(session.sets.filter(s=>s.rpe).reduce((s,s2)=>s+s2.rpe,0)/session.sets.filter(s=>s.rpe).length).toFixed(1):null;
+              const rpeColor=avgRpe?(avgRpe<=7?C.mint:avgRpe<=8.5?C.amber:C.coral):null;
+              return(<div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"7px 0",borderBottom:i<hist.length-1?"1px solid rgba(255,255,255,0.04)":"none"}}>
+                <div style={{width:5,height:5,borderRadius:"50%",background:i===0?C.blueXL:C.muted,flexShrink:0}}/>
+                <div style={{fontSize:11,color:C.sub,width:56,flexShrink:0}}>{fmtDate(session.d)}</div>
+                <div style={{flex:1}}><span style={{fontSize:13,fontWeight:700,color:i===0?C.text:C.sub}}>{bestSet.w}kg × {bestSet.r}</span><span style={{fontSize:11,color:C.muted,marginLeft:6}}>{session.sets.length} s</span></div>
+                {avgRpe&&<div style={{fontSize:11,fontWeight:700,color:rpeColor}}>RPE {avgRpe}</div>}
+              </div>);
+            })
+          }
+          {bestEver>0&&!isPR&&<div style={{marginTop:8,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.04)",fontSize:11,color:C.muted}}>Recorde: <span style={{color:C.text,fontWeight:700}}>{bestEver}kg 1RM</span></div>}
+        </div>
+      )}
     </div>
   );
 }
@@ -963,7 +999,7 @@ function SmartInput({value,onChange,readOnly,unit,integer,color,compact}){
   const display=focused?draft:String(value||"");
   const pad=compact?"3px":"4px";
   return(
-    <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:compact?7:8,padding:pad,textAlign:"center",flex:1}}>
+    <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:compact?7:8,padding:pad,textAlign:"center",flex:1}}>
       <input
         type="number"
         value={display}
@@ -1405,12 +1441,12 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
           const exVol=exWork.filter(s=>s.done).reduce((s,set)=>s+set.w*set.r,0);
           const exDone=exWork.filter(s=>s.done).length;
           return(
-            <div key={exIdx} style={{marginBottom:12,background:C.card,border:"1px solid "+(allDone?C.mint+"55":C.border),borderRadius:14,overflow:"hidden",transition:"border-color 0.3s"}}>
-              <div style={{padding:"10px 12px 8px",borderBottom:"1px solid "+C.border+"55",background:allDone?C.mint+"08":"transparent"}}>
+            <div key={exIdx} style={{marginBottom:10,background:"rgba(255,255,255,0.025)",border:"1px solid "+(allDone?"rgba(16,185,129,0.3)":"rgba(255,255,255,0.06)"),borderRadius:16,overflow:"hidden",transition:"border-color 0.3s"}}>
+              <div style={{padding:"12px 14px 10px",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                   <div style={{display:"flex",alignItems:"center",gap:6,flex:1,minWidth:0}}>
                     <div style={{width:7,height:7,borderRadius:"50%",background:GC[exItem.group]||C.blueL,flexShrink:0}}/>
-                    <div style={{fontSize:14,fontWeight:800,color:allDone?C.mint:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{exItem.name}</div>
+                    <div style={{fontSize:15,fontWeight:800,color:allDone?C.mint:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{exItem.name}</div>
                     {allDone&&<span style={{color:C.mint,fontSize:11,flexShrink:0}}>✓</span>}
                   </div>
                   <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
@@ -1419,23 +1455,12 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
                     <button onClick={()=>{setCurrentEx(exIdx);setShowExMenu(true);}} style={{width:24,height:24,borderRadius:99,background:"none",border:"none",color:C.sub,fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>⋯</button>
                   </div>
                 </div>
-                <button onClick={()=>setRestPickerEi(exIdx)} style={{display:"flex",alignItems:"center",gap:4,background:"none",border:"none",padding:0,paddingLeft:13,marginTop:2,cursor:"pointer"}}><span style={{fontSize:10,color:C.sub}}>Descanso: {exItem.rest==null?"Desativado":(exItem.rest>=60?Math.floor(exItem.rest/60)+"min"+(exItem.rest%60>0?" "+exItem.rest%60+"s":""):exItem.rest+"s")}</span><span style={{fontSize:9,color:C.muted}}>✎</span></button>
+                <button onClick={()=>setRestPickerEi(exIdx)} style={{display:"flex",alignItems:"center",gap:4,background:"none",border:"none",padding:0,paddingLeft:13,marginTop:2,cursor:"pointer"}}><span style={{fontSize:10,color:C.muted}}>Descanso: {exItem.rest==null?"Desativado":(exItem.rest>=60?Math.floor(exItem.rest/60)+"min"+(exItem.rest%60>0?" "+exItem.rest%60+"s":""):exItem.rest+"s")}</span><span style={{fontSize:9,color:C.muted,marginLeft:2}}>✎</span></button>
               </div>
-              <div style={{padding:"6px 12px 0"}}><ExerciseHistory exName={exItem.name} currentSets={exWork}/></div>
-              {exWarm.length>0&&<div style={{padding:"0 12px 6px"}}>
-                <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:C.amber,marginBottom:4}}>Aquecimento</div>
-                {exWarm.map((set,wi)=>(
-                  <div key={wi} style={{display:"flex",alignItems:"center",gap:6,padding:"5px 0",borderBottom:"1px solid "+C.border+"33",background:set.done?C.mint+"0A":"transparent",borderRadius:6,opacity:set.done?0.6:1}}>
-                    <div style={{width:22,height:22,borderRadius:6,background:C.amber+"22",border:"1px solid "+C.amber+"44",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,fontWeight:800,color:C.amber,flexShrink:0}}>W{wi+1}</div>
-                    <SmartInput value={set.w} onChange={v=>updateSet(exIdx,wi,"w",v)} readOnly={set.done} unit="kg" color={C.amber}/>
-                    <span style={{color:C.muted,fontSize:11}}>×</span>
-                    <SmartInput value={set.r} onChange={v=>updateSet(exIdx,wi,"r",v)} readOnly={set.done} unit="reps" integer color={C.amber}/>
-                    <button onClick={()=>markDone(wi,exIdx)} style={{width:30,height:30,borderRadius:7,flexShrink:0,background:set.done?C.amber+"33":C.surface,border:"1px solid "+(set.done?C.amber:C.border),color:set.done?C.amber:C.muted,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>{set.done?"✓":"○"}</button>
-                  </div>
-                ))}
-              </div>}
+              <div style={{padding:"8px 12px 0"}}><ExerciseHistory exName={exItem.name} currentSets={exWork}/></div>
+              {exWarm.length>0&&<WarmupSection exWarm={exWarm} exIdx={exIdx} updateSet={updateSet} markDone={markDone}/>}
               <div style={{padding:"6px 12px 0"}}>
-                <div style={{display:"grid",gridTemplateColumns:"24px 1fr 1fr 1fr 34px 34px",gap:3,marginBottom:4,paddingBottom:3,borderBottom:"1px solid "+C.border+"33"}}>
+                <div style={{display:"grid",gridTemplateColumns:"24px 1fr 1fr 1fr 34px 34px",gap:3,marginBottom:4,paddingBottom:3,borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
                   {["#","Ant.","KG","Reps","RPE",""].map((h,i)=><div key={i} style={{fontSize:8,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:C.muted,textAlign:"center"}}>{h}</div>)}
                 </div>
                 {exWork.map((set,wi)=>{
