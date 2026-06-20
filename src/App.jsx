@@ -2764,7 +2764,7 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
         </div>
 
         {/* ── MAPA MUSCULAR ── */}
-        <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:20,padding:16,marginBottom:14}}>
+        <div style={{background:"#000",border:"1px solid #0D1017",borderRadius:20,padding:16,marginBottom:14}}>
           <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Mapa Muscular</div>
           <BodyDiagram muscleHeat={muscleHeat} width={Math.min(320,window.innerWidth-64)}/>
           <div style={{display:"flex",justifyContent:"center",gap:16,marginTop:10}}>
