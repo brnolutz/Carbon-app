@@ -806,22 +806,30 @@ function HomeScreen({onNavigate,onStartWorkout}){
 // ── Routine Screen — shown when tapping a plan card ──
 function RoutineScreen({plan,onClose,onStart,onNavigate}){
   const[chartMode,setChartMode]=useState("vol");
+  const[chartRange,setChartRange]=useState("3m");
   const[selEx,setSelEx]=useState(null);
 
-  const sessions=useMemo(()=>{
+  const allSessions=useMemo(()=>{
     return loadSavedSessions()
       .filter(s=>s.name&&s.name.toLowerCase().includes(plan.label.toLowerCase()))
       .sort((a,b)=>a.date.localeCompare(b.date));
   },[plan]);
+
+  const nPts={all:allSessions.length,"1a":12,"3m":6,"1m":4}[chartRange]||6;
+  const sessions=allSessions.slice(-nPts);
 
   const chartData=sessions.map(s=>({
     label:new Date(s.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}),
     y:chartMode==="vol"?(s.totalVol||0):chartMode==="sets"?(s.totalSets||0):(s.duration||0)
   }));
   const maxY=Math.max(...chartData.map(d=>d.y),0.01);
-  const lastSession=sessions[sessions.length-1];
+  const minY=Math.min(...chartData.map(d=>d.y),0);
+  const lastSession=allSessions[allSessions.length-1];
+  const W=400,H=140,PAD=10;
+  const px2=(i)=>chartData.length>1?i*(W-PAD*2)/(chartData.length-1)+PAD:W/2;
+  const py2=(v)=>H-PAD-((v-minY)/(maxY-minY||1))*(H-PAD*2);
 
-  if(selEx) return <ExercicioScreen name={selEx} onNavigate={(dest)=>{if(dest==="treino")setSelEx(null);else onNavigate(dest);}}/>;
+  if(selEx) return <ExercicioScreen name={selEx} onBack={()=>setSelEx(null)} onNavigate={onNavigate}/>;
 
   return(
     <div style={{position:"fixed",inset:0,zIndex:700,background:"#080A0E",overflowY:"auto",paddingTop:52}}>
@@ -848,33 +856,45 @@ function RoutineScreen({plan,onClose,onStart,onNavigate}){
           Iniciar Rotina
         </button>
 
-        {/* Volume chart */}
         {chartData.length>0&&<div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:20}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
             <div>
               <div style={{fontSize:22,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{chartData[chartData.length-1]?.y.toFixed(chartMode==="vol"?1:0)}{chartMode==="vol"?"t":chartMode==="sets"?" séries":" min"}</div>
               {lastSession&&<div style={{fontSize:10,color:C.blueXL,marginTop:2}}>{new Date(lastSession.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"numeric",month:"short"})}</div>}
             </div>
-            <div style={{display:"flex",gap:5}}>
-              {[{k:"vol",l:"Volume"},{k:"sets",l:"Repetições"},{k:"dur",l:"Duração"}].map(m=>(
-                <button key={m.k} onClick={()=>setChartMode(m.k)} style={{padding:"4px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:chartMode===m.k?C.blueXL:C.surface,border:"1px solid "+(chartMode===m.k?C.blueXL:C.border),color:chartMode===m.k?"#fff":C.sub}}>{m.l}</button>
+            <div style={{display:"flex",gap:4}}>
+              {["1m","3m","1a","all"].map(r=>(
+                <button key={r} onClick={()=>setChartRange(r)} style={{padding:"4px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:chartRange===r?C.blueXL:"none",border:"1px solid "+(chartRange===r?C.blueXL:C.border),color:chartRange===r?"#fff":C.sub}}>{r==="all"?"Tudo":r==="1a"?"Ano":r==="3m"?"3M":"1M"}</button>
               ))}
             </div>
           </div>
-          <div style={{position:"relative",height:120,marginTop:8}}>
-            <svg width="100%" height="100%" viewBox={`0 0 400 120`} preserveAspectRatio="none">
-              <defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={C.blueXL} stopOpacity="0.3"/><stop offset="100%" stopColor={C.blueXL} stopOpacity="0"/></linearGradient></defs>
-              {chartData.length>1&&<polygon points={[
-                ...chartData.map((d,i)=>`${i*(380)/(chartData.length-1)+10},${110-((d.y/maxY)*95)}`),
-                `${390},110`,`10,110`
-              ].join(" ")} fill="url(#cg)"/>}
-              <polyline points={chartData.map((d,i)=>`${chartData.length>1?i*(380)/(chartData.length-1)+10:200},${110-((d.y/maxY)*95)}`).join(" ")} fill="none" stroke={C.blueXL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              {chartData.map((d,i)=><circle key={i} cx={chartData.length>1?i*(380)/(chartData.length-1)+10:200} cy={110-((d.y/maxY)*95)} r="3" fill={C.blueXL}/>)}
-            </svg>
+          <div style={{display:"flex",gap:5,marginBottom:10}}>
+            {[{k:"vol",l:"Volume"},{k:"sets",l:"Repetições"},{k:"dur",l:"Duração"}].map(m=>(
+              <button key={m.k} onClick={()=>setChartMode(m.k)} style={{padding:"4px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:chartMode===m.k?C.blueXL:"none",border:"1px solid "+(chartMode===m.k?C.blueXL:C.border),color:chartMode===m.k?"#fff":C.sub}}>{m.l}</button>
+            ))}
           </div>
-          <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
-            <span style={{fontSize:9,color:C.muted}}>{chartData[0]?.label}</span>
-            <span style={{fontSize:9,color:C.muted}}>{chartData[chartData.length-1]?.label}</span>
+          <div style={{position:"relative"}}>
+            <div style={{position:"absolute",left:0,top:0,bottom:20,width:36,display:"flex",flexDirection:"column",justifyContent:"space-between",pointerEvents:"none"}}>
+              {[maxY,Math.round((maxY+minY)/2),minY].map((v,i)=><span key={i} style={{fontSize:8,color:C.muted,lineHeight:1}}>{chartMode==="vol"?v.toFixed(1)+"t":v}{chartMode==="sets"?" s":chartMode==="dur"?"m":""}</span>)}
+            </div>
+            <div style={{marginLeft:40}}>
+              <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{overflow:"visible"}}>
+                <defs><linearGradient id="rg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={C.blueXL} stopOpacity="0.3"/><stop offset="100%" stopColor={C.blueXL} stopOpacity="0"/></linearGradient></defs>
+                {[0,0.5,1].map((f,i)=><line key={i} x1={PAD} y1={PAD+(H-PAD*2)*f} x2={W-PAD} y2={PAD+(H-PAD*2)*f} stroke={C.border} strokeWidth="1" strokeDasharray="4,4"/>)}
+                {chartData.length>1&&<polygon points={[...chartData.map((d,i)=>`${px2(i)},${py2(d.y)}`),`${px2(chartData.length-1)},${H-PAD}`,`${px2(0)},${H-PAD}`].join(" ")} fill="url(#rg)"/>}
+                <polyline points={chartData.map((d,i)=>`${px2(i)},${py2(d.y)}`).join(" ")} fill="none" stroke={C.blueXL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                {chartData.map((d,i)=>(
+                  <g key={i}>
+                    <circle cx={px2(i)} cy={py2(d.y)} r="4" fill={C.blueXL} stroke={C.bg} strokeWidth="2"/>
+                    <text x={px2(i)} y={py2(d.y)-8} textAnchor="middle" fontSize="9" fill={C.sub}>{chartMode==="vol"?d.y.toFixed(1)+"t":d.y}</text>
+                  </g>
+                ))}
+              </svg>
+              <div style={{display:"flex",justifyContent:"space-between",marginTop:2}}>
+                <span style={{fontSize:9,color:C.muted}}>{chartData[0]?.label}</span>
+                <span style={{fontSize:9,color:C.muted}}>{chartData[chartData.length-1]?.label}</span>
+              </div>
+            </div>
           </div>
         </div>}
 
@@ -1692,9 +1712,10 @@ const EXERCISES_INFO = {
   "Barra Fixa":{group:"Costas",secondary:["Bíceps"],type:"Composto",equipment:"Barra Fixa",muscles:["Latíssimo do dorso","Romboides","Bíceps braquial"],instructions:["Pegada supinada ou pronada, ligeiramente mais larga que ombros.","Retraia as escápulas antes de puxar.","Puxe o queixo acima da barra contraindo o dorsal.","Desça controlado até extensão completa."],tips:"Pense em trazer os cotovelos para os bolsos."},
 };
 
-function ExercicioScreen({name,onNavigate}){
+function ExercicioScreen({name,onNavigate,onBack}){
   const[tab,setTab]=useState("resumo");
   const[chartMode,setChartMode]=useState("carga");
+  const[chartRange,setChartRange]=useState("3m");
   const exName=name||"Supino (Barra)";
   const info=EXERCISES_INFO[exName]||EXERCISES_INFO["Supino (Barra)"];
   const gc=GC[info.group]||C.blueL;
@@ -1702,20 +1723,33 @@ function ExercicioScreen({name,onNavigate}){
   const allSets=hist.flatMap(s=>s.sets);
   const bestW=allSets.reduce((a,s)=>Math.max(a,s.w||0),0);
   const bestORM=allSets.reduce((a,s)=>s.w>0&&s.r>0?Math.max(a,orm(s.w,s.r)):a,0);
+
+  const nPoints={all:hist.length,"1a":12,"3m":6,"1m":4}[chartRange]||6;
+  const filteredHist=hist.slice(-nPoints);
+
   const chartData=useMemo(()=>{
-    if(!hist.length)return[];
-    return hist.map(s=>({x:s.d,y:chartMode==="carga"?Math.max(...s.sets.map(ss=>ss.w||0)):Math.max(...s.sets.map(ss=>ss.w>0&&ss.r>0?orm(ss.w,ss.r):0))}));
-  },[hist,chartMode]);
+    if(!filteredHist.length)return[];
+    return filteredHist.map(s=>({x:s.d,y:chartMode==="carga"?Math.max(...s.sets.map(ss=>ss.w||0)):Math.max(...s.sets.map(ss=>ss.w>0&&ss.r>0?orm(ss.w,ss.r):0))}));
+  },[filteredHist,chartMode]);
+
+  const maxY=Math.max(...chartData.map(d=>d.y),0.01);
+  const minY=Math.min(...chartData.map(d=>d.y),0);
+  const W=400,H=140,PAD=10;
+
+  const px=(i)=>chartData.length>1?i*(W-PAD*2)/(chartData.length-1)+PAD:W/2;
+  const py=(v)=>H-PAD-((v-minY)/(maxY-minY||1))*(H-PAD*2);
+
+  const goBack=()=>{if(onBack)onBack();else onNavigate("treino");};
 
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh",display:"flex",flexDirection:"column",paddingBottom:100}}>
-      <div style={{position:"sticky",top:52,zIndex:50,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border}}>
-        <div style={{padding:"52px 16px 0"}}>
-          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:4}}>
-            <button onClick={()=>onNavigate("treino")} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
+    <div style={{background:"#080A0E",minHeight:"100dvh",display:"flex",flexDirection:"column",paddingBottom:100,paddingTop:52}}>
+      <div style={{position:"sticky",top:52,zIndex:50,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)"}}>
+        <div style={{padding:"14px 16px 0"}}>
+          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
+            <button onClick={goBack} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
             <div>
               <div style={{fontSize:11,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:gc}}>{info.group}</div>
-              <div style={{fontSize:22,fontWeight:800,color:C.text,letterSpacing:"-0.5px"}}>{exName}</div>
+              <div style={{fontSize:20,fontWeight:800,color:C.text,letterSpacing:"-0.5px"}}>{exName}</div>
             </div>
           </div>
           <div style={{display:"flex",borderBottom:"1px solid "+C.border}}>
@@ -1750,17 +1784,50 @@ function ExercicioScreen({name,onNavigate}){
               </div>
             ))}
           </div>
-          {chartData.length>1&&<div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:12}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-              <div style={{fontSize:15,fontWeight:700,color:C.text}}>Progressão</div>
-              <div style={{display:"flex",gap:6}}>
-                {["carga","1rm"].map(m=><button key={m} onClick={()=>setChartMode(m)} style={{padding:"4px 10px",borderRadius:99,fontSize:11,fontWeight:700,cursor:"pointer",background:chartMode===m?C.blueM+"66":C.surface,border:"1px solid "+(chartMode===m?C.blueL:C.border),color:chartMode===m?C.blueXL:C.sub}}>{m==="carga"?"Carga":"1RM"}</button>)}
+          {chartData.length>0&&<div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:12}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+              <div>
+                <div style={{fontSize:20,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>{chartData[chartData.length-1]?.y}kg</div>
+                <div style={{fontSize:10,color:C.blueXL}}>{fmtDate(chartData[chartData.length-1]?.x)}</div>
+              </div>
+              <div style={{display:"flex",gap:4}}>
+                {["1m","3m","1a","all"].map(r=>(
+                  <button key={r} onClick={()=>setChartRange(r)} style={{padding:"4px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:chartRange===r?C.blueXL:"none",border:"1px solid "+(chartRange===r?C.blueXL:C.border),color:chartRange===r?"#fff":C.sub}}>{r==="all"?"Tudo":r==="1a"?"Ano":r==="3m"?"3M":"1M"}</button>
+                ))}
               </div>
             </div>
-            <LineChart data={chartData} color={gc} height={100}/>
-            <div style={{display:"flex",justifyContent:"space-between",marginTop:6}}>
-              <div style={{fontSize:10,color:C.muted}}>{fmtDate(chartData[0].x)}</div>
-              <div style={{fontSize:10,color:C.muted}}>{fmtDate(chartData[chartData.length-1].x)}</div>
+            <div style={{display:"flex",gap:5,marginBottom:10}}>
+              {["carga","1rm"].map(m=><button key={m} onClick={()=>setChartMode(m)} style={{padding:"4px 10px",borderRadius:99,fontSize:11,fontWeight:700,cursor:"pointer",background:chartMode===m?C.blueM+"66":C.surface,border:"1px solid "+(chartMode===m?C.blueL:C.border),color:chartMode===m?C.blueXL:C.sub}}>{m==="carga"?"Maior Peso":"1RM Estimado"}</button>)}
+            </div>
+            {/* Chart with scale and labels */}
+            <div style={{position:"relative"}}>
+              {/* Y scale */}
+              <div style={{position:"absolute",left:0,top:0,bottom:20,width:36,display:"flex",flexDirection:"column",justifyContent:"space-between",pointerEvents:"none"}}>
+                {[maxY,Math.round((maxY+minY)/2),minY].map((v,i)=><span key={i} style={{fontSize:8,color:C.muted,lineHeight:1}}>{v}kg</span>)}
+              </div>
+              <div style={{marginLeft:40}}>
+                <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{overflow:"visible"}}>
+                  {/* Grid lines */}
+                  {[0,0.5,1].map((f,i)=><line key={i} x1={PAD} y1={PAD+(H-PAD*2)*f} x2={W-PAD} y2={PAD+(H-PAD*2)*f} stroke={C.border} strokeWidth="1" strokeDasharray="4,4"/>)}
+                  {/* Area gradient */}
+                  <defs><linearGradient id="exg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={gc} stopOpacity="0.3"/><stop offset="100%" stopColor={gc} stopOpacity="0"/></linearGradient></defs>
+                  {chartData.length>1&&<polygon points={[...chartData.map((d,i)=>`${px(i)},${py(d.y)}`),`${px(chartData.length-1)},${H-PAD}`,`${px(0)},${H-PAD}`].join(" ")} fill="url(#exg)"/>}
+                  {/* Line */}
+                  <polyline points={chartData.map((d,i)=>`${px(i)},${py(d.y)}`).join(" ")} fill="none" stroke={gc} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  {/* Points + labels */}
+                  {chartData.map((d,i)=>(
+                    <g key={i}>
+                      <circle cx={px(i)} cy={py(d.y)} r="4" fill={gc} stroke={C.bg} strokeWidth="2"/>
+                      <text x={px(i)} y={py(d.y)-8} textAnchor="middle" fontSize="9" fill={C.sub}>{d.y}kg</text>
+                    </g>
+                  ))}
+                </svg>
+                {/* X labels */}
+                <div style={{display:"flex",justifyContent:"space-between",marginTop:2}}>
+                  <span style={{fontSize:9,color:C.muted}}>{fmtDate(chartData[0]?.x)}</span>
+                  <span style={{fontSize:9,color:C.muted}}>{fmtDate(chartData[chartData.length-1]?.x)}</span>
+                </div>
+              </div>
             </div>
           </div>}
         </div>}
