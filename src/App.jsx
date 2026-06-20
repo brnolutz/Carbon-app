@@ -22,10 +22,14 @@ const GC = {
 
 // Carbon geometric logo — wireframe stone SVG
 function CarbonLogo({size=32,color="#3B82F6",strokeWidth=1.2}){
-  // Use the actual stone wireframe image as the logo
   return(
     <img src="/carbon-logo.jpg" alt="Carbon" width={size} height={size}
-      style={{objectFit:"contain",borderRadius:size*0.12,display:"block"}}/>
+      style={{
+        objectFit:"contain",
+        display:"block",
+        mixBlendMode:"screen",
+        // screen mode: pure black = transparent, white lines = white → blends naturally on any dark bg
+      }}/>
   );
 }
 const EX_GROUP = {
