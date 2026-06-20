@@ -649,7 +649,6 @@ function HomeScreen({onNavigate,onStartWorkout}){
 
       {/* ── Greeting ── */}
       <div style={{padding:"14px 20px 0"}}>
-        <div style={{padding:"14px 0 0"}}>
         <div style={{fontSize:11,fontWeight:600,color:C.sub,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:2}}>{getGreeting()},</div>
         <div style={{fontSize:34,fontWeight:900,color:C.text,letterSpacing:"-1.5px",lineHeight:1}}>{USER.name}<span style={{color:C.blueXL}}>.</span></div>
       </div>
