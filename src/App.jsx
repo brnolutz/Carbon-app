@@ -2618,61 +2618,14 @@ function VolumeSpiderChart({volumeByGroup,size=260}){
 }
 
 function BodyDiagram({muscleHeat,width=320}){
-  function op(v){
-    if(v>=95) return 0;
-    if(v>=70) return 0.22;
-    if(v>=40) return 0.45;
-    return 0.65;
-  }
-  const pc=muscleHeat["Peito"]||0,co=muscleHeat["Costas"]||0,om=muscleHeat["Ombros"]||0;
-  const br=muscleHeat["Braços"]||0,pe=muscleHeat["Pernas"]||0,cr=muscleHeat["Core"]||0;
-  const gl=muscleHeat["Glúteos"]||0,pa=muscleHeat["Panturrilha"]||0;
   const h=Math.round(width*0.67);
-
-  // Each box [left%,top%,w%,h%] — small, centered on muscle, blur:2px prevents overflow
-  // Front body: x 10-44%, Back body: x 56-90%
-  const ovs=[
-    {v:pc,b:[19,22,12, 9]},{v:om,b:[11,19, 6, 8]},{v:om,b:[33,19, 6, 8]},
-    {v:br,b:[10,31, 4, 9]},{v:br,b:[36,31, 4, 9]},{v:cr,b:[21,38, 8, 8]},
-    {v:pe,b:[17,57, 5,12]},{v:pe,b:[28,57, 5,12]},
-    {v:pa,b:[16,77, 4, 7]},{v:pa,b:[30,77, 4, 7]},
-    {v:co,b:[62,21,10,11]},{v:co,b:[78,21,10,11]},{v:co,b:[66,14,18, 6]},
-    {v:om,b:[58,18, 6, 8]},{v:om,b:[86,18, 6, 8]},
-    {v:br,b:[56,31, 4, 9]},{v:br,b:[90,31, 4, 9]},
-    {v:gl,b:[65,52,20, 9]},
-    {v:pe,b:[65,63, 7,12]},{v:pe,b:[78,63, 7,12]},
-    {v:pa,b:[65,78, 4, 7]},{v:pa,b:[81,78, 4, 7]},
-  ];
-
   return(
-    <div style={{position:"relative",width:width,height:h,margin:"0 auto"}}>
+    <div style={{width:width,height:h,margin:"0 auto",borderRadius:12,overflow:"hidden"}}>
       <img
         src="/body-diagram.png"
         alt="Mapa muscular"
-        style={{
-          width:"100%",height:"100%",
-          objectFit:"cover",objectPosition:"center",
-          display:"block",
-          WebkitMaskImage:"radial-gradient(ellipse 75% 80% at 50% 45%, black 55%, transparent 100%)",
-          maskImage:"radial-gradient(ellipse 75% 80% at 50% 45%, black 55%, transparent 100%)",
-        }}
+        style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center",display:"block"}}
       />
-      {ovs.map((ov,i)=>{
-        const a=op(ov.v);
-        if(!a) return null;
-        const[l,t,w2,h2]=ov.b;
-        return(
-          <div key={i} style={{
-            position:"absolute",left:l+"%",top:t+"%",
-            width:w2+"%",height:h2+"%",
-            background:"#3B82F6",opacity:a,
-            borderRadius:"50%",
-            mixBlendMode:"screen",
-            filter:"blur(2px)",
-            pointerEvents:"none",
-          }}/>
-        );
-      })}
     </div>
   );
 }
