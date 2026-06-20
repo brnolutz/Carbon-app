@@ -2393,8 +2393,8 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   return(
     <div style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingTop:52,paddingBottom:120}}>
       <style>{`.prog-bar{transition:height 0.4s ease;}`}</style>
-      <div style={{padding:"14px 20px 0",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
-        <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Meu Progresso</div>
+      <div style={{padding:"0 20px 8px",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+        <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>Meu Progresso</div>
         <button onClick={()=>setShowCalendar(true)} style={{width:32,height:32,borderRadius:10,background:C.card,border:"1px solid "+C.border,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="3" stroke={C.sub} strokeWidth="1.8"/><path d="M3 9h18M8 2v4M16 2v4" stroke={C.sub} strokeWidth="1.8" strokeLinecap="round"/></svg>
         </button>
@@ -3305,18 +3305,16 @@ function CarbonIntro({onDone}){
   const[fading,setFading]=useState(false);
 
   useEffect(()=>{
-    // Fade in
+    document.body.classList.add("hide-carbon-header");
     const t1=setTimeout(()=>setVisible(true),100);
-    // Start fade out after 2.8s
     const t2=setTimeout(()=>setFading(true),2800);
-    // Call onDone after fade completes
-    const t3=setTimeout(()=>onDone(),3400);
-    return()=>{clearTimeout(t1);clearTimeout(t2);clearTimeout(t3);};
+    const t3=setTimeout(()=>{document.body.classList.remove("hide-carbon-header");onDone();},3400);
+    return()=>{clearTimeout(t1);clearTimeout(t2);clearTimeout(t3);document.body.classList.remove("hide-carbon-header");};
   },[]);
 
   return(
     <div
-      onClick={()=>{setFading(true);setTimeout(onDone,600);}}
+      onClick={()=>{setFading(true);document.body.classList.remove("hide-carbon-header");setTimeout(onDone,600);}}
       style={{
         position:"fixed",inset:0,zIndex:9999,
         backgroundImage:"url('/carbon-bg.png')",
