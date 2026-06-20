@@ -325,7 +325,7 @@ function buildSets(plan){
 // ─── BOTTOM NAV ──────────────────────────────────────────────
 function GlassCard({children,style={},onClick}){
   return(
-    <div onClick={onClick} style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderRadius:20,border:"1px solid rgba(255,255,255,0.08)",boxShadow:"0 4px 24px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.05)",cursor:onClick?"pointer":undefined,...style}}>{children}</div>
+    <div onClick={onClick} style={{background:"#0A0D14",borderRadius:20,border:"1px solid rgba(255,255,255,0.07)",cursor:onClick?"pointer":undefined,...style}}>{children}</div>
   );
 }
 
@@ -2420,7 +2420,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
         </button>
       </div>
       <div style={{padding:"8px 20px 0",marginBottom:16}}>
-        <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Progresso</div>
+        <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Meu Progresso</div>
       </div>
       <div style={{padding:"0 20px"}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
@@ -2772,7 +2772,7 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
             <svg width="16" height="16" fill="none" stroke={C.sub} strokeWidth="1.8" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           </div>
         </div>
-        <div style={{fontSize:28,fontWeight:900,color:"#FFFFFF",letterSpacing:"-0.5px"}}>Profile</div>
+        <div style={{fontSize:28,fontWeight:900,color:"#FFFFFF",letterSpacing:"-0.5px"}}>Meu Corpo</div>
       </div>
       <div style={{padding:"16px 16px 0"}}>
 
