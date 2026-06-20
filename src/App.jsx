@@ -295,7 +295,7 @@ function getWeekStats(){
 const USER = {
   name:"Bruno",weight:77.2,weightDelta:-0.8,streak:3,weekGoal:5,weekVol:18.7,
   lastWorkout:{name:"DIA 4 — UPPER",date:"2026-06-12",duration:51,exercises:6},
-  nextWorkout:{id:"day5",name:"DAY 5",label:"Legs + Bíceps",exercises:["Terra Romeno","Afundo","Panturrilha","Rosca Scott","Rosca Inclinada","Rosca Martelo"]},
+  nextWorkout:{id:"d5",name:"DAY 5",label:"Legs + Bíceps",exercises:["Terra Romeno","Afundo","Panturrilha","Rosca Scott","Rosca Inclinada","Rosca Martelo"]},
   prs:[
     {name:"Terra",full:"Levantamento Terra (Barra)",val:88.8,group:"Costas"},
     {name:"Squat",full:"Agachamento (Barra)",val:66.0,group:"Pernas"},
@@ -339,7 +339,7 @@ function BottomNav({active,onNavigate}){
   ];
   return(
     <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,paddingBottom:"env(safe-area-inset-bottom,8px)",paddingLeft:12,paddingRight:12}}>
-      <div style={{background:"rgba(8,10,14,0.82)",backdropFilter:"blur(40px)",WebkitBackdropFilter:"blur(40px)",borderRadius:36,border:"1px solid rgba(255,255,255,0.08)",boxShadow:"0 8px 40px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05)",display:"flex",justifyContent:"space-around",alignItems:"center",padding:"6px 8px 8px",marginBottom:8}}>
+      <div style={{background:"rgba(8,10,14,0.45)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderRadius:36,border:"1px solid rgba(255,255,255,0.10)",boxShadow:"0 8px 32px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.08)",display:"flex",justifyContent:"space-around",alignItems:"center",padding:"6px 8px 8px",marginBottom:8}}>
         {tabs.map(tab=>{
           const isActive=tab.k===active;
           return(
@@ -1206,10 +1206,10 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
           </div>
         </div>
 
-        {/* Nova Rotina button */}
+        {/* Nova Rotina button — Hevy style */}
         <div style={{padding:"0 16px",marginBottom:10}}>
-          <button style={{width:"100%",padding:"11px 16px",background:"rgba(59,130,246,0.08)",border:"1px dashed rgba(59,130,246,0.35)",borderRadius:12,color:C.blueXL,fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-            <svg width="14" height="14" fill="none" stroke={C.blueXL} strokeWidth="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <button style={{width:"100%",padding:"10px 16px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:12,color:C.sub,fontSize:13,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:8}}>
+            <svg width="14" height="14" fill="none" stroke={C.sub} strokeWidth="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Nova Rotina
           </button>
         </div>
@@ -2412,7 +2412,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   const rangeDelta=Math.round((rangeTotal-rangePrev)/rangePrev*100);
 
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden"}}>
+    <div style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingBottom:120}}>
       <style>{`.prog-bar{transition:height 0.4s ease;}`}</style>
       {/* Header — same as Home/Treino/Coach */}
       <div style={{padding:"52px 20px 0",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
@@ -2766,7 +2766,7 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
   }
 
   return(
-    <div style={{background:"#080A0E",minHeight:"100vh",paddingBottom:100}}>
+    <div style={{background:"#080A0E",minHeight:"100vh",paddingBottom:120}}>
       <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"52px 20px 14px"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
@@ -2882,6 +2882,7 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
             <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:7}}>
               <div style={{background:C.coral+"22",border:"1px solid "+C.coral+"55",borderRadius:8,padding:"4px 10px",fontSize:11,fontWeight:800,color:C.coral,letterSpacing:1}}>✂ CUTTING</div>
               <button onClick={()=>{setGoalDraft(String(weightGoal));setEditingGoal(true);}} style={{fontSize:11,color:C.blueXL,fontWeight:600,background:"none",border:"none",cursor:"pointer",padding:0}}>Meta: {weightGoal} kg ✎</button>
+              <button onClick={()=>setShowAddMeasure(true)} style={{fontSize:11,fontWeight:700,color:"#fff",background:C.blueXL,border:"none",borderRadius:8,padding:"5px 10px",cursor:"pointer"}}>+ Atualizar Peso</button>
             </div>
           </div>
           <div style={{marginBottom:12}}>
