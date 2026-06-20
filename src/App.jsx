@@ -3038,7 +3038,7 @@ function CoachScreen({onNavigate}){
 
 **Atleta:** ${USER.name}, ${w}kg (meta: 74kg, fase de cutting)
 **PRs:** ${prs}
-**Sequência atual:** ${USER.streak} dias | ${weekWorkouts}/${USER.weekGoal} treinos esta semana
+**Sequência atual:** ${USER.streak} dias | ${getWeekStats().count}/${USER.weekGoal} treinos esta semana
 
 **Histórico recente:**
 ${ctx}
