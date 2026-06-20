@@ -2665,6 +2665,8 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
   const[goalDraft,setGoalDraft]=useState("");
   const[measures,setMeasures]=useState(loadBodyMeasures);
   const[showAddMeasure,setShowAddMeasure]=useState(autoMeasure);
+  const[showAddWeight,setShowAddWeight]=useState(false);
+  const[weightDraft,setWeightDraft]=useState("");
   const[measureDraft,setMeasureDraft]=useState(autoMeasure?loadBodyMeasures():{});
   const[selMeasure,setSelMeasure]=useState("Braço D");
   const[measureHistory,setMeasureHistory]=useState(loadMeasureHistory);
@@ -2870,7 +2872,7 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
             <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:7}}>
               <div style={{background:C.coral+"22",border:"1px solid "+C.coral+"55",borderRadius:8,padding:"4px 10px",fontSize:11,fontWeight:800,color:C.coral,letterSpacing:1}}>✂ CUTTING</div>
               <button onClick={()=>{setGoalDraft(String(weightGoal));setEditingGoal(true);}} style={{fontSize:11,color:C.blueXL,fontWeight:600,background:"none",border:"none",cursor:"pointer",padding:0}}>Meta: {weightGoal} kg ✎</button>
-              <button onClick={()=>setShowAddMeasure(true)} style={{fontSize:11,fontWeight:700,color:"#fff",background:C.blueXL,border:"none",borderRadius:8,padding:"5px 10px",cursor:"pointer"}}>+ Atualizar Peso</button>
+              <button onClick={()=>{setWeightDraft("");setShowAddWeight(true);}} style={{fontSize:11,fontWeight:700,color:"#fff",background:C.blueXL,border:"none",borderRadius:8,padding:"5px 10px",cursor:"pointer"}}>+ Atualizar Peso</button>
             </div>
           </div>
           <div style={{marginBottom:12}}>
@@ -2971,6 +2973,41 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
             <div style={{display:"flex",gap:10}}>
               <button onClick={()=>setShowAddMeasure(false)} style={{flex:1,padding:"13px",borderRadius:12,background:C.surface,border:"1px solid "+C.border,color:C.sub,fontWeight:700,cursor:"pointer",fontSize:13}}>Cancelar</button>
               <button onClick={saveMeasures} style={{flex:1,padding:"13px",borderRadius:12,background:C.blueM,border:"1px solid "+C.blueL,color:C.text,fontWeight:800,cursor:"pointer",fontSize:13}}>Salvar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* WEIGHT MODAL */}
+      {showAddWeight&&(
+        <div style={{position:"fixed",inset:0,zIndex:900,background:"rgba(0,0,0,0.75)",backdropFilter:"blur(8px)",display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:"20px 20px 0 0",padding:"24px 24px calc(40px + env(safe-area-inset-bottom,0px))",width:"100%",maxWidth:500}}>
+            <div style={{fontSize:15,fontWeight:800,color:C.text,marginBottom:4}}>Atualizar Peso</div>
+            <div style={{fontSize:11,color:C.sub,marginBottom:20}}>Peso atual: {currentWeight} kg</div>
+            <div style={{marginBottom:20}}>
+              <div style={{fontSize:10,color:C.sub,fontWeight:600,marginBottom:6}}>NOVO PESO (kg)</div>
+              <input
+                autoFocus
+                value={weightDraft}
+                onChange={e=>setWeightDraft(e.target.value)}
+                type="number"
+                step="0.1"
+                placeholder={String(currentWeight)}
+                style={{width:"100%",boxSizing:"border-box",background:C.surface,border:"1px solid "+C.border,borderRadius:10,padding:"14px 16px",fontSize:24,fontWeight:800,color:C.text,outline:"none",textAlign:"center"}}
+              />
+            </div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>setShowAddWeight(false)} style={{flex:1,padding:"13px",borderRadius:12,background:C.surface,border:"1px solid "+C.border,color:C.sub,fontWeight:700,cursor:"pointer",fontSize:13}}>Cancelar</button>
+              <button onClick={()=>{
+                const v=parseFloat(weightDraft);
+                if(!isNaN(v)&&v>0){
+                  const today=new Date().toISOString().slice(0,10);
+                  const newH=[...(loadMeasureHistory()||[]).filter(h=>h.date!==today),{date:today,Peso:v}].sort((a,b)=>a.date.localeCompare(b.date));
+                  saveMeasureHistory(newH);
+                  setMeasureHistory(newH);
+                }
+                setShowAddWeight(false);
+              }} style={{flex:1,padding:"13px",borderRadius:12,background:C.grad,border:"none",color:"#fff",fontWeight:800,cursor:"pointer",fontSize:13}}>Salvar</button>
             </div>
           </div>
         </div>
