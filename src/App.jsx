@@ -3275,11 +3275,11 @@ function LoginScreen(){
       <div style={{position:"relative",zIndex:1,width:"100%",maxWidth:340,display:"flex",flexDirection:"column",alignItems:"center"}}>
         {/* Logo */}
         <div style={{textAlign:"center",marginBottom:44}}>
-          <div style={{display:"flex",justifyContent:"center",marginBottom:14}}>
-            <CarbonLogo size={64} color="rgba(255,255,255,0.9)" strokeWidth={1.3}/>
+          <div style={{display:"flex",justifyContent:"center",marginBottom:18}}>
+            <CarbonLogo size={84} color="rgba(255,255,255,0.9)" strokeWidth={1.3}/>
           </div>
-          <div style={{fontSize:16,fontWeight:700,color:"#FFFFFF",letterSpacing:"0.32em",textTransform:"uppercase",textShadow:"0 2px 20px rgba(0,0,0,0.8)"}}>Carbon</div>
-          <div style={{fontSize:9,fontWeight:600,color:C.blueXL,letterSpacing:"0.28em",textTransform:"uppercase",marginTop:5,textShadow:"0 2px 12px rgba(0,0,0,0.9)"}}>Você no Shape</div>
+          <div style={{fontSize:30,fontWeight:300,color:"#FFFFFF",letterSpacing:"0.42em",textTransform:"uppercase",textShadow:"0 2px 20px rgba(0,0,0,0.8)"}}>Carbon</div>
+          <div style={{fontSize:9,fontWeight:400,color:C.blueXL,letterSpacing:"0.3em",textTransform:"uppercase",marginTop:6,textShadow:"0 2px 12px rgba(0,0,0,0.9)"}}>Você no Shape</div>
         </div>
 
         {/* Form */}
@@ -3338,16 +3338,18 @@ function CarbonIntro({onDone}){
         transform:visible?"translateY(0)":"translateY(12px)",
         transition:"transform 1.4s ease",
       }}>
-        <CarbonLogo size={72} color="#ffffff" strokeWidth={1.2}/>
+        <CarbonLogo size={96} color="#ffffff" strokeWidth={1.2}/>
         <div style={{
-          fontSize:28,fontWeight:700,color:"#FFFFFF",
-          letterSpacing:"0.28em",textTransform:"uppercase",
+          fontSize:34,fontWeight:300,color:"#FFFFFF",
+          letterSpacing:"0.42em",textTransform:"uppercase",
           textShadow:"0 2px 24px rgba(0,0,0,0.8)",
+          marginTop:4,
         }}>Carbon</div>
         <div style={{
-          fontSize:11,fontWeight:600,color:"#3B82F6",
-          letterSpacing:"0.22em",textTransform:"uppercase",
+          fontSize:10,fontWeight:400,color:"#3B82F6",
+          letterSpacing:"0.3em",textTransform:"uppercase",
           textShadow:"0 2px 12px rgba(0,0,0,0.9)",
+          marginTop:-8,
         }}>Você no Shape</div>
       </div>
     </div>
