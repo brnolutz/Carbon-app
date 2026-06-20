@@ -454,50 +454,50 @@ function WorkoutDetail({session,onClose}){
           <div style={{fontSize:16,fontWeight:700,color:C.text}}>Detalhe do Treino</div>
         </div>
       </div>
-      <div style={{padding:"16px 16px 80px"}}>
-        <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:14}}>
-          <div style={{width:44,height:44,borderRadius:"50%",background:C.grad,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,fontWeight:900,color:"#fff",flexShrink:0}}>B</div>
-          <div><div style={{fontSize:14,fontWeight:700,color:C.text}}>Bruno</div><div style={{fontSize:11,color:C.sub}}>{weekday}</div></div>
+      <div style={{padding:"12px 16px 80px"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+          <div style={{width:36,height:36,borderRadius:"50%",background:C.grad,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900,color:"#fff",flexShrink:0}}>B</div>
+          <div><div style={{fontSize:13,fontWeight:700,color:C.text}}>Bruno</div><div style={{fontSize:10,color:C.sub}}>{weekday}</div></div>
         </div>
-        <div style={{fontSize:22,fontWeight:900,color:C.text,marginBottom:14,letterSpacing:"-0.5px"}}>{cleanName(session.name)}</div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:8}}>
+        <div style={{fontSize:19,fontWeight:900,color:C.text,marginBottom:10,letterSpacing:"-0.5px"}}>{cleanName(session.name)}</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:6}}>
           {[{l:"Tempo",v:session.duration?fmtDur(session.duration):fmtDur(Math.round(session.totalSets*3))},{l:"Volume",v:session.totalVol+"t"},{l:"Séries",v:session.totalSets}].map(s=>(
-            <div key={s.l} style={{background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"10px 12px"}}>
-              <div style={{fontSize:10,color:C.sub,fontWeight:600,marginBottom:3}}>{s.l}</div>
-              <div style={{fontSize:18,fontWeight:800,color:C.text}}>{s.v}</div>
+            <div key={s.l} style={{background:C.card,border:"1px solid "+C.border,borderRadius:10,padding:"8px 10px"}}>
+              <div style={{fontSize:9,color:C.sub,fontWeight:600,marginBottom:2}}>{s.l}</div>
+              <div style={{fontSize:16,fontWeight:800,color:C.text}}>{s.v}</div>
             </div>
           ))}
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:20}}>
-          <div style={{background:C.card,border:"1px solid "+C.amber+"44",borderRadius:12,padding:"10px 12px",display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontSize:18}}>🥇</span>
-            <div><div style={{fontSize:10,color:C.sub,fontWeight:600}}>Recordes</div><div style={{fontSize:18,fontWeight:800,color:C.amber}}>{session.prs||0}</div></div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:14}}>
+          <div style={{background:C.card,border:"1px solid "+C.amber+"33",borderRadius:10,padding:"8px 10px",display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:16}}>🥇</span>
+            <div><div style={{fontSize:9,color:C.sub,fontWeight:600}}>Recordes</div><div style={{fontSize:16,fontWeight:800,color:C.amber}}>{session.prs||0}</div></div>
           </div>
-          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"10px 12px",display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontSize:18}}>🔥</span>
-            <div><div style={{fontSize:10,color:C.sub,fontWeight:600}}>Cal. est.</div><div style={{fontSize:18,fontWeight:800,color:C.coral}}>~{session.calories!=null?session.calories:Math.round(session.totalSets*18)}</div></div>
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:10,padding:"8px 10px",display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:16}}>🔥</span>
+            <div><div style={{fontSize:9,color:C.sub,fontWeight:600}}>Cal. est.</div><div style={{fontSize:16,fontWeight:800,color:"#60A5FA"}}>~{session.calories!=null?session.calories:Math.round(session.totalSets*18)}</div></div>
           </div>
         </div>
-        {muscles.length>0&&<div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:"16px",marginBottom:20}}>
-          <div style={{fontSize:11,fontWeight:700,color:C.sub,marginBottom:14,letterSpacing:"0.06em",textTransform:"uppercase"}}>Divisão Muscular</div>
-          {muscles.map(([label,sets])=>{const pct=Math.round(sets/totalMS*100);const col=mColors[label]||C.blueL;return(<div key={label} style={{marginBottom:12}}>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}><span style={{fontSize:14,fontWeight:600,color:C.text}}>{label}</span><span style={{fontSize:13,fontWeight:700,color:C.sub}}>{pct}%</span></div>
-            <div style={{height:8,background:C.border,borderRadius:4}}><div style={{height:"100%",width:pct+"%",background:col,borderRadius:4}}/></div>
+        {muscles.length>0&&<div style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"12px",marginBottom:14}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.sub,marginBottom:10,letterSpacing:"0.06em",textTransform:"uppercase"}}>Divisão Muscular</div>
+          {muscles.map(([label,sets])=>{const pct=Math.round(sets/totalMS*100);const col=mColors[label]||C.blueL;return(<div key={label} style={{marginBottom:8}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:13,fontWeight:600,color:C.text}}>{label}</span><span style={{fontSize:11,fontWeight:700,color:C.sub}}>{pct}%</span></div>
+            <div style={{height:6,background:C.border,borderRadius:3}}><div style={{height:"100%",width:pct+"%",background:col,borderRadius:3}}/></div>
           </div>);})}
         </div>}
-        <div style={{fontSize:11,fontWeight:700,color:C.sub,marginBottom:14,letterSpacing:"0.06em",textTransform:"uppercase"}}>Treinamento</div>
+        <div style={{fontSize:10,fontWeight:700,color:C.sub,marginBottom:10,letterSpacing:"0.06em",textTransform:"uppercase"}}>Treinamento</div>
         {session.exercises.map((ex,i)=>{
           const gc=GC[EX_GROUP[ex.name]]||C.blueL;
-          return(<div key={i} style={{marginBottom:20}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8}}>
-              <div style={{width:34,height:34,borderRadius:"50%",background:gc+"22",border:"1px solid "+gc+"44",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><div style={{width:8,height:8,borderRadius:"50%",background:gc}}/></div>
-              <div style={{fontSize:15,fontWeight:800,color:gc}}>{ex.name}</div>
+          return(<div key={i} style={{marginBottom:14}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+              <div style={{width:28,height:28,borderRadius:"50%",background:gc+"22",border:"1px solid "+gc+"44",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><div style={{width:7,height:7,borderRadius:"50%",background:gc}}/></div>
+              <div style={{fontSize:14,fontWeight:800,color:"#93C5FD"}}>{ex.name}</div>
             </div>
             {ex.setData.map((set,si)=>{
-              const rc=set.rpe?(set.rpe<=7?C.mint:set.rpe<=8.5?C.amber:C.coral):null;
-              return(<div key={si} style={{display:"grid",gridTemplateColumns:"36px 1fr",gap:8,padding:"9px 0 9px 42px",borderBottom:"1px solid "+C.border+"22",alignItems:"center"}}>
-                <div style={{fontSize:14,fontWeight:700,color:C.sub}}>{si+1}</div>
-                <div style={{fontSize:15,color:C.text}}>{set.w>0?set.w+"kg":"—"} × {set.r}{set.rpe&&<span style={{color:rc,fontWeight:700}}> @ {set.rpe} rpe</span>}</div>
+              const rc=set.rpe?(set.rpe<=7?"#6EE7B7":set.rpe<=8.5?"#93C5FD":"#94A3B8"):null;
+              return(<div key={si} style={{display:"grid",gridTemplateColumns:"30px 1fr",gap:6,padding:"7px 0 7px 36px",borderBottom:"1px solid "+C.border+"22",alignItems:"center"}}>
+                <div style={{fontSize:12,fontWeight:700,color:C.sub}}>{si+1}</div>
+                <div style={{fontSize:13,color:"#CBD5E1"}}>{set.w>0?set.w+"kg":"—"} × {set.r}{set.rpe&&<span style={{color:rc,fontWeight:700}}> @ {set.rpe} rpe</span>}</div>
               </div>);
             })}
           </div>);
@@ -648,9 +648,6 @@ function HomeScreen({onNavigate}){
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <CarbonLogo size={18} color={C.blueXL} strokeWidth={1.6}/>
           <span style={{fontSize:12,fontWeight:700,letterSpacing:"0.2em",textTransform:"uppercase",color:C.text}}>Carbon</span>
-        </div>
-        <div style={{width:32,height:32,borderRadius:10,border:"1px solid "+C.border,display:"flex",alignItems:"center",justifyContent:"center"}}>
-          <svg width="16" height="16" fill="none" stroke={C.sub} strokeWidth="1.8" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         </div>
       </div>
 
@@ -998,9 +995,9 @@ function SmartInput({value,onChange,readOnly,unit,integer,color,compact}){
   const[focused,setFocused]=useState(false);
   const[draft,setDraft]=useState("");
   const display=focused?draft:String(value||"");
-  const pad=compact?"3px":"4px";
+  const pad=compact?"1px 3px":"4px";
   return(
-    <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:compact?7:8,padding:pad,textAlign:"center",flex:1}}>
+    <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:compact?6:8,padding:pad,textAlign:"center",flex:1}}>
       <input
         type="number"
         value={display}
@@ -1014,7 +1011,7 @@ function SmartInput({value,onChange,readOnly,unit,integer,color,compact}){
         }}
         onChange={e=>!readOnly&&setDraft(e.target.value)}
         readOnly={readOnly}
-        style={{width:"100%",background:"none",border:"none",outline:"none",fontSize:16,fontWeight:900,color:focused?"#fff":(color||"#fff"),textAlign:"center",WebkitAppearance:"none",opacity:focused?1:(value?1:0.35)}}
+        style={{width:"100%",background:"none",border:"none",outline:"none",fontSize:compact?14:16,fontWeight:900,color:focused?"#fff":(color||"#fff"),textAlign:"center",WebkitAppearance:"none",opacity:focused?1:(value?1:0.35)}}
         inputMode={integer?"numeric":"decimal"}
       />
       <div style={{fontSize:7,color:"rgba(255,255,255,0.3)",textTransform:"uppercase"}}>{unit}</div>
@@ -1442,12 +1439,12 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
           const exVol=exWork.filter(s=>s.done).reduce((s,set)=>s+set.w*set.r,0);
           const exDone=exWork.filter(s=>s.done).length;
           return(
-            <div key={exIdx} style={{marginBottom:8,background:"rgba(255,255,255,0.025)",border:"1px solid "+(allDone?"rgba(16,185,129,0.3)":"rgba(255,255,255,0.06)"),borderRadius:14,overflow:"hidden",transition:"border-color 0.3s"}}>
-              <div style={{padding:"10px 12px 8px",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
+            <div key={exIdx} style={{marginBottom:6,background:"rgba(255,255,255,0.025)",border:"1px solid "+(allDone?"rgba(16,185,129,0.3)":"rgba(255,255,255,0.06)"),borderRadius:12,overflow:"hidden",transition:"border-color 0.3s"}}>
+              <div style={{padding:"8px 10px 6px",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                   <div style={{display:"flex",alignItems:"center",gap:6,flex:1,minWidth:0}}>
                     <div style={{width:6,height:6,borderRadius:"50%",background:GC[exItem.group]||C.blueL,flexShrink:0}}/>
-                    <div style={{fontSize:14,fontWeight:800,color:allDone?C.mint:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{exItem.name}</div>
+                    <div style={{fontSize:13,fontWeight:800,color:allDone?C.mint:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{exItem.name}</div>
                     {allDone&&<span style={{color:C.mint,fontSize:10,flexShrink:0}}>✓</span>}
                   </div>
                   <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
@@ -1458,10 +1455,10 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
                 </div>
                 <button onClick={()=>setRestPickerEi(exIdx)} style={{display:"flex",alignItems:"center",gap:4,background:"none",border:"none",padding:0,paddingLeft:12,marginTop:1,cursor:"pointer"}}><span style={{fontSize:9,color:C.muted}}>Descanso: {exItem.rest==null?"Off":(exItem.rest>=60?Math.floor(exItem.rest/60)+"min"+(exItem.rest%60>0?" "+exItem.rest%60+"s":""):exItem.rest+"s")}</span><span style={{fontSize:8,color:C.muted,marginLeft:2}}>✎</span></button>
               </div>
-              <div style={{padding:"6px 10px 0"}}><ExerciseHistory exName={exItem.name} currentSets={exWork}/></div>
+              <div style={{padding:"4px 10px 0"}}><ExerciseHistory exName={exItem.name} currentSets={exWork}/></div>
               {exWarm.length>0&&<WarmupSection exWarm={exWarm} exIdx={exIdx} updateSet={updateSet} markDone={markDone}/>}
-              <div style={{padding:"4px 10px 0"}}>
-                <div style={{display:"grid",gridTemplateColumns:"24px 1fr 1fr 1fr 30px 30px",gap:3,marginBottom:3,paddingBottom:3,borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+              <div style={{padding:"3px 10px 0"}}>
+                <div style={{display:"grid",gridTemplateColumns:"24px 1fr 1fr 1fr 30px 30px",gap:3,marginBottom:2,paddingBottom:2,borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
                   {["#","Ant.","KG","Reps","RPE",""].map((h,i)=><div key={i} style={{fontSize:7,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:C.muted,textAlign:"center"}}>{h}</div>)}
                 </div>
                 {exWork.map((set,wi)=>{
@@ -1494,14 +1491,14 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
                         <div style={{fontSize:9,color:C.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"center"}}>{prevStr}</div>
                         <SmartInput value={set.w} onChange={v=>!set.done&&updateSet(exIdx,si,"w",v)} readOnly={set.done} unit="kg" color={setIsPR?C.amber:set.done?C.mint:C.text} compact/>
                         <SmartInput value={set.r} onChange={v=>!set.done&&updateSet(exIdx,si,"r",v)} readOnly={set.done} unit="reps" integer color={setIsPR?C.amber:set.done?C.mint:C.text} compact/>
-                        <button onClick={()=>!set.done&&(setCurrentEx(exIdx),setRpeModal({ei:exIdx,si,rest:exItem.rest}))} style={{height:28,borderRadius:6,cursor:set.done?"default":"pointer",background:set.rpe?(rpeColor+"22"):C.surface,border:"1px solid "+(set.rpe?(rpeColor+"66"):C.border),color:set.rpe?rpeColor:C.muted,fontSize:set.rpe?9:7,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center"}}>{set.rpe||"RPE"}</button>
-                        <button onClick={()=>markDone(si,exIdx)} style={{height:28,borderRadius:6,background:set.done?(setIsPR?C.amber+"33":C.mint+"33"):C.surface,border:"2px solid "+(set.done?(setIsPR?C.amber:C.mint):C.border),color:set.done?(setIsPR?C.amber:C.mint):C.muted,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.15s"}}>{set.done?"✓":"○"}</button>
+                        <button onClick={()=>!set.done&&(setCurrentEx(exIdx),setRpeModal({ei:exIdx,si,rest:exItem.rest}))} style={{height:24,borderRadius:6,cursor:set.done?"default":"pointer",background:set.rpe?(rpeColor+"22"):C.surface,border:"1px solid "+(set.rpe?(rpeColor+"66"):C.border),color:set.rpe?rpeColor:C.muted,fontSize:set.rpe?9:7,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center"}}>{set.rpe||"RPE"}</button>
+                        <button onClick={()=>markDone(si,exIdx)} style={{height:24,borderRadius:6,background:set.done?(setIsPR?C.amber+"33":C.mint+"33"):C.surface,border:"2px solid "+(set.done?(setIsPR?C.amber:C.mint):C.border),color:set.done?(setIsPR?C.amber:C.mint):C.muted,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.15s"}}>{set.done?"✓":"○"}</button>
                       </div>
                       {estORM&&!set.done&&!setIsPR&&<div style={{fontSize:8,color:C.muted,paddingLeft:28,paddingTop:1}}>1RM ~{estORM}kg</div>}
                     </div>
                   );
                 })}
-                <button onClick={()=>{setCurrentEx(exIdx);const work=exItem.activeSets.filter(s=>s.type==="work");const last=work[work.length-1]||{w:0,r:8};setExercises(prev=>prev.map((e,i)=>i!==exIdx?e:{...e,activeSets:[...e.activeSets,{w:last.w,r:last.r,done:false,type:"work",rpe:null}]}));}} style={{width:"100%",padding:"7px",background:"none",border:"1px dashed "+C.border,borderRadius:8,color:C.muted,fontSize:11,fontWeight:600,cursor:"pointer",margin:"6px 0"}}>+ Adicionar série</button>
+                <button onClick={()=>{setCurrentEx(exIdx);const work=exItem.activeSets.filter(s=>s.type==="work");const last=work[work.length-1]||{w:0,r:8};setExercises(prev=>prev.map((e,i)=>i!==exIdx?e:{...e,activeSets:[...e.activeSets,{w:last.w,r:last.r,done:false,type:"work",rpe:null}]}));}} style={{width:"100%",padding:"5px",background:"none",border:"1px dashed "+C.border,borderRadius:7,color:C.muted,fontSize:10,fontWeight:600,cursor:"pointer",margin:"4px 0"}}>+ Adicionar série</button>
               </div>
             </div>
           );
@@ -2310,6 +2307,8 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   const streak=useMemo(()=>{let s=0;const d=new Date(today);while(true){const ds=d.toISOString().slice(0,10);if(!workoutDates.has(ds)&&ds!==todayStr)break;if(workoutDates.has(ds))s++;d.setDate(d.getDate()-1);if(s>365)break;}return s;},[workoutDates]);
   const weeklyStreak=useMemo(()=>{const allSessions=getAllSessions();let s=0;const d=new Date(today);d.setDate(d.getDate()-d.getDay());while(s<52){const ds=d.toISOString().slice(0,10);const weekEnd=new Date(d.getTime()+6*86400000).toISOString().slice(0,10);const wk=allSessions.some(f=>f.date>=ds&&f.date<=weekEnd);if(!wk)break;s++;d.setDate(d.getDate()-7);}return s;},[savedCount]);
 
+  const thisWeekCount=useMemo(()=>{const allSessions=getAllSessions();const d=new Date(today);const start=new Date(d);start.setDate(d.getDate()-d.getDay());start.setHours(0,0,0,0);const startStr=start.toISOString().slice(0,10);const end=new Date(start.getTime()+6*86400000).toISOString().slice(0,10);return allSessions.filter(f=>f.date>=startStr&&f.date<=end).length;},[savedCount]);
+
   const totalSessions=getAllSessions().length;
   const totalVol=getAllSessions().reduce((s,f)=>s+(f.totalVol||0),0).toFixed(1);
 
@@ -2423,33 +2422,33 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
         <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Meu Progresso</div>
       </div>
       <div style={{padding:"0 20px"}}>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
-          <GlassCard style={{padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
-            <div style={{fontSize:28}}>🔥</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+          <GlassCard style={{padding:"10px 14px",display:"flex",alignItems:"center",gap:10}}>
+            <div style={{fontSize:22}}>🔥</div>
             <div>
-              <div style={{fontSize:22,fontWeight:900,color:C.text}}>{streak}</div>
-              <div style={{fontSize:11,color:C.sub}}>Ofensiva Diária</div>
+              <div style={{fontSize:18,fontWeight:900,color:C.text}}>{thisWeekCount}</div>
+              <div style={{fontSize:10,color:C.sub}}>Ofensiva Semanal</div>
             </div>
           </GlassCard>
-          <GlassCard style={{padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
-            <div style={{fontSize:28}}>🎯</div>
+          <GlassCard style={{padding:"10px 14px",display:"flex",alignItems:"center",gap:10}}>
+            <div style={{fontSize:22}}>🎯</div>
             <div>
-              <div style={{fontSize:22,fontWeight:900,color:C.text}}>{weeklyStreak}</div>
-              <div style={{fontSize:11,color:C.sub}}>Sequência Semanal</div>
+              <div style={{fontSize:18,fontWeight:900,color:C.text}}>{weeklyStreak}</div>
+              <div style={{fontSize:10,color:C.sub}}>Sequência Semanal</div>
             </div>
           </GlassCard>
         </div>
 
         {/* Weekly calendar */}
-        <GlassCard style={{padding:"16px",marginBottom:16}}>
+        <GlassCard style={{padding:"12px",marginBottom:12}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
             <div>
-              <div style={{fontSize:14,fontWeight:800,color:C.text}}>Progresso semanal</div>
-              <div style={{fontSize:11,color:C.sub}}>{weekLabel}</div>
+              <div style={{fontSize:13,fontWeight:800,color:C.text}}>Progresso semanal</div>
+              <div style={{fontSize:10,color:C.sub}}>{weekLabel}</div>
             </div>
             <div style={{display:"flex",gap:6}}>
-              <button onClick={()=>setWeekOffset(w=>w-1)} style={{width:28,height:28,borderRadius:99,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",color:C.sub,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-              <button onClick={()=>setWeekOffset(w=>Math.min(0,w+1))} style={{width:28,height:28,borderRadius:99,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",color:weekOffset===0?C.muted:C.sub,cursor:weekOffset===0?"default":"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
+              <button onClick={()=>setWeekOffset(w=>w-1)} style={{width:26,height:26,borderRadius:99,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",color:C.sub,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+              <button onClick={()=>setWeekOffset(w=>Math.min(0,w+1))} style={{width:26,height:26,borderRadius:99,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",color:weekOffset===0?C.muted:C.sub,cursor:weekOffset===0?"default":"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
             </div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:3}}>
@@ -2457,13 +2456,13 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
               const ds=d.toISOString().slice(0,10);
               const isToday=ds===todayStr;
               const hasW=workoutDates.has(ds);
-              const showGreen=hasW; // green always wins — worked out = green
-              const showBlue=isToday&&!hasW; // blue only if today but no workout yet
+              const showGreen=hasW;
+              const showBlue=isToday&&!hasW;
               return(
-                <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
+                <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
                   <div style={{fontSize:9,fontWeight:600,color:showGreen?C.mint:isToday?C.blueXL:C.muted}}>{dayNames[i]}</div>
-                  <div style={{width:34,height:34,borderRadius:11,display:"flex",alignItems:"center",justifyContent:"center",background:showGreen?"linear-gradient(135deg,"+C.mint+"44,"+C.mint+"22)":showBlue?"linear-gradient(135deg,"+C.blueM+","+C.blueL+")":"rgba(255,255,255,0.03)",border:"1px solid "+(showGreen?C.mint+"88":showBlue?C.blueXL+"66":"rgba(255,255,255,0.05)"),boxShadow:showGreen?"0 0 10px "+C.mint+"55":showBlue?"0 0 10px "+C.blueXL+"44":"none"}}>
-                    <span style={{fontSize:12,fontWeight:showGreen||showBlue?800:400,color:showGreen?C.mint:showBlue?"#fff":C.muted}}>{d.getDate()}</span>
+                  <div style={{width:30,height:30,borderRadius:9,display:"flex",alignItems:"center",justifyContent:"center",background:showGreen?"linear-gradient(135deg,"+C.mint+"44,"+C.mint+"22)":showBlue?"linear-gradient(135deg,"+C.blueM+","+C.blueL+")":"rgba(255,255,255,0.03)",border:"1px solid "+(showGreen?C.mint+"88":showBlue?C.blueXL+"66":"rgba(255,255,255,0.05)"),boxShadow:showGreen?"0 0 8px "+C.mint+"55":showBlue?"0 0 8px "+C.blueXL+"44":"none"}}>
+                    <span style={{fontSize:11,fontWeight:showGreen||showBlue?800:400,color:showGreen?C.mint:showBlue?"#fff":C.muted}}>{d.getDate()}</span>
                   </div>
                   <div style={{width:4,height:4,borderRadius:"50%",background:showGreen?C.mint:showBlue?C.blueXL:"transparent"}}/>
                 </div>
@@ -2474,9 +2473,9 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
       </div>
 
       {/* Chart section — BeFit style with period selector */}
-      <div style={{padding:"0 20px 16px"}}>
-        <GlassCard style={{padding:"16px"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+      <div style={{padding:"0 20px 12px"}}>
+        <GlassCard style={{padding:"14px"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
               <div style={{fontSize:11,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:C.sub}}>Esta semana</div>
               
@@ -2763,47 +2762,44 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
   return(
     <div style={{background:"#080A0E",minHeight:"100vh",paddingBottom:100}}>
       <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"52px 20px 14px"}}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
             <CarbonLogo size={18} color={C.blueXL} strokeWidth={1.6}/>
             <span style={{fontSize:12,fontWeight:700,letterSpacing:"0.2em",textTransform:"uppercase",color:"#FFFFFF"}}>Carbon</span>
           </div>
-          <div style={{width:32,height:32,borderRadius:10,border:"1px solid #161C28",display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <svg width="16" height="16" fill="none" stroke={C.sub} strokeWidth="1.8" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          </div>
         </div>
-        <div style={{fontSize:28,fontWeight:900,color:"#FFFFFF",letterSpacing:"-0.5px"}}>Meu Corpo</div>
+        <div style={{fontSize:24,fontWeight:900,color:"#FFFFFF",letterSpacing:"-0.5px"}}>Meu Corpo</div>
       </div>
-      <div style={{padding:"16px 16px 0"}}>
+      <div style={{padding:"12px 16px 0"}}>
 
         {/* ── RECOVERY STATS ROW ── */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:10}}>
           {[{l:"Prontos",v:recoveryMuscles.filter(m=>m.pct===100).length,c:C.mint},{l:"Recuperando",v:recoveryMuscles.filter(m=>m.pct<100&&m.pct>=50).length,c:C.amber},{l:"Fadigados",v:recoveryMuscles.filter(m=>m.pct<50).length,c:C.coral}].map(s=>(
-            <div key={s.l} style={{background:"rgba(13,16,23,0.85)",border:"1px solid #161C28",borderRadius:14,padding:"12px 4px",textAlign:"center"}}>
-              <div style={{fontSize:24,fontWeight:900,color:s.c}}>{s.v}</div>
-              <div style={{fontSize:10,color:C.sub,marginTop:2}}>{s.l}</div>
+            <div key={s.l} style={{background:"rgba(13,16,23,0.85)",border:"1px solid #161C28",borderRadius:12,padding:"8px 4px",textAlign:"center"}}>
+              <div style={{fontSize:20,fontWeight:900,color:s.c}}>{s.v}</div>
+              <div style={{fontSize:9,color:C.sub,marginTop:2}}>{s.l}</div>
             </div>
           ))}
         </div>
 
         {/* ── MAPA MUSCULAR ── */}
-        <GlassCard style={{padding:"16px 16px 12px",marginBottom:14}}>
-          <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>Mapa Muscular</div>
-          <BodyDiagram muscleHeat={muscleHeat} width={Math.min(320,window.innerWidth-64)}/>
-          <div style={{display:"flex",justifyContent:"center",gap:14,marginTop:12,flexWrap:"wrap"}}>
+        <GlassCard style={{padding:"12px 12px 8px",marginBottom:10}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8}}>Mapa Muscular</div>
+          <BodyDiagram muscleHeat={muscleHeat} width={Math.min(300,window.innerWidth-64)}/>
+          <div style={{display:"flex",justifyContent:"center",gap:12,marginTop:8,flexWrap:"wrap"}}>
             {[{c:"#3B82F6",o:1,l:"Fatigado"},{c:"#3B82F6",o:0.55,l:"Recuperando"},{c:"#3B82F6",o:0.25,l:"Quase pronto"},{c:C.muted,o:1,l:"Descansado"}].map(item=>(
-              <div key={item.l} style={{display:"flex",alignItems:"center",gap:5}}>
-                <div style={{width:8,height:8,borderRadius:"50%",background:item.c,opacity:item.o,flexShrink:0}}/>
-                <span style={{fontSize:10,color:C.sub}}>{item.l}</span>
+              <div key={item.l} style={{display:"flex",alignItems:"center",gap:4}}>
+                <div style={{width:7,height:7,borderRadius:"50%",background:item.c,opacity:item.o,flexShrink:0}}/>
+                <span style={{fontSize:9,color:C.sub}}>{item.l}</span>
               </div>
             ))}
           </div>
         </GlassCard>
 
         {/* ── RECOVERY SPIDER ── */}
-        <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:20,padding:16,marginBottom:14}}>
-          <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Recuperação Muscular</div>
-          <SpiderChart muscles={recoveryMuscles} size={220}/>
+        <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:18,padding:"12px",marginBottom:10}}>
+          <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Recuperação Muscular</div>
+          <SpiderChart muscles={recoveryMuscles} size={200}/>
         </div>
 
         {/* ── VOLUME BY MUSCLE (bars) with period selector ── */}
