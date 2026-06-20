@@ -803,6 +803,104 @@ function HomeScreen({onNavigate,onStartWorkout}){
   );
 }
 
+// ── Routine Screen — shown when tapping a plan card ──
+function RoutineScreen({plan,onClose,onStart,onNavigate}){
+  const[chartMode,setChartMode]=useState("vol");
+  const[selEx,setSelEx]=useState(null);
+
+  // Build chart data from saved sessions matching this plan
+  const sessions=useMemo(()=>{
+    return loadSavedSessions()
+      .filter(s=>s.name&&s.name.toLowerCase().includes(plan.label.toLowerCase()))
+      .sort((a,b)=>a.date.localeCompare(b.date));
+  },[plan]);
+
+  const chartData=sessions.map(s=>({
+    label:new Date(s.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}),
+    y:chartMode==="vol"?(s.totalVol||0):chartMode==="sets"?(s.totalSets||0):(s.duration||0)
+  }));
+  const maxY=Math.max(...chartData.map(d=>d.y),0.01);
+  const lastSession=sessions[sessions.length-1];
+
+  if(selEx) return <ExercicioScreen name={selEx} onNavigate={(dest)=>{if(dest==="treino")setSelEx(null);else onNavigate(dest);}}/>;
+
+  return(
+    <div style={{position:"fixed",inset:0,zIndex:700,background:"#080A0E",overflowY:"auto",paddingTop:52}}>
+      {/* Header */}
+      <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"14px 16px"}}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <button onClick={onClose} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
+          <div>
+            <div style={{fontSize:11,fontWeight:700,color:C.sub,letterSpacing:"0.08em",textTransform:"uppercase"}}>{plan.name}</div>
+            <div style={{fontSize:18,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>{plan.label}</div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{padding:"16px 16px 120px"}}>
+        {/* Iniciar button */}
+        <button onClick={onStart} style={{width:"100%",padding:"14px",background:C.grad,border:"none",borderRadius:14,color:"#fff",fontSize:15,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:20}}>
+          <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          Iniciar Rotina
+        </button>
+
+        {/* Volume chart */}
+        {chartData.length>0&&<div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:16}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+            <div>
+              <div style={{fontSize:22,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{chartData[chartData.length-1]?.y.toFixed(chartMode==="vol"?1:0)}{chartMode==="vol"?"t":chartMode==="sets"?" séries":" min"}</div>
+              {lastSession&&<div style={{fontSize:10,color:C.blueXL}}>{new Date(lastSession.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"numeric",month:"short"})}</div>}
+            </div>
+            <div style={{display:"flex",gap:6}}>
+              {[{k:"vol",l:"Volume"},{k:"sets",l:"Séries"},{k:"dur",l:"Tempo"}].map(m=>(
+                <button key={m.k} onClick={()=>setChartMode(m.k)} style={{padding:"4px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:chartMode===m.k?C.blueM+"66":C.surface,border:"1px solid "+(chartMode===m.k?C.blueL:C.border),color:chartMode===m.k?C.blueXL:C.sub}}>{m.l}</button>
+              ))}
+            </div>
+          </div>
+          {/* Line chart */}
+          <div style={{position:"relative",height:100,marginTop:12}}>
+            <svg width="100%" height="100%" viewBox={`0 0 ${Math.max(chartData.length*40,200)} 100`} preserveAspectRatio="none">
+              <polyline
+                points={chartData.map((d,i)=>`${i*(Math.max(chartData.length*40,200)-20)/(Math.max(chartData.length,2)-1)+10},${90-((d.y/maxY)*80)}`).join(" ")}
+                fill="none" stroke={C.blueXL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              />
+              {chartData.map((d,i)=>(
+                <circle key={i} cx={i*(Math.max(chartData.length*40,200)-20)/(Math.max(chartData.length,2)-1)+10} cy={90-((d.y/maxY)*80)} r="3" fill={C.blueXL}/>
+              ))}
+            </svg>
+          </div>
+          <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
+            {chartData.length>0&&<span style={{fontSize:9,color:C.muted}}>{chartData[0].label}</span>}
+            {chartData.length>1&&<span style={{fontSize:9,color:C.muted}}>{chartData[chartData.length-1].label}</span>}
+          </div>
+        </div>}
+
+        {/* Exercises list */}
+        <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>Exercícios</div>
+        {plan.exercises.map((ex,i)=>{
+          const hist=HIST[ex.name]||[];
+          const lastSet=hist[hist.length-1];
+          const bestW=lastSet?Math.max(...lastSet.sets.map(s=>s.w||0)):0;
+          const lastSets=lastSet?.sets.length||ex.sets.length;
+          const gc=GC[ex.group]||C.blueL;
+          return(
+            <button key={i} onClick={()=>setSelEx(ex.name)} style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"12px 16px",marginBottom:8,cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:12}}>
+              <div style={{width:36,height:36,borderRadius:10,background:gc+"18",border:"1px solid "+gc+"33",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <div style={{width:8,height:8,borderRadius:"50%",background:gc}}/>
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ex.name}</div>
+                <div style={{fontSize:11,color:C.sub}}>{lastSets} séries{bestW>0?" · "+bestW+"kg":""}</div>
+              </div>
+              <svg width="14" height="14" fill="none" stroke={C.muted} strokeWidth="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ══════════════════════════════════════════════════════════════
 // TREINO SCREEN (RPEModal + RestTimer + ExerciseHistory + Gallery + PlanSelector + ActiveWorkout + FinishScreen)
 // ══════════════════════════════════════════════════════════════
@@ -1052,6 +1150,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
   const[retroTime,setRetroTime]=useState(String(nowForRetro.getHours()).padStart(2,"0")+":"+String(nowForRetro.getMinutes()).padStart(2,"0"));
   const[retroDurMin,setRetroDurMin]=useState(null);
   const[searchQ,setSearchQ]=useState("");
+  const[selectedPlan,setSelectedPlan]=useState(null);
 
   // Sync screen state when workout starts/ends externally
   useEffect(()=>{
@@ -1217,33 +1316,23 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
             </button>
           )}
 
-          {/* Plan cards — compact so 3 show without scroll */}
           {filtered.map((p)=>{
             const dur=estimateDur(p);
             const exPrev=p.exercises.map(e=>e.name).join(", ");
             return(
-              <div key={p.id} style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,overflow:"hidden",opacity:isActive?0.5:1}}>
+              <div key={p.id} onClick={()=>!isActive&&setSelectedPlan(p)} style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,overflow:"hidden",opacity:isActive?0.5:1,cursor:"pointer"}}>
                 <div style={{padding:"14px 16px 14px"}}>
-                  {/* Day label row */}
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
-                    <div style={{display:"flex",alignItems:"center",gap:5}}>
-                      <span style={{fontSize:9,fontWeight:800,color:p.color,letterSpacing:"0.12em",textTransform:"uppercase"}}>{p.name}</span>
-                      <span style={{fontSize:9,color:"#2A3550",fontWeight:700}}>•</span>
-                      <span style={{fontSize:9,fontWeight:800,color:p.color,letterSpacing:"0.1em",textTransform:"uppercase"}}>{p.label}</span>
-                    </div>
-                    <div style={{width:26,height:26,borderRadius:7,border:"1px solid "+C.border,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                      <svg width="11" height="11" fill="none" stroke="#3B4560" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    </div>
+                  <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:6}}>
+                    <span style={{fontSize:9,fontWeight:800,color:p.color,letterSpacing:"0.12em",textTransform:"uppercase"}}>{p.name}</span>
+                    <span style={{fontSize:9,color:"#2A3550",fontWeight:700}}>•</span>
+                    <span style={{fontSize:9,fontWeight:800,color:p.color,letterSpacing:"0.1em",textTransform:"uppercase"}}>{p.label}</span>
                   </div>
-                  {/* Workout name */}
                   <div style={{fontSize:17,fontWeight:900,color:"#FFFFFF",letterSpacing:"-0.5px",marginBottom:5}}>{p.label}</div>
-                  {/* Exercise preview */}
                   <div style={{fontSize:11,color:"#4A5568",lineHeight:1.5,marginBottom:8,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:1,WebkitBoxOrient:"vertical"}}>{exPrev}</div>
-                  {/* Badges row + CTA */}
                   <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    <span style={{padding:"3px 8px",borderRadius:99,background:C.card,border:"1px solid "+C.border,color:"#4A5568",fontSize:9,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase"}}>{p.exercises.length} exs</span>
-                    <span style={{padding:"3px 8px",borderRadius:99,background:C.card,border:"1px solid "+C.border,color:"#4A5568",fontSize:9,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase"}}>~{dur}min</span>
-                    <button onClick={()=>!isActive&&startPlan(p)} style={{flex:1,padding:"8px",background:"linear-gradient(135deg,#1E40AF,#2563EB,#3B82F6)",border:"none",borderRadius:9,color:"#fff",fontSize:11,fontWeight:800,cursor:isActive?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6,letterSpacing:"0.08em",textTransform:"uppercase"}}>
+                    <span style={{padding:"3px 8px",borderRadius:99,background:"rgba(255,255,255,0.04)",border:"1px solid "+C.border,color:"#4A5568",fontSize:9,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase"}}>{p.exercises.length} exs</span>
+                    <span style={{padding:"3px 8px",borderRadius:99,background:"rgba(255,255,255,0.04)",border:"1px solid "+C.border,color:"#4A5568",fontSize:9,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase"}}>~{dur}min</span>
+                    <button onClick={e=>{e.stopPropagation();!isActive&&startPlan(p);}} style={{flex:1,padding:"8px",background:"linear-gradient(135deg,#1E40AF,#2563EB,#3B82F6)",border:"none",borderRadius:9,color:"#fff",fontSize:11,fontWeight:800,cursor:isActive?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6,letterSpacing:"0.08em",textTransform:"uppercase"}}>
                       <svg width="10" height="10" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                       Iniciar
                     </button>
@@ -1253,6 +1342,8 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
             );
           })}
         </div>
+        {/* ROUTINE SCREEN overlay */}
+        {selectedPlan&&<RoutineScreen plan={selectedPlan} onClose={()=>setSelectedPlan(null)} onStart={()=>{startPlan(selectedPlan);setSelectedPlan(null);}} onNavigate={onNavigate}/>}
         <BottomNav active="treino" onNavigate={onNavigate}/>
       </div>
     );
