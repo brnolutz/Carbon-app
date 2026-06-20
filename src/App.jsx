@@ -2646,7 +2646,7 @@ function BodyDiagram({muscleHeat,width=320}){
   return(
     <div style={{width:width,height:h,margin:"0 auto",position:"relative"}}>
       {activeImgs.map((src,i)=>(
-        <img key={src+i} src={src} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"contain",objectPosition:"center",display:"block",mixBlendMode:"lighten"}}/>
+        <img key={src+i} src={src} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"contain",objectPosition:"center",display:"block",mixBlendMode:"lighten",opacity:0.6}}/>
       ))}
     </div>
   );
