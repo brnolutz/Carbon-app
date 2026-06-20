@@ -2634,21 +2634,16 @@ const MUSCLE_IMG = {
 const MUSCLE_PRIORITY = ["Peito","Costas","Pernas","Ombros","Braços","Core","Glúteos","Panturrilha"];
 
 function BodyDiagram({muscleHeat,width=320}){
-  // Pick the most fatigued (lowest pct = most recently trained) muscle
-  // muscleHeat: { [group]: pct 0-100 }
   const activeImg = useMemo(()=>{
-    // Find muscle with lowest recovery % (most active recently)
     let best = null;
     let bestPct = 101;
-    MUSCLE_PRIORITY.forEach(g=>{
-      const pct = muscleHeat[g];
-      if(pct != null && pct < bestPct){
+    Object.entries(muscleHeat).forEach(([g, pct])=>{
+      if(pct != null && pct < bestPct && MUSCLE_IMG[g]){
         bestPct = pct;
         best = g;
       }
     });
-    // Only show highlight if muscle was trained recently (pct < 100)
-    if(best && bestPct < 100 && MUSCLE_IMG[best]) return MUSCLE_IMG[best];
+    if(best && bestPct < 100) return MUSCLE_IMG[best];
     return "/body-base.png";
   },[muscleHeat]);
 
