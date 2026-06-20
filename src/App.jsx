@@ -608,7 +608,7 @@ function ExerciciosBrowserScreen({onNavigate}){
 // ══════════════════════════════════════════════════════════════
 // HOME SCREEN
 // ══════════════════════════════════════════════════════════════
-function HomeScreen({onNavigate}){
+function HomeScreen({onNavigate,onStartWorkout}){
   const[detail,setDetail]=useState(null);
   const[chartMode,setChartMode]=useState("vol");
   const[chartRange,setChartRange]=useState("3m");
@@ -670,7 +670,12 @@ function HomeScreen({onNavigate}){
             <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:14}}>
               {USER.nextWorkout.exercises.map(ex=><span key={ex} style={{padding:"3px 10px",borderRadius:99,background:C.blueL+"15",border:"1px solid "+C.blueL+"30",color:C.blueXL,fontSize:11,fontWeight:600}}>{ex}</span>)}
             </div>
-            <button onClick={()=>onNavigate("treino")} style={{width:"100%",padding:"13px",background:C.grad,border:"none",borderRadius:13,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            <button onClick={()=>{
+              const nextPlan=PLANS.find(p=>p.id===USER.nextWorkout.id)||PLANS[0];
+              const exs=buildSets(nextPlan);
+              onStartWorkout(nextPlan,exs);
+              onNavigate("treino");
+            }} style={{width:"100%",padding:"13px",background:C.grad,border:"none",borderRadius:13,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
               <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
               Iniciar Treino
             </button>
@@ -1185,79 +1190,80 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
             <CarbonLogo size={18} color={C.blueXL} strokeWidth={1.6}/>
             <span style={{fontSize:12,fontWeight:700,letterSpacing:"0.2em",textTransform:"uppercase",color:C.text}}>Carbon</span>
           </div>
-          <div style={{width:32,height:32,borderRadius:10,border:"1px solid #1a2236",display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <svg width="16" height="16" fill="none" stroke={C.sub} strokeWidth="1.8" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-          </div>
         </div>
 
-        <div style={{padding:"16px 20px 0",marginBottom:8}}>
-          <div style={{fontSize:30,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>
+        <div style={{padding:"12px 20px 0",marginBottom:8}}>
+          <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>
             {isActive?"Treino Ativo":"Meus Treinos"}
           </div>
         </div>
 
         {/* Search */}
-        <div style={{padding:"0 16px",marginBottom:16}}>
-          <div style={{background:"#0F1218",border:"1px solid #1a2236",borderRadius:14,padding:"11px 14px",display:"flex",alignItems:"center",gap:10}}>
-            <svg width="16" height="16" fill="none" stroke="#3B4560" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input value={searchQ} onChange={e=>setSearchQ(e.target.value)} placeholder="Search workouts..." style={{background:"none",border:"none",outline:"none",color:"#6B7FA3",fontSize:14,flex:1,fontFamily:"inherit"}}/>
+        <div style={{padding:"0 16px",marginBottom:10}}>
+          <div style={{background:"#0F1218",border:"1px solid #1a2236",borderRadius:12,padding:"9px 14px",display:"flex",alignItems:"center",gap:10}}>
+            <svg width="14" height="14" fill="none" stroke="#3B4560" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input value={searchQ} onChange={e=>setSearchQ(e.target.value)} placeholder="Buscar treino..." style={{background:"none",border:"none",outline:"none",color:"#6B7FA3",fontSize:13,flex:1,fontFamily:"inherit"}}/>
           </div>
         </div>
 
-        <div style={{padding:"0 16px 160px",display:"flex",flexDirection:"column",gap:10}}>
+        {/* Nova Rotina button */}
+        <div style={{padding:"0 16px",marginBottom:10}}>
+          <button style={{width:"100%",padding:"11px 16px",background:"rgba(59,130,246,0.08)",border:"1px dashed rgba(59,130,246,0.35)",borderRadius:12,color:C.blueXL,fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            <svg width="14" height="14" fill="none" stroke={C.blueXL} strokeWidth="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nova Rotina
+          </button>
+        </div>
+
+        <div style={{padding:"0 16px 160px",display:"flex",flexDirection:"column",gap:8}}>
           {/* Active workout banner */}
           {isActive&&(
-            <button onClick={()=>setScreen("active")} style={{width:"100%",padding:"16px 20px",background:"linear-gradient(135deg,"+C.blueM+","+C.blueL+")",border:"none",borderRadius:18,cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:14,marginBottom:6}}>
-              <div style={{width:44,height:44,borderRadius:12,flexShrink:0,background:"rgba(255,255,255,0.15)",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                <svg width="18" height="18" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <button onClick={()=>setScreen("active")} style={{width:"100%",padding:"14px 18px",background:"linear-gradient(135deg,"+C.blueM+","+C.blueL+")",border:"none",borderRadius:16,cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:12,marginBottom:4}}>
+              <div style={{width:38,height:38,borderRadius:10,flexShrink:0,background:"rgba(255,255,255,0.15)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <svg width="16" height="16" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
               </div>
               <div style={{flex:1}}>
-                <div style={{fontSize:15,fontWeight:700,color:"#fff",marginBottom:2}}>Continuar treino</div>
-                <div style={{fontSize:11,color:"#BFDBFE"}}>{exercises[currentEx]?.name||""} · {exercises.reduce((n,e)=>n+e.activeSets.filter(s=>s.done&&s.type==="work").length,0)}/{exercises.reduce((n,e)=>n+e.activeSets.filter(s=>s.type==="work").length,0)} séries</div>
+                <div style={{fontSize:14,fontWeight:700,color:"#fff",marginBottom:2}}>Continuar treino</div>
+                <div style={{fontSize:10,color:"#BFDBFE"}}>{exercises[currentEx]?.name||""} · {exercises.reduce((n,e)=>n+e.activeSets.filter(s=>s.done&&s.type==="work").length,0)}/{exercises.reduce((n,e)=>n+e.activeSets.filter(s=>s.type==="work").length,0)} séries</div>
               </div>
-              <svg width="16" height="16" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+              <svg width="14" height="14" fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           )}
 
-          {/* Plan cards */}
+          {/* Plan cards — compact so 3 show without scroll */}
           {filtered.map((p)=>{
             const dur=estimateDur(p);
             const exPrev=p.exercises.map(e=>e.name).join(", ");
             return(
-              <div key={p.id} style={{background:"rgba(13,16,23,0.85)",border:"1px solid #161C28",borderRadius:20,overflow:"hidden",opacity:isActive?0.5:1}}>
-                <div style={{padding:"20px 20px 18px"}}>
+              <div key={p.id} style={{background:"rgba(13,16,23,0.85)",border:"1px solid #161C28",borderRadius:16,overflow:"hidden",opacity:isActive?0.5:1}}>
+                <div style={{padding:"14px 16px 14px"}}>
                   {/* Day label row */}
-                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
                     <div style={{display:"flex",alignItems:"center",gap:5}}>
-                      <span style={{fontSize:10,fontWeight:800,color:p.color,letterSpacing:"0.12em",textTransform:"uppercase"}}>{p.name}</span>
-                      <span style={{fontSize:10,color:"#2A3550",fontWeight:700}}>•</span>
-                      <span style={{fontSize:10,fontWeight:800,color:p.color,letterSpacing:"0.1em",textTransform:"uppercase"}}>{p.label}</span>
+                      <span style={{fontSize:9,fontWeight:800,color:p.color,letterSpacing:"0.12em",textTransform:"uppercase"}}>{p.name}</span>
+                      <span style={{fontSize:9,color:"#2A3550",fontWeight:700}}>•</span>
+                      <span style={{fontSize:9,fontWeight:800,color:p.color,letterSpacing:"0.1em",textTransform:"uppercase"}}>{p.label}</span>
                     </div>
-                    <div style={{width:30,height:30,borderRadius:9,border:"1px solid #1a2236",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                      <svg width="13" height="13" fill="none" stroke="#3B4560" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <div style={{width:26,height:26,borderRadius:7,border:"1px solid #1a2236",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      <svg width="11" height="11" fill="none" stroke="#3B4560" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     </div>
                   </div>
                   {/* Workout name */}
-                  <div style={{fontSize:22,fontWeight:900,color:"#FFFFFF",letterSpacing:"-0.5px",marginBottom:10}}>{p.label}</div>
+                  <div style={{fontSize:17,fontWeight:900,color:"#FFFFFF",letterSpacing:"-0.5px",marginBottom:5}}>{p.label}</div>
                   {/* Exercise preview */}
-                  <div style={{fontSize:12,color:"#4A5568",lineHeight:1.6,marginBottom:14,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical"}}>{exPrev}</div>
-                  {/* Badges */}
-                  <div style={{display:"flex",gap:6,marginBottom:18}}>
-                    <span style={{padding:"4px 11px",borderRadius:99,background:"#111827",border:"1px solid #1E293B",color:"#4A5568",fontSize:10,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase"}}>{p.exercises.length} Exercícios</span>
-                    <span style={{padding:"4px 11px",borderRadius:99,background:"#111827",border:"1px solid #1E293B",color:"#4A5568",fontSize:10,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase"}}>~{dur} Min</span>
+                  <div style={{fontSize:11,color:"#4A5568",lineHeight:1.5,marginBottom:8,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:1,WebkitBoxOrient:"vertical"}}>{exPrev}</div>
+                  {/* Badges row + CTA */}
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <span style={{padding:"3px 8px",borderRadius:99,background:"#111827",border:"1px solid #1E293B",color:"#4A5568",fontSize:9,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase"}}>{p.exercises.length} exs</span>
+                    <span style={{padding:"3px 8px",borderRadius:99,background:"#111827",border:"1px solid #1E293B",color:"#4A5568",fontSize:9,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase"}}>~{dur}min</span>
+                    <button onClick={()=>!isActive&&startPlan(p)} style={{flex:1,padding:"8px",background:"linear-gradient(135deg,#1E40AF,#2563EB,#3B82F6)",border:"none",borderRadius:9,color:"#fff",fontSize:11,fontWeight:800,cursor:isActive?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6,letterSpacing:"0.08em",textTransform:"uppercase"}}>
+                      <svg width="10" height="10" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                      Iniciar
+                    </button>
                   </div>
-                  {/* CTA — ALL blue */}
-                  <button onClick={()=>!isActive&&startPlan(p)} style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#1E40AF,#2563EB,#3B82F6)",border:"none",borderRadius:13,color:"#fff",fontSize:13,fontWeight:800,cursor:isActive?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,letterSpacing:"0.1em",textTransform:"uppercase"}}>
-                    <svg width="12" height="12" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                    Start Workout
-                  </button>
                 </div>
               </div>
             );
           })}
-
-          {/* Free workout */}
-          <button style={{width:"100%",padding:"16px",background:"none",border:"1px dashed #1a2236",borderRadius:18,color:"#2A3550",fontSize:13,fontWeight:600,cursor:"pointer",letterSpacing:"0.06em",textTransform:"uppercase"}}>+ Treino livre</button>
         </div>
         <BottomNav active="treino" onNavigate={onNavigate}/>
       </div>
@@ -3228,7 +3234,7 @@ function ForgeAppInner(){
 
   return(
     <div>
-      {screen==="home"&&<HomeScreen onNavigate={navigate}/>}
+      {screen==="home"&&<HomeScreen onNavigate={navigate} onStartWorkout={startWorkout}/>}
       {screen==="treino"&&<TreinoScreen onNavigate={navigate} activeWorkout={activeWorkout} onStartWorkout={startWorkout} onEndWorkout={endWorkout} onUpdateWorkout={updateWorkout} onSubScreen={setTreinoSub} forceActive={forceActive} onMinimize={()=>navigate(prevScreenRef.current)} onWorkoutSaved={()=>setSavedCount(c=>c+1)}/>}
       {screen==="exercicio"&&<ExercicioScreen name={exName} onNavigate={navigate}/>}
       {screen==="exercicios_browser"&&<ExerciciosBrowserScreen onNavigate={navigate}/>}
@@ -3238,7 +3244,7 @@ function ForgeAppInner(){
       {screen==="corpo"&&<CorpoScreen onNavigate={navigate}/>}
       {screen==="medicoes"&&<CorpoScreen onNavigate={navigate} autoMeasure={true}/>}
       {screen==="coach"&&<CoachScreen onNavigate={navigate}/>}
-      {!["home","treino","exercicio","exercicios_browser","historico","calendario","progresso","corpo","medicoes","coach"].includes(screen)&&<HomeScreen onNavigate={navigate}/>}
+      {!["home","treino","exercicio","exercicios_browser","historico","calendario","progresso","corpo","medicoes","coach"].includes(screen)&&<HomeScreen onNavigate={navigate} onStartWorkout={startWorkout}/>}
       {showMiniBar&&<GlobalWorkoutBar workout={activeWorkout} onOpen={openActiveWorkout} onEnd={endWorkout}/>}
     </div>
   );
