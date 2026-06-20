@@ -332,15 +332,12 @@ function GlassCard({children,style={},onClick}){
 // ── Global top bar — Carbon logo strip shown on every screen ──
 function GlobalHeader(){
   return(
-    <>
-      <style>{`:root{--gh:calc(56px + env(safe-area-inset-top,0px))}`}</style>
-      <div style={{position:"fixed",top:0,left:0,right:0,zIndex:300,paddingTop:"env(safe-area-inset-top,0px)",background:"rgba(8,10,14,0.88)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
-        <div style={{padding:"10px 20px 10px",display:"flex",alignItems:"center",gap:8}}>
-          <CarbonLogo size={18} color={C.blueXL} strokeWidth={1.6}/>
-          <span style={{fontSize:12,fontWeight:700,letterSpacing:"0.2em",textTransform:"uppercase",color:"#FFFFFF"}}>Carbon</span>
-        </div>
+    <div style={{position:"fixed",top:0,left:0,right:0,zIndex:9999,paddingTop:"env(safe-area-inset-top,0px)",background:"rgba(8,10,14,0.95)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid rgba(255,255,255,0.07)"}}>
+      <div style={{padding:"10px 20px 10px",display:"flex",alignItems:"center",gap:8}}>
+        <CarbonLogo size={18} color={C.blueXL} strokeWidth={1.6}/>
+        <span style={{fontSize:12,fontWeight:700,letterSpacing:"0.2em",textTransform:"uppercase",color:"#FFFFFF"}}>Carbon</span>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -656,7 +653,7 @@ function HomeScreen({onNavigate,onStartWorkout}){
   if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)}/>;
 
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh"}}>
+    <div style={{background:"#080A0E",minHeight:"100dvh",paddingTop:"var(--gh)"}}>
 
       {/* ── Header ── */}
       {/* ── Greeting ── */}
@@ -1192,7 +1189,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
     });
     const estimateDur=(p)=>Math.round(p.exercises.reduce((t,e)=>t+e.sets.length*(1.5+(e.rest||90)/60),0));
     return(
-      <div style={{background:"#080A0E",minHeight:"100dvh",position:"relative"}}>
+      <div style={{background:"#080A0E",minHeight:"100dvh",position:"relative",paddingTop:"var(--gh)"}}>
         <div style={{padding:"var(--gh) 20px 8px"}}>
           <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>
             {isActive?"Treino Ativo":"Meus Treinos"}
@@ -1395,7 +1392,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
   const totalVol=exercises.flatMap(e=>e.activeSets.filter(s=>s.type==="work"&&s.done)).reduce((s,set)=>s+set.w*set.r,0);
   const muscleGroups=[...new Set(exercises.map(e=>e.group).filter(Boolean))];
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh"}}>
+    <div style={{background:"#080A0E",minHeight:"100dvh",paddingTop:"var(--gh)"}}>
       <style>{`
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
 @keyframes prFlash{0%{transform:scale(1);box-shadow:0 0 0 0 #F59E0B00}20%{transform:scale(1.04);box-shadow:0 0 32px 6px #F59E0BCC}100%{transform:scale(1);box-shadow:0 0 12px 2px #F59E0B44}}
@@ -1716,7 +1713,7 @@ function HistoricoScreen({onNavigate}){
   if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)}/>;
 
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh"}}>
+    <div style={{background:"#080A0E",minHeight:"100dvh",paddingTop:"var(--gh)"}}>
       <div style={{position:"sticky",top:"var(--gh)",zIndex:50,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid "+C.border,padding:"14px 16px 14px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:14}}>
           <div style={{fontSize:28,fontWeight:900,color:"#FFFFFF",letterSpacing:"-0.5px"}}>Histórico</div>
@@ -2404,7 +2401,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   const rangeDelta=Math.round((rangeTotal-rangePrev)/rangePrev*100);
 
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingBottom:120}}>
+    <div style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingTop:"var(--gh)",paddingBottom:120}}>
       <style>{`.prog-bar{transition:height 0.4s ease;}`}</style>
       <div style={{padding:"var(--gh) 20px 0",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
         <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Meu Progresso</div>
@@ -2751,7 +2748,7 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
   }
 
   return(
-    <div style={{background:"#080A0E",minHeight:"100vh",paddingBottom:120}}>
+    <div style={{background:"#080A0E",minHeight:"100vh",paddingTop:"var(--gh)",paddingBottom:120}}>
       <div style={{position:"sticky",top:"var(--gh)",zIndex:10,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid "+C.border,padding:"14px 20px 14px"}}>
         <div style={{fontSize:24,fontWeight:900,color:"#FFFFFF",letterSpacing:"-0.5px"}}>Meu Corpo</div>
       </div>
