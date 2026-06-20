@@ -2639,11 +2639,11 @@ function VolumeSpiderChart({volumeByGroup,size=260}){
 function BodyDiagram({muscleHeat,width=320}){
   const h=Math.round(width*0.67);
   return(
-    <div style={{width:width,height:h,margin:"0 auto",borderRadius:12,overflow:"hidden"}}>
+    <div style={{width:width,height:h,margin:"0 auto"}}>
       <img
-        src="/body-diagram.png"
+        src="/body-diagram-transparent.png"
         alt="Mapa muscular"
-        style={{width:"100%",height:"100%",objectFit:"cover",objectPosition:"center",display:"block"}}
+        style={{width:"100%",height:"100%",objectFit:"contain",objectPosition:"center",display:"block"}}
       />
     </div>
   );
@@ -2783,18 +2783,18 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
         </div>
 
         {/* ── MAPA MUSCULAR ── */}
-        <div style={{background:"#000",border:"1px solid #0D1017",borderRadius:20,padding:16,marginBottom:14}}>
-          <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Mapa Muscular</div>
+        <GlassCard style={{padding:"16px 16px 12px",marginBottom:14}}>
+          <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>Mapa Muscular</div>
           <BodyDiagram muscleHeat={muscleHeat} width={Math.min(320,window.innerWidth-64)}/>
-          <div style={{display:"flex",justifyContent:"center",gap:16,marginTop:10}}>
-            {[{c:"#3B82F6",o:0.6,l:"Fatigado"},{c:"#3B82F6",o:0.35,l:"Recuperando"},{c:"#3B82F6",o:0.15,l:"Quase pronto"},{c:"rgba(58,74,107,0.4)",o:1,l:"Descansado"}].map(item=>(
-              <div key={item.l} style={{display:"flex",alignItems:"center",gap:4}}>
-                <div style={{width:8,height:8,borderRadius:"50%",background:item.c,opacity:item.o}}/>
-                <span style={{fontSize:9,color:C.muted}}>{item.l}</span>
+          <div style={{display:"flex",justifyContent:"center",gap:14,marginTop:12,flexWrap:"wrap"}}>
+            {[{c:"#3B82F6",o:1,l:"Fatigado"},{c:"#3B82F6",o:0.55,l:"Recuperando"},{c:"#3B82F6",o:0.25,l:"Quase pronto"},{c:C.muted,o:1,l:"Descansado"}].map(item=>(
+              <div key={item.l} style={{display:"flex",alignItems:"center",gap:5}}>
+                <div style={{width:8,height:8,borderRadius:"50%",background:item.c,opacity:item.o,flexShrink:0}}/>
+                <span style={{fontSize:10,color:C.sub}}>{item.l}</span>
               </div>
             ))}
           </div>
-        </div>
+        </GlassCard>
 
         {/* ── RECOVERY SPIDER ── */}
         <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:20,padding:16,marginBottom:14}}>
