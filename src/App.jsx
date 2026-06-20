@@ -2423,7 +2423,6 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
       <div style={{padding:"8px 20px 0",marginBottom:16}}>
         <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Progresso</div>
       </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
           <GlassCard style={{padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
             <div style={{fontSize:28}}>🔥</div>
             <div>
