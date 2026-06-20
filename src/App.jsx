@@ -3,14 +3,14 @@ import { createClient } from "@supabase/supabase-js";
 
 // ─── DESIGN SYSTEM — CARBON ────────────────────────────────
 const C = {
-  bg:"#080A0E", surface:"#0D1017", card:"#0D1017",
-  border:"#161C28", borderL:"#1E2A3D",
+  bg:"#080A0E", surface:"#0A0D14", card:"#0A0D14",
+  border:"rgba(255,255,255,0.07)", borderL:"rgba(255,255,255,0.10)",
   blueM:"#1E40AF", blueL:"#2563EB", blueXL:"#3B82F6", blueGlow:"#3B82F614",
   text:"#FFFFFF", sub:"#4A5568", muted:"#2A3550",
   mint:"#10B981", amber:"#F59E0B", coral:"#EF4444",
   grad:"linear-gradient(135deg,#1E40AF 0%,#2563EB 60%,#3B82F6 100%)",
   glass:"rgba(255,255,255,0.03)",
-  glassBorder:"rgba(255,255,255,0.06)",
+  glassBorder:"rgba(255,255,255,0.07)",
   glassMd:"rgba(255,255,255,0.04)",
   glassHover:"rgba(255,255,255,0.07)",
 };
@@ -512,7 +512,7 @@ function FeedCard({session,onOpen}){
   const visible=expanded?session.exercises:session.exercises.slice(0,3);
   const more=session.exercises.length-3;
   return(
-    <div style={{background:"rgba(13,16,23,0.85)",border:"1px solid #161C28",borderRadius:18,marginBottom:10,overflow:"hidden"}}>
+    <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,marginBottom:10,overflow:"hidden"}}>
       <div style={{padding:"16px 18px 14px"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
           <div>
@@ -523,14 +523,14 @@ function FeedCard({session,onOpen}){
         </div>
         <div style={{display:"flex",gap:6}}>
           {[{l:"Tempo",v:session.duration?fmtDur(session.duration):fmtDur(Math.round(session.totalSets*3))},{l:"Volume",v:session.totalVol+"t"},{l:"Séries",v:session.totalSets}].map(s=>(
-            <span key={s.l} style={{padding:"3px 10px",borderRadius:99,background:"#111827",border:"1px solid #1E293B",fontSize:10,fontWeight:700,color:"#4A5568",letterSpacing:"0.06em",textTransform:"uppercase"}}>{s.v} {s.l}</span>
+            <span key={s.l} style={{padding:"3px 10px",borderRadius:99,background:C.card,border:"1px solid "+C.border,fontSize:10,fontWeight:700,color:"#4A5568",letterSpacing:"0.06em",textTransform:"uppercase"}}>{s.v} {s.l}</span>
           ))}
         </div>
       </div>
-      <div style={{borderTop:"1px solid #161C28",padding:"10px 18px"}}>
+      <div style={{borderTop:"1px solid "+C.border,padding:"10px 18px"}}>
         {visible.map((ex,i)=>{
           const gc=GC[EX_GROUP[ex.name]]||C.blueL;
-          return(<div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"6px 0",borderBottom:i<visible.length-1?"1px solid #0F1218":"none"}}>
+          return(<div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"6px 0",borderBottom:i<visible.length-1?"1px solid "+C.border:"none"}}>
             <div style={{width:6,height:6,borderRadius:"50%",background:gc,flexShrink:0}}/>
             <div style={{flex:1,fontSize:12,color:"#CBD5E1",fontWeight:500}}>{ex.sets} sets · {ex.name}</div>
             <div style={{fontSize:11,color:"#4A5568",fontWeight:600}}>{ex.bestW>0?ex.bestW+"kg":""}</div>
@@ -940,7 +940,7 @@ function ExerciseHistory({exName,currentSets}){
   const lastStr=lastSession?`${lastSession.sets[0]?.w}kg × ${lastSession.sets[0]?.r} · ${fmtDate(lastSession.d)}`:"Primeira vez";
   return(
     <div style={{marginBottom:12}}>
-      <button onClick={()=>setOpen(o=>!o)} style={{width:"100%",background:"rgba(255,255,255,0.03)",border:"1px solid "+(isPR?C.amber+"55":"rgba(255,255,255,0.06)"),borderRadius:12,padding:"10px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}}>
+      <button onClick={()=>setOpen(o=>!o)} style={{width:"100%",background:C.card,border:"1px solid "+(isPR?C.amber+"55":"rgba(255,255,255,0.06)"),borderRadius:12,padding:"10px 14px",display:"flex",alignItems:"center",justifyContent:"space-between",cursor:"pointer"}}>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <span style={{fontSize:9,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:isPR?C.amber:C.muted}}>{isPR?"🏆 Novo PR":"Histórico"}</span>
           {!open&&lastSession&&<span style={{fontSize:11,color:C.sub}}>{lastStr}</span>}
@@ -948,7 +948,7 @@ function ExerciseHistory({exName,currentSets}){
         <span style={{color:C.muted,fontSize:12,transform:open?"rotate(180deg)":"none",transition:"transform .2s"}}>▾</span>
       </button>
       {open&&(
-        <div style={{background:"rgba(255,255,255,0.02)",border:"1px solid rgba(255,255,255,0.06)",borderRadius:"0 0 12px 12px",borderTop:"none",padding:"10px 14px"}}>
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:"0 0 12px 12px",borderTop:"none",padding:"10px 14px"}}>
           {!hist.length?<div style={{fontSize:11,color:C.muted}}>Primeira vez neste exercício 🎯</div>:
             hist.map((session,i)=>{
               const bestSet=session.sets.reduce((a,b)=>orm(b.w,b.r)>orm(a.w,a.r)?b:a,session.sets[0]);
@@ -1002,7 +1002,7 @@ function SmartInput({value,onChange,readOnly,unit,integer,color,compact}){
   const display=focused?draft:String(value||"");
   const pad=compact?"1px 3px":"4px";
   return(
-    <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:compact?6:8,padding:pad,textAlign:"center",flex:1}}>
+    <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:compact?6:8,padding:pad,textAlign:"center",flex:1}}>
       <input
         type="number"
         value={display}
@@ -1138,17 +1138,17 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
         </div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
           {[{label:"Duração",value:fmt(s.elapsed),color:C.blueXL},{label:"Volume",value:(s.vol/1000).toFixed(1)+"t",color:C.mint},{label:"Séries",value:s.sets,color:C.amber},{label:"RPE Médio",value:s.avgRpe?s.avgRpe+" / 10":"—",color:C.coral}].map(st=>(
-            <div key={st.label} style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:18,padding:"16px",textAlign:"center"}}>
+            <div key={st.label} style={{background:C.card,backdropFilter:"blur(20px)",border:"1px solid "+C.border,borderRadius:18,padding:"16px",textAlign:"center"}}>
               <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:C.sub,marginBottom:6}}>{st.label}</div>
               <div style={{fontSize:24,fontWeight:900,color:st.color}}>{st.value}</div>
             </div>
           ))}
         </div>
-        {s.pse&&<div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:18,padding:"14px 16px",marginBottom:14,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        {s.pse&&<div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"14px 16px",marginBottom:14,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <span style={{fontSize:13,color:C.sub}}>Percepção de esforço</span>
           <span style={{fontSize:18,fontWeight:900,color:C.blueXL}}>{s.pse} / 10</span>
         </div>}
-        <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:18,padding:"14px 16px",marginBottom:24}}>
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"14px 16px",marginBottom:24}}>
           <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Exercícios realizados</div>
           {s.exercises.map((ex,i)=>{
             const done=ex.activeSets.filter(st=>st.done&&st.type==="work");
@@ -1200,7 +1200,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
 
         {/* Search */}
         <div style={{padding:"0 16px",marginBottom:10}}>
-          <div style={{background:"#0F1218",border:"1px solid #1a2236",borderRadius:12,padding:"9px 14px",display:"flex",alignItems:"center",gap:10}}>
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"9px 14px",display:"flex",alignItems:"center",gap:10}}>
             <svg width="14" height="14" fill="none" stroke="#3B4560" strokeWidth="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input value={searchQ} onChange={e=>setSearchQ(e.target.value)} placeholder="Buscar treino..." style={{background:"none",border:"none",outline:"none",color:"#6B7FA3",fontSize:13,flex:1,fontFamily:"inherit"}}/>
           </div>
@@ -1208,7 +1208,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
 
         {/* Nova Rotina button — Hevy style */}
         <div style={{padding:"0 16px",marginBottom:10}}>
-          <button style={{width:"100%",padding:"10px 16px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.10)",borderRadius:12,color:C.sub,fontSize:13,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:8}}>
+          <button style={{width:"100%",padding:"10px 16px",background:C.card,border:"1px solid rgba(255,255,255,0.10)",borderRadius:12,color:C.sub,fontSize:13,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:8}}>
             <svg width="14" height="14" fill="none" stroke={C.sub} strokeWidth="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Nova Rotina
           </button>
@@ -1234,7 +1234,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
             const dur=estimateDur(p);
             const exPrev=p.exercises.map(e=>e.name).join(", ");
             return(
-              <div key={p.id} style={{background:"rgba(13,16,23,0.85)",border:"1px solid #161C28",borderRadius:16,overflow:"hidden",opacity:isActive?0.5:1}}>
+              <div key={p.id} style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,overflow:"hidden",opacity:isActive?0.5:1}}>
                 <div style={{padding:"14px 16px 14px"}}>
                   {/* Day label row */}
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:6}}>
@@ -1243,7 +1243,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
                       <span style={{fontSize:9,color:"#2A3550",fontWeight:700}}>•</span>
                       <span style={{fontSize:9,fontWeight:800,color:p.color,letterSpacing:"0.1em",textTransform:"uppercase"}}>{p.label}</span>
                     </div>
-                    <div style={{width:26,height:26,borderRadius:7,border:"1px solid #1a2236",display:"flex",alignItems:"center",justifyContent:"center"}}>
+                    <div style={{width:26,height:26,borderRadius:7,border:"1px solid "+C.border,display:"flex",alignItems:"center",justifyContent:"center"}}>
                       <svg width="11" height="11" fill="none" stroke="#3B4560" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                     </div>
                   </div>
@@ -1253,8 +1253,8 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
                   <div style={{fontSize:11,color:"#4A5568",lineHeight:1.5,marginBottom:8,overflow:"hidden",display:"-webkit-box",WebkitLineClamp:1,WebkitBoxOrient:"vertical"}}>{exPrev}</div>
                   {/* Badges row + CTA */}
                   <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    <span style={{padding:"3px 8px",borderRadius:99,background:"#111827",border:"1px solid #1E293B",color:"#4A5568",fontSize:9,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase"}}>{p.exercises.length} exs</span>
-                    <span style={{padding:"3px 8px",borderRadius:99,background:"#111827",border:"1px solid #1E293B",color:"#4A5568",fontSize:9,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase"}}>~{dur}min</span>
+                    <span style={{padding:"3px 8px",borderRadius:99,background:C.card,border:"1px solid "+C.border,color:"#4A5568",fontSize:9,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase"}}>{p.exercises.length} exs</span>
+                    <span style={{padding:"3px 8px",borderRadius:99,background:C.card,border:"1px solid "+C.border,color:"#4A5568",fontSize:9,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase"}}>~{dur}min</span>
                     <button onClick={()=>!isActive&&startPlan(p)} style={{flex:1,padding:"8px",background:"linear-gradient(135deg,#1E40AF,#2563EB,#3B82F6)",border:"none",borderRadius:9,color:"#fff",fontSize:11,fontWeight:800,cursor:isActive?"not-allowed":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:6,letterSpacing:"0.08em",textTransform:"uppercase"}}>
                       <svg width="10" height="10" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                       Iniciar
@@ -1335,13 +1335,13 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
         </div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:20}}>
           {[{label:"Duração",value:fmt(elapsed)},{label:"Volume",value:(totalVol/1000).toFixed(1)+"t"},{label:"Séries",value:workSets.length},{label:"RPE Médio",value:avgRpe?avgRpe+" / 10":"—"}].map(s=>(
-            <div key={s.label} style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:18,padding:"16px",textAlign:"center"}}>
+            <div key={s.label} style={{background:C.card,backdropFilter:"blur(20px)",border:"1px solid "+C.border,borderRadius:18,padding:"16px",textAlign:"center"}}>
               <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:C.sub,marginBottom:6}}>{s.label}</div>
               <div style={{fontSize:22,fontWeight:900,color:C.blueXL}}>{s.value}</div>
             </div>
           ))}
         </div>
-        <div style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:18,padding:"18px",marginBottom:20}}>
+        <div style={{background:C.card,backdropFilter:"blur(20px)",border:"1px solid "+C.border,borderRadius:18,padding:"18px",marginBottom:20}}>
           <div style={{fontSize:14,fontWeight:800,color:C.text,marginBottom:4}}>Como foi o treino?</div>
           <div style={{fontSize:12,color:C.sub,marginBottom:14}}>Percepção de esforço geral da sessão</div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:6,marginBottom:8}}>
@@ -1356,7 +1356,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
             <span>Fácil</span><span>Moderado</span><span>Máximo</span>
           </div>
         </div>
-        <div style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(20px)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:18,padding:"16px 18px",marginBottom:20}}>
+        <div style={{background:C.card,backdropFilter:"blur(20px)",border:"1px solid "+C.border,borderRadius:18,padding:"16px 18px",marginBottom:20}}>
           <button onClick={()=>setShowRetro(v=>!v)} style={{width:"100%",background:"none",border:"none",padding:0,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
             <div style={{display:"flex",alignItems:"center",gap:8}}>
               <span style={{fontSize:15}}>🗓️</span>
@@ -1445,8 +1445,8 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
           const exVol=exWork.filter(s=>s.done).reduce((s,set)=>s+set.w*set.r,0);
           const exDone=exWork.filter(s=>s.done).length;
           return(
-            <div key={exIdx} style={{marginBottom:6,background:"rgba(255,255,255,0.025)",border:"1px solid "+(allDone?"rgba(16,185,129,0.3)":"rgba(255,255,255,0.06)"),borderRadius:12,overflow:"hidden",transition:"border-color 0.3s"}}>
-              <div style={{padding:"8px 10px 6px",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
+            <div key={exIdx} style={{marginBottom:6,background:C.card,border:"1px solid "+(allDone?"rgba(16,185,129,0.3)":"rgba(255,255,255,0.06)"),borderRadius:12,overflow:"hidden",transition:"border-color 0.3s"}}>
+              <div style={{padding:"8px 10px 6px",borderBottom:"1px solid "+C.border}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                   <div style={{display:"flex",alignItems:"center",gap:6,flex:1,minWidth:0}}>
                     <div style={{width:6,height:6,borderRadius:"50%",background:GC[exItem.group]||C.blueL,flexShrink:0}}/>
@@ -1716,13 +1716,13 @@ function HistoricoScreen({onNavigate}){
 
   return(
     <div style={{background:"#080A0E",minHeight:"100dvh"}}>
-      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"52px 16px 14px"}}>
+      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid "+C.border,padding:"52px 16px 14px"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
             <CarbonLogo size={18} color={C.blueXL} strokeWidth={1.6}/>
             <span style={{fontSize:12,fontWeight:700,letterSpacing:"0.2em",textTransform:"uppercase",color:"#FFFFFF"}}>Carbon</span>
           </div>
-          <div style={{width:32,height:32,borderRadius:10,border:"1px solid #161C28",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <div style={{width:32,height:32,borderRadius:10,border:"1px solid "+C.border,display:"flex",alignItems:"center",justifyContent:"center"}}>
             <svg width="16" height="16" fill="none" stroke={C.sub} strokeWidth="1.8" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           </div>
         </div>
@@ -1733,13 +1733,13 @@ function HistoricoScreen({onNavigate}){
           </div>
         </div>
         <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:2}}>
-          {filters.map(f=><button key={f} onClick={()=>setFilter(f)} style={{padding:"6px 16px",borderRadius:99,flexShrink:0,cursor:"pointer",background:filter===f?"#1E40AF30":"#0D1017",border:"1px solid "+(filter===f?C.blueL+"60":"#161C28"),color:filter===f?C.blueXL:"#4A5568",fontSize:11,fontWeight:filter===f?700:500,textTransform:"uppercase",letterSpacing:"0.06em"}}>{f==="todos"?"Todos":f.toUpperCase()}</button>)}
+          {filters.map(f=><button key={f} onClick={()=>setFilter(f)} style={{padding:"6px 16px",borderRadius:99,flexShrink:0,cursor:"pointer",background:filter===f?"#1E40AF30":C.card,border:"1px solid "+(filter===f?C.blueL+"60":C.border),color:filter===f?C.blueXL:"#4A5568",fontSize:11,fontWeight:filter===f?700:500,textTransform:"uppercase",letterSpacing:"0.06em"}}>{f==="todos"?"Todos":f.toUpperCase()}</button>)}
         </div>
       </div>
       <div style={{padding:"16px 16px 100px"}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:16}}>
           {[{l:"Treinos",v:FEED.length,c:C.blueXL},{l:"Volume",v:Math.round(totalVol*10)/10+"t",c:C.mint},{l:"PRs",v:totalPRs,c:C.amber}].map(s=>(
-            <div key={s.l} style={{background:"rgba(13,16,23,0.85)",border:"1px solid #161C28",borderRadius:16,padding:"14px 12px",textAlign:"center"}}>
+            <div key={s.l} style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:"14px 12px",textAlign:"center"}}>
               <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:"#2A3550",marginBottom:6}}>{s.l}</div>
               <div style={{fontSize:20,fontWeight:900,color:s.c}}>{s.v}</div>
             </div>
@@ -1837,7 +1837,7 @@ function MuscleDetailScreen({muscles,onBack,onNavigate}){
       </div>
 
       {/* Period tabs */}
-      <div style={{display:"flex",background:"rgba(255,255,255,0.04)",borderRadius:12,padding:3,marginBottom:16,border:"1px solid rgba(255,255,255,0.06)"}}>
+      <div style={{display:"flex",background:C.card,borderRadius:12,padding:3,marginBottom:16,border:"1px solid "+C.border}}>
         {periods.map(p=>(
           <button key={p} onClick={()=>setPeriod(p)} style={{flex:1,padding:"8px 4px",borderRadius:9,border:"none",cursor:"pointer",fontSize:11,fontWeight:700,background:period===p?"rgba(255,255,255,0.12)":"transparent",color:period===p?C.text:C.muted}}>{p}</button>
         ))}
@@ -1846,7 +1846,7 @@ function MuscleDetailScreen({muscles,onBack,onNavigate}){
       {/* Stats row */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
         {[{l:"Prontos",v:muscles.filter(m=>m.pct===100).length,c:C.mint},{l:"Recuperando",v:muscles.filter(m=>m.pct<100&&m.pct>=50).length,c:C.amber},{l:"Fadigados",v:muscles.filter(m=>m.pct<50).length,c:C.coral}].map(s=>(
-          <div key={s.l} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:14,padding:"12px 4px",textAlign:"center"}}>
+          <div key={s.l} style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"12px 4px",textAlign:"center"}}>
             <div style={{fontSize:24,fontWeight:900,color:s.c}}>{s.v}</div>
             <div style={{fontSize:10,color:C.sub,marginTop:2}}>{s.l}</div>
           </div>
@@ -1854,13 +1854,13 @@ function MuscleDetailScreen({muscles,onBack,onNavigate}){
       </div>
 
       {/* Spider chart */}
-      <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:20,padding:"16px",marginBottom:14}}>
+      <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:"16px",marginBottom:14}}>
         <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Recuperação muscular</div>
         <SpiderChart muscles={muscles} size={300}/>
       </div>
 
       {/* Volume by muscle */}
-      <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:20,padding:"16px",marginBottom:14}}>
+      <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:"16px",marginBottom:14}}>
         <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Volume por grupo · {period}</div>
         {muscleGroups.map(g=>{
           const mv=muscleVol[g]||{vol:0,sets:0};
@@ -1875,7 +1875,7 @@ function MuscleDetailScreen({muscles,onBack,onNavigate}){
                   <span style={{fontSize:11,fontWeight:700,color:C.text}}>{mv.vol}t</span>
                 </div>
               </div>
-              <div style={{height:6,background:"rgba(255,255,255,0.05)",borderRadius:3,overflow:"hidden"}}>
+              <div style={{height:6,background:C.card,borderRadius:3,overflow:"hidden"}}>
                 <div style={{height:"100%",width:(barPct*100)+"%",background:muscle.color,borderRadius:3,transition:"width 0.5s"}}/>
               </div>
             </div>
@@ -1884,19 +1884,19 @@ function MuscleDetailScreen({muscles,onBack,onNavigate}){
       </div>
 
       {/* Recovery times */}
-      <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:20,padding:"16px"}}>
+      <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:"16px"}}>
         <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Estado de recuperação</div>
         {muscles.map(m=>(
           <div key={m.g} style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
             <div style={{fontSize:11,color:C.sub,width:58,flexShrink:0}}>{m.g}</div>
-            <div style={{flex:1,height:6,background:"rgba(255,255,255,0.05)",borderRadius:3,overflow:"hidden"}}>
+            <div style={{flex:1,height:6,background:C.card,borderRadius:3,overflow:"hidden"}}>
               <div style={{height:"100%",width:m.pct+"%",background:m.color,borderRadius:3}}/>
             </div>
             <div style={{fontSize:11,fontWeight:700,color:m.color,width:34,textAlign:"right"}}>{m.pct===100?"✓":m.pct+"%"}</div>
             {m.lastDays!=null&&<div style={{fontSize:9,color:C.muted,width:36,textAlign:"right"}}>há {m.lastDays}d</div>}
           </div>
         ))}
-        <div style={{marginTop:10,paddingTop:10,borderTop:"1px solid rgba(255,255,255,0.05)",fontSize:9,color:C.muted,lineHeight:1.7}}>
+        <div style={{marginTop:10,paddingTop:10,borderTop:"1px solid "+C.border,fontSize:9,color:C.muted,lineHeight:1.7}}>
           Core 36h · Ombros/Braços 48h · Peito 60h · Costas 72h · Pernas 96h
         </div>
       </div>
@@ -1944,7 +1944,7 @@ function ProgressDetailScreen({onBack,onNavigate}){
       </div>
 
       {/* Period selector */}
-      <div style={{display:"flex",background:"rgba(255,255,255,0.04)",borderRadius:12,padding:3,marginBottom:16,border:"1px solid rgba(255,255,255,0.06)"}}>
+      <div style={{display:"flex",background:C.card,borderRadius:12,padding:3,marginBottom:16,border:"1px solid "+C.border}}>
         {[{k:"1s",l:"1 Sem."},{k:"1m",l:"1 Mês"},{k:"3m",l:"3 Meses"},{k:"all",l:"Tudo"}].map(r=>(
           <button key={r.k} onClick={()=>setRange(r.k)} style={{flex:1,padding:"8px 4px",borderRadius:9,border:"none",cursor:"pointer",fontSize:11,fontWeight:700,background:range===r.k?"rgba(255,255,255,0.12)":"transparent",color:range===r.k?C.text:C.muted}}>{r.l}</button>
         ))}
@@ -1959,12 +1959,12 @@ function ProgressDetailScreen({onBack,onNavigate}){
 
       {/* Totais */}
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
-        <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:16,padding:"16px"}}>
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:"16px"}}>
           <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:C.sub,marginBottom:6}}>Total do período</div>
           <div style={{fontSize:30,fontWeight:900,color:mc.color,letterSpacing:"-1px"}}>{mc.fmt(totals[mode])}<span style={{fontSize:13,color:C.sub,marginLeft:3}}>{mc.unit}</span></div>
           <div style={{fontSize:11,color:C.muted,marginTop:4}}>{weekData.length} semana{weekData.length!==1?"s":""}</div>
         </div>
-        <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:16,padding:"16px"}}>
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:"16px"}}>
           <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:C.sub,marginBottom:6}}>Média semanal</div>
           <div style={{fontSize:30,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{mc.fmt(avgPerWeek)}<span style={{fontSize:13,color:C.sub,marginLeft:3}}>{mc.unit}</span></div>
           <div style={{fontSize:11,color:C.muted,marginTop:4}}>{totals.sessions} treinos total</div>
@@ -1972,7 +1972,7 @@ function ProgressDetailScreen({onBack,onNavigate}){
       </div>
 
       {/* Gráfico de barras */}
-      <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:20,padding:"16px",marginBottom:16}}>
+      <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:"16px",marginBottom:16}}>
         <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>{mc.l} por semana</div>
         <div style={{display:"flex",alignItems:"flex-end",gap:2,height:120,marginBottom:6}}>
           {weekData.map((w,i)=>(
@@ -1992,7 +1992,7 @@ function ProgressDetailScreen({onBack,onNavigate}){
       <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Histórico semanal</div>
       <div style={{display:"flex",flexDirection:"column",gap:8}}>
         {[...weekData].reverse().map((w,i)=>(
-          <div key={i} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"12px 14px"}}>
+          <div key={i} style={{background:C.card,border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"12px 14px"}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
               <div style={{fontSize:12,fontWeight:700,color:C.text}}>{w.label}</div>
               <div style={{display:"flex",gap:12,alignItems:"center"}}>
@@ -2000,7 +2000,7 @@ function ProgressDetailScreen({onBack,onNavigate}){
                 <span style={{fontSize:13,fontWeight:800,color:mc.color}}>{mc.fmt(w[mode])}{mc.unit&&<span style={{fontSize:9,fontWeight:500,color:C.muted,marginLeft:2}}>{mc.unit}</span>}</span>
               </div>
             </div>
-            <div style={{height:4,background:"rgba(255,255,255,0.05)",borderRadius:2,overflow:"hidden"}}>
+            <div style={{height:4,background:C.card,borderRadius:2,overflow:"hidden"}}>
               <div style={{height:"100%",width:(maxY>0?(w[mode]||0)/maxY:0)*100+"%",background:mc.color,borderRadius:2}}/>
             </div>
           </div>
@@ -2063,7 +2063,7 @@ function TrainingProgressionCard({onOpenDetail}){
   const delta=prevVal>0?Math.round((last-prevVal)/prevVal*100):0;
   const peak=chartData.reduce((a,d)=>Math.max(a,d.y),0);
   return(
-    <div style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderRadius:20,border:"1px solid rgba(255,255,255,0.08)",boxShadow:"0 4px 24px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.05)",padding:"16px",marginBottom:16}}>
+    <div style={{background:C.card,backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderRadius:20,border:"1px solid "+C.border,boxShadow:"0 4px 24px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.05)",padding:"16px",marginBottom:16}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
         <div style={{fontSize:11,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:C.sub}}>Progressão de Força</div>
         
@@ -2071,16 +2071,16 @@ function TrainingProgressionCard({onOpenDetail}){
 
       {/* Stats */}
       <div style={{display:"flex",gap:10,marginBottom:12}}>
-        <div style={{flex:1,background:"rgba(255,255,255,0.03)",borderRadius:12,padding:"10px 12px",border:"1px solid rgba(255,255,255,0.05)"}}>
+        <div style={{flex:1,background:C.card,borderRadius:12,padding:"10px 12px",border:"1px solid "+C.border}}>
           <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.muted,marginBottom:4}}>Índice atual</div>
           <div style={{fontSize:22,fontWeight:900,color:C.blueXL}}>{last>0?last.toFixed(0)+"%":"—"}</div>
           {delta!==0&&<div style={{fontSize:10,fontWeight:700,color:delta>0?C.mint:C.coral}}>{delta>0?"↑":"↓"}{Math.abs(delta)}%</div>}
         </div>
-        <div style={{flex:1,background:"rgba(255,255,255,0.03)",borderRadius:12,padding:"10px 12px",border:"1px solid rgba(255,255,255,0.05)"}}>
+        <div style={{flex:1,background:C.card,borderRadius:12,padding:"10px 12px",border:"1px solid "+C.border}}>
           <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.muted,marginBottom:4}}>Pico</div>
           <div style={{fontSize:22,fontWeight:900,color:C.mint}}>{peak>0?peak.toFixed(0)+"%":"—"}</div>
         </div>
-        <div style={{flex:1,background:"rgba(255,255,255,0.03)",borderRadius:12,padding:"10px 12px",border:"1px solid rgba(255,255,255,0.05)"}}>
+        <div style={{flex:1,background:C.card,borderRadius:12,padding:"10px 12px",border:"1px solid "+C.border}}>
           <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.muted,marginBottom:4}}>Pontos</div>
           <div style={{fontSize:22,fontWeight:900,color:C.text}}>{chartData.length}</div>
         </div>
@@ -2088,7 +2088,7 @@ function TrainingProgressionCard({onOpenDetail}){
 
       {/* Gráfico de linha macro */}
       {chartData.length>1?(
-        <div style={{background:"rgba(255,255,255,0.02)",borderRadius:12,padding:"12px",border:"1px solid rgba(255,255,255,0.04)"}}>
+        <div style={{background:C.card,borderRadius:12,padding:"12px",border:"1px solid "+C.border}}>
           <LineChart data={chartData} color={C.blueXL} height={100}/>
           <div style={{display:"flex",justifyContent:"space-between",marginTop:6}}>
             <div style={{fontSize:9,color:C.muted}}>{fmtDate(chartData[0].x)}</div>
@@ -2150,7 +2150,7 @@ function StrengthDetailScreen({onBack}){
         </div>
       </div>
 
-      <div style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(20px)",borderRadius:20,border:"1px solid rgba(255,255,255,0.08)",padding:"16px"}}>
+      <div style={{background:C.card,backdropFilter:"blur(20px)",borderRadius:20,border:"1px solid "+C.border,padding:"16px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10,gap:8}}>
           <div style={{minWidth:0}}>
             <div style={{fontSize:16,fontWeight:800,color:C.text,lineHeight:1.25,wordBreak:"break-word"}}>{selEx}</div>
@@ -2174,22 +2174,22 @@ function StrengthDetailScreen({onBack}){
           ))}
         </div>
         <div style={{display:"flex",gap:10,marginBottom:12}}>
-          <div style={{flex:1,background:"rgba(255,255,255,0.03)",borderRadius:12,padding:"10px 12px",border:"1px solid rgba(255,255,255,0.05)"}}>
+          <div style={{flex:1,background:C.card,borderRadius:12,padding:"10px 12px",border:"1px solid "+C.border}}>
             <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.muted,marginBottom:4}}>{rmMode==="1rm"?"Melhor 1RM est.":"Maior carga"}</div>
             <div style={{fontSize:22,fontWeight:900,color:gcEx}}>{exBest>0?exBest+"kg":"—"}</div>
           </div>
-          <div style={{flex:1,background:"rgba(255,255,255,0.03)",borderRadius:12,padding:"10px 12px",border:"1px solid rgba(255,255,255,0.05)"}}>
+          <div style={{flex:1,background:C.card,borderRadius:12,padding:"10px 12px",border:"1px solid "+C.border}}>
             <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.muted,marginBottom:4}}>Último treino</div>
             <div style={{fontSize:22,fontWeight:900,color:C.text}}>{exLast>0?exLast+"kg":"—"}</div>
             {exDelta!==0&&<div style={{fontSize:10,fontWeight:700,color:exDelta>0?C.mint:C.coral}}>{exDelta>0?"↑":"↓"}{Math.abs(exDelta)}%</div>}
           </div>
-          <div style={{flex:1,background:"rgba(255,255,255,0.03)",borderRadius:12,padding:"10px 12px",border:"1px solid rgba(255,255,255,0.05)"}}>
+          <div style={{flex:1,background:C.card,borderRadius:12,padding:"10px 12px",border:"1px solid "+C.border}}>
             <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",color:C.muted,marginBottom:4}}>Sessões</div>
             <div style={{fontSize:22,fontWeight:900,color:C.text}}>{hist.length}</div>
           </div>
         </div>
         {exChartData.length>1?(
-          <div style={{background:"rgba(255,255,255,0.02)",borderRadius:12,padding:"12px",border:"1px solid rgba(255,255,255,0.04)"}}>
+          <div style={{background:C.card,borderRadius:12,padding:"12px",border:"1px solid "+C.border}}>
             <LineChart data={exChartData} color={gcEx} height={130} showAllPoints unit="kg"/>
             <div style={{display:"flex",justifyContent:"space-between",marginTop:6}}>
               <div style={{fontSize:9,color:C.muted}}>{fmtDate(exChartData[0].x)}</div>
@@ -2351,7 +2351,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   }
 
   const GlassCard=({children,style={},onClick})=>(
-    <div onClick={onClick} style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderRadius:20,border:"1px solid rgba(255,255,255,0.08)",boxShadow:"0 4px 24px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.05)",cursor:onClick?"pointer":undefined,...style}}>{children}</div>
+    <div onClick={onClick} style={{background:C.card,backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderRadius:20,border:"1px solid "+C.border,boxShadow:"0 4px 24px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.05)",cursor:onClick?"pointer":undefined,...style}}>{children}</div>
   );
   if(showCalendar){
     const y=calMonth.getFullYear(),m=calMonth.getMonth();
@@ -2368,9 +2368,9 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
           <div style={{width:36}}/>
         </div>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-          <button onClick={()=>setCalMonth(d=>{const n=new Date(d);n.setMonth(n.getMonth()-1);return n;})} style={{width:32,height:32,borderRadius:"50%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",color:C.sub,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+          <button onClick={()=>setCalMonth(d=>{const n=new Date(d);n.setMonth(n.getMonth()-1);return n;})} style={{width:32,height:32,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
           <div style={{fontSize:16,fontWeight:700,color:C.text,textTransform:"capitalize"}}>{calMonth.toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}</div>
-          <button onClick={()=>setCalMonth(d=>{const n=new Date(d);n.setMonth(n.getMonth()+1);return n;})} style={{width:32,height:32,borderRadius:"50%",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",color:C.sub,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
+          <button onClick={()=>setCalMonth(d=>{const n=new Date(d);n.setMonth(n.getMonth()+1);return n;})} style={{width:32,height:32,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2,marginBottom:8}}>
           {["DO","SE","TE","QU","QU","SE","SÁ"].map(d=><div key={d} style={{textAlign:"center",fontSize:10,fontWeight:700,color:C.muted,padding:"6px 0"}}>{d}</div>)}
@@ -2420,7 +2420,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
           <CarbonLogo size={18} color={C.blueXL} strokeWidth={1.6}/>
           <span style={{fontSize:12,fontWeight:700,letterSpacing:"0.2em",textTransform:"uppercase",color:"#FFFFFF"}}>Carbon</span>
         </div>
-        <button onClick={()=>setShowCalendar(true)} style={{width:32,height:32,borderRadius:10,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <button onClick={()=>setShowCalendar(true)} style={{width:32,height:32,borderRadius:10,background:C.card,border:"1px solid "+C.border,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="3" stroke={C.sub} strokeWidth="1.8"/><path d="M3 9h18M8 2v4M16 2v4" stroke={C.sub} strokeWidth="1.8" strokeLinecap="round"/></svg>
         </button>
       </div>
@@ -2453,8 +2453,8 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
               <div style={{fontSize:10,color:C.sub}}>{weekLabel}</div>
             </div>
             <div style={{display:"flex",gap:6}}>
-              <button onClick={()=>setWeekOffset(w=>w-1)} style={{width:26,height:26,borderRadius:99,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",color:C.sub,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-              <button onClick={()=>setWeekOffset(w=>Math.min(0,w+1))} style={{width:26,height:26,borderRadius:99,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",color:weekOffset===0?C.muted:C.sub,cursor:weekOffset===0?"default":"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
+              <button onClick={()=>setWeekOffset(w=>w-1)} style={{width:26,height:26,borderRadius:99,background:C.card,border:"1px solid "+C.border,color:C.sub,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+              <button onClick={()=>setWeekOffset(w=>Math.min(0,w+1))} style={{width:26,height:26,borderRadius:99,background:C.card,border:"1px solid "+C.border,color:weekOffset===0?C.muted:C.sub,cursor:weekOffset===0?"default":"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
             </div>
           </div>
           <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:3}}>
@@ -2531,7 +2531,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
         <GlassCard style={{padding:"16px"}}>
           <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:14}}>
             {[{l:"Prontos",v:muscles.filter(m=>m.pct===100).length,c:C.mint},{l:"Recup.",v:muscles.filter(m=>m.pct<100&&m.pct>50).length,c:C.amber},{l:"Fadig.",v:muscles.filter(m=>m.pct<=50).length,c:C.coral},{l:"Dias s/ treino",v:0,c:C.sub}].map(s=>(
-              <div key={s.l} style={{background:"rgba(255,255,255,0.03)",borderRadius:10,padding:"8px",textAlign:"center",border:"1px solid rgba(255,255,255,0.05)"}}>
+              <div key={s.l} style={{background:C.card,borderRadius:10,padding:"8px",textAlign:"center",border:"1px solid "+C.border}}>
                 <div style={{fontSize:18,fontWeight:900,color:s.c}}>{s.v}</div>
                 <div style={{fontSize:9,color:C.muted,marginTop:2,lineHeight:1.2}}>{s.l}</div>
               </div>
@@ -2545,7 +2545,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
               <div key={m.g} style={{marginBottom:10}}>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
                   <div style={{fontSize:10,color:C.sub,width:75,flexShrink:0}}>{m.g}</div>
-                  <div style={{flex:1,height:5,background:"rgba(255,255,255,0.05)",borderRadius:3,overflow:"hidden"}}>
+                  <div style={{flex:1,height:5,background:C.card,borderRadius:3,overflow:"hidden"}}>
                     <div style={{height:"100%",width:m.pct+"%",background:m.color,borderRadius:3}}/>
                   </div>
                   <div style={{fontSize:10,fontWeight:700,color:m.color,width:28,textAlign:"right",flexShrink:0}}>{m.pct===100?"✓":m.pct+"%"}</div>
@@ -2767,7 +2767,7 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
 
   return(
     <div style={{background:"#080A0E",minHeight:"100vh",paddingBottom:120}}>
-      <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"52px 20px 14px"}}>
+      <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid "+C.border,padding:"52px 20px 14px"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
             <CarbonLogo size={18} color={C.blueXL} strokeWidth={1.6}/>
@@ -2781,7 +2781,7 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
         {/* ── RECOVERY STATS ROW ── */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:10}}>
           {[{l:"Prontos",v:recoveryMuscles.filter(m=>m.pct===100).length,c:C.mint},{l:"Recuperando",v:recoveryMuscles.filter(m=>m.pct<100&&m.pct>=50).length,c:C.amber},{l:"Fadigados",v:recoveryMuscles.filter(m=>m.pct<50).length,c:C.coral}].map(s=>(
-            <div key={s.l} style={{background:"rgba(13,16,23,0.85)",border:"1px solid #161C28",borderRadius:12,padding:"8px 4px",textAlign:"center"}}>
+            <div key={s.l} style={{background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"8px 4px",textAlign:"center"}}>
               <div style={{fontSize:20,fontWeight:900,color:s.c}}>{s.v}</div>
               <div style={{fontSize:9,color:C.sub,marginTop:2}}>{s.l}</div>
             </div>
@@ -2803,16 +2803,16 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
         </GlassCard>
 
         {/* ── RECOVERY SPIDER ── */}
-        <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:18,padding:"12px",marginBottom:10}}>
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"12px",marginBottom:10}}>
           <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Recuperação Muscular</div>
           <SpiderChart muscles={recoveryMuscles} size={200}/>
         </div>
 
         {/* ── VOLUME BY MUSCLE (bars) with period selector ── */}
-        <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:20,padding:16,marginBottom:14}}>
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:14}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
             <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em"}}>Volume por Grupo</div>
-            <div style={{display:"flex",background:"rgba(255,255,255,0.04)",borderRadius:8,padding:2,border:"1px solid rgba(255,255,255,0.06)"}}>
+            <div style={{display:"flex",background:C.card,borderRadius:8,padding:2,border:"1px solid "+C.border}}>
               {["Semana","Mês","Trim.","Ano"].map(p=>(
                 <button key={p} onClick={()=>setPeriod(p)} style={{padding:"4px 8px",borderRadius:6,border:"none",cursor:"pointer",fontSize:10,fontWeight:700,background:period===p?"rgba(255,255,255,0.12)":"transparent",color:period===p?C.text:C.muted}}>{p}</button>
               ))}
@@ -2833,11 +2833,11 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
                     <span style={{fontSize:11,fontWeight:700,color:C.text}}>{mv.vol}t</span>
                   </div>
                 </div>
-                <div style={{height:6,background:"rgba(255,255,255,0.05)",borderRadius:3,overflow:"hidden"}}>
+                <div style={{height:6,background:C.card,borderRadius:3,overflow:"hidden"}}>
                   <div style={{height:"100%",width:(barPct*100)+"%",background:GC[g]||rm.color,borderRadius:3,transition:"width 0.5s"}}/>
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:6,marginTop:4}}>
-                  <div style={{flex:1,height:3,background:"rgba(255,255,255,0.04)",borderRadius:2,position:"relative"}}>
+                  <div style={{flex:1,height:3,background:C.card,borderRadius:2,position:"relative"}}>
                     <div style={{position:"absolute",left:"30%",right:"0%",height:"100%",background:"rgba(16,185,129,0.12)",borderRadius:2}}/>
                     <div style={{height:"100%",width:Math.min(100,(mv.sets/20)*100)+"%",background:rangeColor+"99",borderRadius:2,position:"relative"}}/>
                   </div>
@@ -2846,7 +2846,7 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
               </div>
             );
           })}
-          <div style={{marginTop:8,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)",display:"flex",alignItems:"center",gap:10}}>
+          <div style={{marginTop:8,paddingTop:8,borderTop:"1px solid "+C.border,display:"flex",alignItems:"center",gap:10}}>
             <div style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:6,height:6,borderRadius:1,background:C.mint}}/><span style={{fontSize:9,color:C.muted}}>6–20 séries/sem ideal</span></div>
             <div style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:6,height:6,borderRadius:1,background:C.amber}}/><span style={{fontSize:9,color:C.muted}}>&lt;6 abaixo</span></div>
             <div style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:6,height:6,borderRadius:1,background:C.coral}}/><span style={{fontSize:9,color:C.muted}}>&gt;20 excesso</span></div>
@@ -2854,19 +2854,19 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
         </div>
 
         {/* ── RECOVERY STATE BARS ── */}
-        <div style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:20,padding:16,marginBottom:14}}>
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:14}}>
           <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Estado de Recuperação</div>
           {recoveryMuscles.map(m=>(
             <div key={m.g} style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
               <div style={{fontSize:11,color:C.sub,width:72,flexShrink:0}}>{m.g}</div>
-              <div style={{flex:1,height:6,background:"rgba(255,255,255,0.05)",borderRadius:3,overflow:"hidden"}}>
+              <div style={{flex:1,height:6,background:C.card,borderRadius:3,overflow:"hidden"}}>
                 <div style={{height:"100%",width:m.pct+"%",background:m.color,borderRadius:3}}/>
               </div>
               <div style={{fontSize:11,fontWeight:700,color:m.color,width:34,textAlign:"right"}}>{m.pct===100?"✓":m.pct+"%"}</div>
               {m.lastDays!=null&&<div style={{fontSize:9,color:C.muted,width:36,textAlign:"right"}}>há {m.lastDays}d</div>}
             </div>
           ))}
-          <div style={{marginTop:8,paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)",fontSize:9,color:C.muted,lineHeight:1.8}}>Core 36h · Ombros/Braços 48h · Peito 60h · Costas/Glúteos 72h · Pernas 96h</div>
+          <div style={{marginTop:8,paddingTop:8,borderTop:"1px solid "+C.border,fontSize:9,color:C.muted,lineHeight:1.8}}>Core 36h · Ombros/Braços 48h · Peito 60h · Costas/Glúteos 72h · Pernas 96h</div>
         </div>
 
         {/* ── PESO ── */}
@@ -3072,7 +3072,7 @@ ${ctx}
       <style>{`@keyframes fgpulse{0%,100%{opacity:0.3;transform:scale(0.75)}50%{opacity:1;transform:scale(1)}}`}</style>
 
       {/* Header */}
-      <div style={{flexShrink:0,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"52px 20px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+      <div style={{flexShrink:0,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid "+C.border,padding:"52px 20px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <CarbonLogo size={18} color={C.blueXL} strokeWidth={1.6}/>
           <div>
@@ -3080,7 +3080,7 @@ ${ctx}
             <div style={{fontSize:9,fontWeight:600,color:C.blueXL,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:2}}>AI Coach</div>
           </div>
         </div>
-        <div style={{width:32,height:32,borderRadius:10,border:"1px solid #161C28",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <div style={{width:32,height:32,borderRadius:10,border:"1px solid "+C.border,display:"flex",alignItems:"center",justifyContent:"center"}}>
           <svg width="16" height="16" fill="none" stroke={C.sub} strokeWidth="1.8" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         </div>
       </div>
@@ -3104,7 +3104,7 @@ ${ctx}
             <div style={{width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#1E40AF,#3B82F6)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
               <svg width="13" height="13" viewBox="0 0 48 48" fill="none"><polygon points="24,3 41,13 41,35 24,45 7,35 7,13" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg>
             </div>
-            <div style={{background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:"18px 18px 18px 4px",padding:"12px 16px",display:"flex",gap:5,alignItems:"center"}}>
+            <div style={{background:"rgba(255,255,255,0.06)",border:"1px solid "+C.border,borderRadius:"18px 18px 18px 4px",padding:"12px 16px",display:"flex",gap:5,alignItems:"center"}}>
               {[0,1,2].map(j=>(<div key={j} style={{width:7,height:7,borderRadius:"50%",background:C.blueXL,animationName:"fgpulse",animationDuration:"1.2s",animationTimingFunction:"ease-in-out",animationIterationCount:"infinite",animationDelay:`${j*0.18}s`}}/>))}
             </div>
           </div>
