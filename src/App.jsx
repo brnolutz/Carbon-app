@@ -2636,19 +2636,15 @@ function BodyDiagram({muscleHeat,width=320}){
   const activeImgs = useMemo(()=>{
     const active = Object.entries(muscleHeat)
       .filter(([g, pct])=> pct != null && pct < 100 && MUSCLE_IMG[g]);
-    // If 5+ muscle groups trained this week, show the full-body image
     if(active.length >= 5) return ["/body-semana-atual.png"];
-    // Otherwise show individual muscle images layered
     if(active.length === 0) return ["/body-base.png"];
     return active.map(([g])=> MUSCLE_IMG[g]);
   },[muscleHeat]);
 
   const h = Math.round(width * 0.75);
-  const isMulti = activeImgs.length > 1;
 
   return(
     <div style={{width:width,height:h,margin:"0 auto",position:"relative"}}>
-      <img src="/body-base.png" alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"contain",objectPosition:"center",display:"block"}}/>
       {activeImgs.map((src,i)=>(
         <img key={src+i} src={src} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"contain",objectPosition:"center",display:"block",mixBlendMode:"lighten"}}/>
       ))}
