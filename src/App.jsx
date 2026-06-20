@@ -511,7 +511,7 @@ function FeedCard({session,onOpen}){
   const visible=expanded?session.exercises:session.exercises.slice(0,3);
   const more=session.exercises.length-3;
   return(
-    <div style={{background:"#0D1017",border:"1px solid #161C28",borderRadius:18,marginBottom:10,overflow:"hidden"}}>
+    <div style={{background:"rgba(13,16,23,0.85)",border:"1px solid #161C28",borderRadius:18,marginBottom:10,overflow:"hidden"}}>
       <div style={{padding:"16px 18px 14px"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
           <div>
@@ -555,7 +555,7 @@ function ExerciciosBrowserScreen({onNavigate}){
     return matchGroup&&matchSearch;
   });
   return(
-    <div style={{background:C.bg,minHeight:"100vh",paddingBottom:100}}>
+    <div style={{background:"#080A0E",minHeight:"100vh",paddingBottom:100}}>
       <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,padding:"52px 16px 14px"}}>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
           <button onClick={()=>onNavigate("home")} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
@@ -743,7 +743,7 @@ function HomeScreen({onNavigate}){
                 const pct=(d.y||0)/maxY;
                 const isLast=i===chartData.length-1;
                 return(<div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center"}}>
-                  <div style={{width:"100%",height:Math.max(pct*80,2),background:isLast?C.blueXL:C.blueXL+"40",borderRadius:"2px 2px 0 0"}}/>
+                  <div style={{width:"100%",height:Math.max(pct*80,2),background:isLast?activeMode.color:activeMode.color+"40",borderRadius:"2px 2px 0 0"}}/>
                 </div>);
               })}
             </div>
@@ -1226,7 +1226,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
             const dur=estimateDur(p);
             const exPrev=p.exercises.map(e=>e.name).join(", ");
             return(
-              <div key={p.id} style={{background:"#0D1017",border:"1px solid #161C28",borderRadius:20,overflow:"hidden",opacity:isActive?0.5:1}}>
+              <div key={p.id} style={{background:"rgba(13,16,23,0.85)",border:"1px solid #161C28",borderRadius:20,overflow:"hidden",opacity:isActive?0.5:1}}>
                 <div style={{padding:"20px 20px 18px"}}>
                   {/* Day label row */}
                   <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
@@ -1712,7 +1712,7 @@ function HistoricoScreen({onNavigate}){
 
   return(
     <div style={{background:"#080A0E",minHeight:"100dvh"}}>
-      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",borderBottom:"1px solid #161C28",padding:"52px 16px 14px"}}>
+      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"52px 16px 14px"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
             <CarbonLogo size={18} color={C.blueXL} strokeWidth={1.6}/>
@@ -1735,7 +1735,7 @@ function HistoricoScreen({onNavigate}){
       <div style={{padding:"16px 16px 100px"}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:16}}>
           {[{l:"Treinos",v:FEED.length,c:C.blueXL},{l:"Volume",v:Math.round(totalVol*10)/10+"t",c:C.mint},{l:"PRs",v:totalPRs,c:C.amber}].map(s=>(
-            <div key={s.l} style={{background:"#0D1017",border:"1px solid #161C28",borderRadius:16,padding:"14px 12px",textAlign:"center"}}>
+            <div key={s.l} style={{background:"rgba(13,16,23,0.85)",border:"1px solid #161C28",borderRadius:16,padding:"14px 12px",textAlign:"center"}}>
               <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:"#2A3550",marginBottom:6}}>{s.l}</div>
               <div style={{fontSize:20,fontWeight:900,color:s.c}}>{s.v}</div>
             </div>
@@ -2762,7 +2762,7 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
 
   return(
     <div style={{background:"#080A0E",minHeight:"100vh",paddingBottom:100}}>
-      <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",borderBottom:"1px solid #161C28",padding:"52px 20px 14px"}}>
+      <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"52px 20px 14px"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
           <div style={{display:"flex",alignItems:"center",gap:8}}>
             <CarbonLogo size={18} color={C.blueXL} strokeWidth={1.6}/>
@@ -2779,7 +2779,7 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
         {/* ── RECOVERY STATS ROW ── */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
           {[{l:"Prontos",v:recoveryMuscles.filter(m=>m.pct===100).length,c:C.mint},{l:"Recuperando",v:recoveryMuscles.filter(m=>m.pct<100&&m.pct>=50).length,c:C.amber},{l:"Fadigados",v:recoveryMuscles.filter(m=>m.pct<50).length,c:C.coral}].map(s=>(
-            <div key={s.l} style={{background:"#0D1017",border:"1px solid #161C28",borderRadius:14,padding:"12px 4px",textAlign:"center"}}>
+            <div key={s.l} style={{background:"rgba(13,16,23,0.85)",border:"1px solid #161C28",borderRadius:14,padding:"12px 4px",textAlign:"center"}}>
               <div style={{fontSize:24,fontWeight:900,color:s.c}}>{s.v}</div>
               <div style={{fontSize:10,color:C.sub,marginTop:2}}>{s.l}</div>
             </div>
@@ -3065,11 +3065,11 @@ ${ctx}
   const showChips=messages.length===1&&!loading;
 
   return(
-    <div style={{display:"flex",flexDirection:"column",height:"100vh",background:"#080A0E"}}>
+    <div style={{display:"flex",flexDirection:"column",height:"100dvh",background:"#080A0E"}}>
       <style>{`@keyframes fgpulse{0%,100%{opacity:0.3;transform:scale(0.75)}50%{opacity:1;transform:scale(1)}}`}</style>
 
       {/* Header */}
-      <div style={{flexShrink:0,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",borderBottom:"1px solid #161C28",padding:"52px 20px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+      <div style={{flexShrink:0,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid rgba(255,255,255,0.06)",padding:"52px 20px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           <CarbonLogo size={18} color={C.blueXL} strokeWidth={1.6}/>
           <div>
