@@ -2340,7 +2340,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
     for(let i=0;i<firstDay;i++) cells.push(null);
     for(let d=1;d<=daysInMonth;d++) cells.push(d);
     return(
-      <div style={{background:"#080A0E",minHeight:"100dvh",padding:"52px 20px 120px"}}>
+      <div style={{background:"#080A0E",minHeight:"100dvh",padding:"52px 20px 120px",overflowX:"hidden"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24}}>
           <button onClick={()=>setShowCalendar(false)} style={{width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:C.text,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
           <div style={{fontSize:18,fontWeight:800,color:C.text}}>Calendário</div>
@@ -2393,7 +2393,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   return(
     <div style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingTop:52,paddingBottom:120}}>
       <style>{`.prog-bar{transition:height 0.4s ease;}`}</style>
-      <div style={{padding:"0 20px 8px",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+      <div style={{padding:"14px 20px 8px",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
         <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>Meu Progresso</div>
         <button onClick={()=>setShowCalendar(true)} style={{width:32,height:32,borderRadius:10,background:C.card,border:"1px solid "+C.border,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="3" stroke={C.sub} strokeWidth="1.8"/><path d="M3 9h18M8 2v4M16 2v4" stroke={C.sub} strokeWidth="1.8" strokeLinecap="round"/></svg>
