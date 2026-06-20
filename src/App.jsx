@@ -2633,21 +2633,22 @@ const MUSCLE_IMG = {
 const MUSCLE_PRIORITY = ["Peito","Costas","Pernas","Ombros","Braços","Core","Glúteos","Panturrilha"];
 
 function BodyDiagram({muscleHeat,width=320}){
-  // Collect ALL muscles trained this week (pct < 100)
   const activeImgs = useMemo(()=>{
-    return Object.entries(muscleHeat)
-      .filter(([g, pct])=> pct != null && pct < 100 && MUSCLE_IMG[g])
-      .map(([g])=> MUSCLE_IMG[g]);
+    const active = Object.entries(muscleHeat)
+      .filter(([g, pct])=> pct != null && pct < 100 && MUSCLE_IMG[g]);
+    // If 5+ muscle groups trained this week, show the full-body image
+    if(active.length >= 5) return ["/body-semana-atual.png"];
+    // Otherwise show individual muscle images layered
+    if(active.length === 0) return ["/body-base.png"];
+    return active.map(([g])=> MUSCLE_IMG[g]);
   },[muscleHeat]);
 
-  const imgs = activeImgs.length > 0 ? activeImgs : ["/body-base.png"];
   const h = Math.round(width * 0.75);
+  const isMulti = activeImgs.length > 1;
 
   return(
     <div style={{width:width,height:h,margin:"0 auto",position:"relative"}}>
-      {/* Base image always underneath */}
       <img src="/body-base.png" alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"contain",objectPosition:"center",display:"block"}}/>
-      {/* Stack all active muscle images with lighten blend */}
       {activeImgs.map((src,i)=>(
         <img key={src+i} src={src} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"contain",objectPosition:"center",display:"block",mixBlendMode:"lighten"}}/>
       ))}
