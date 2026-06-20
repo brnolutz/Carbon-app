@@ -17,14 +17,50 @@
     <title>Carbon</title>
     <style>
       html, body { margin:0; padding:0; background:#0B0F14; }
-      #root { min-height:100vh; }
+      #root { min-height:100vh; padding-top:56px; }
       html, body, #root, button, input, textarea, select {
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       }
-      :root { --gh: calc(56px + env(safe-area-inset-top, 0px)); }
+      #carbon-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 2147483647;
+        padding-top: env(safe-area-inset-top, 0px);
+        background: rgba(8,10,14,0.97);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border-bottom: 1px solid rgba(255,255,255,0.07);
+        font-family: 'Inter', -apple-system, sans-serif;
+      }
+      #carbon-header-inner {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+      }
+      #carbon-header img {
+        width: 18px;
+        height: 18px;
+        object-fit: contain;
+      }
+      #carbon-header span {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: #FFFFFF;
+      }
     </style>
   </head>
   <body>
+    <div id="carbon-header">
+      <div id="carbon-header-inner">
+        <img src="/carbon-logo.png" alt="Carbon" />
+        <span>Carbon</span>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>

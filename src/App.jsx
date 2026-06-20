@@ -331,29 +331,7 @@ function GlassCard({children,style={},onClick}){
 }
 
 // ── Global top bar — Carbon logo strip shown on every screen ──
-function GlobalHeader(){
-  const el = (
-    <div style={{
-      position:"fixed",
-      top:0,
-      left:0,
-      right:0,
-      zIndex:2147483647,
-      paddingTop:"env(safe-area-inset-top,0px)",
-      background:"rgba(8,10,14,0.97)",
-      backdropFilter:"blur(24px)",
-      WebkitBackdropFilter:"blur(24px)",
-      borderBottom:"1px solid rgba(255,255,255,0.07)",
-      pointerEvents:"none"
-    }}>
-      <div style={{padding:"10px 20px 10px",display:"flex",alignItems:"center",gap:8}}>
-        <CarbonLogo size={18} color={C.blueXL} strokeWidth={1.6}/>
-        <span style={{fontSize:12,fontWeight:700,letterSpacing:"0.2em",textTransform:"uppercase",color:"#FFFFFF"}}>Carbon</span>
-      </div>
-    </div>
-  );
-  return createPortal(el, document.body);
-}
+function GlobalHeader(){ return null; }
 
 function BottomNav({active,onNavigate}){
   const tabs=[
