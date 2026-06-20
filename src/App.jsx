@@ -2633,28 +2633,24 @@ const MUSCLE_IMG = {
 const MUSCLE_PRIORITY = ["Peito","Costas","Pernas","Ombros","Braços","Core","Glúteos","Panturrilha"];
 
 function BodyDiagram({muscleHeat,width=320}){
-  const activeImg = useMemo(()=>{
-    let best = null;
-    let bestPct = 101;
-    Object.entries(muscleHeat).forEach(([g, pct])=>{
-      if(pct != null && pct < bestPct && MUSCLE_IMG[g]){
-        bestPct = pct;
-        best = g;
-      }
-    });
-    if(best && bestPct < 100) return MUSCLE_IMG[best];
-    return "/body-base.png";
+  // Collect ALL muscles trained this week (pct < 100)
+  const activeImgs = useMemo(()=>{
+    return Object.entries(muscleHeat)
+      .filter(([g, pct])=> pct != null && pct < 100 && MUSCLE_IMG[g])
+      .map(([g])=> MUSCLE_IMG[g]);
   },[muscleHeat]);
 
-  const h=Math.round(width*0.75);
+  const imgs = activeImgs.length > 0 ? activeImgs : ["/body-base.png"];
+  const h = Math.round(width * 0.75);
+
   return(
-    <div style={{width:width,height:h,margin:"0 auto",overflow:"hidden"}}>
-      <img
-        key={activeImg}
-        src={activeImg}
-        alt="Mapa muscular"
-        style={{width:"100%",height:"100%",objectFit:"contain",objectPosition:"center",display:"block",mixBlendMode:"lighten"}}
-      />
+    <div style={{width:width,height:h,margin:"0 auto",position:"relative"}}>
+      {/* Base image always underneath */}
+      <img src="/body-base.png" alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"contain",objectPosition:"center",display:"block"}}/>
+      {/* Stack all active muscle images with lighten blend */}
+      {activeImgs.map((src,i)=>(
+        <img key={src+i} src={src} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"contain",objectPosition:"center",display:"block",mixBlendMode:"lighten"}}/>
+      ))}
     </div>
   );
 }
