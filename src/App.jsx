@@ -811,7 +811,7 @@ function HomeScreen({onNavigate}){
 function PRToast({pr}){
   if(!pr)return null;
   return(
-    <div style={{position:"fixed",top:14,left:16,right:16,zIndex:500,display:"flex",justifyContent:"center",pointerEvents:"none"}}>
+    <div style={{position:"fixed",top:64,left:16,right:16,zIndex:500,display:"flex",justifyContent:"center",pointerEvents:"none"}}>
       <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 16px",borderRadius:99,background:"linear-gradient(135deg,#92400E,#B45309,#F59E0B)",boxShadow:"0 6px 24px rgba(245,158,11,0.45)",animation:"prToastIn 0.35s ease-out"}}>
         <span style={{fontSize:18}}>🏆</span>
         <div>
@@ -1396,7 +1396,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
 @keyframes prFlash{0%{transform:scale(1);box-shadow:0 0 0 0 #F59E0B00}20%{transform:scale(1.04);box-shadow:0 0 32px 6px #F59E0BCC}100%{transform:scale(1);box-shadow:0 0 12px 2px #F59E0B44}}
 @keyframes prTextBounce{0%{opacity:0;transform:scale(0.8)}60%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
       `}</style>
-      <div style={{position:"sticky",top:0,zIndex:100,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,padding:"48px 16px 10px"}}>
+      <div style={{position:"sticky",top:0,zIndex:100,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,padding:"36px 16px 8px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
           <button onClick={()=>{setScreen("plans");onMinimize&&onMinimize();}} style={{width:30,height:30,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="#6B7FA3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -1441,27 +1441,27 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
           const exVol=exWork.filter(s=>s.done).reduce((s,set)=>s+set.w*set.r,0);
           const exDone=exWork.filter(s=>s.done).length;
           return(
-            <div key={exIdx} style={{marginBottom:10,background:"rgba(255,255,255,0.025)",border:"1px solid "+(allDone?"rgba(16,185,129,0.3)":"rgba(255,255,255,0.06)"),borderRadius:16,overflow:"hidden",transition:"border-color 0.3s"}}>
-              <div style={{padding:"12px 14px 10px",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
+            <div key={exIdx} style={{marginBottom:8,background:"rgba(255,255,255,0.025)",border:"1px solid "+(allDone?"rgba(16,185,129,0.3)":"rgba(255,255,255,0.06)"),borderRadius:14,overflow:"hidden",transition:"border-color 0.3s"}}>
+              <div style={{padding:"10px 12px 8px",borderBottom:"1px solid rgba(255,255,255,0.05)"}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                   <div style={{display:"flex",alignItems:"center",gap:6,flex:1,minWidth:0}}>
-                    <div style={{width:7,height:7,borderRadius:"50%",background:GC[exItem.group]||C.blueL,flexShrink:0}}/>
-                    <div style={{fontSize:15,fontWeight:800,color:allDone?C.mint:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{exItem.name}</div>
-                    {allDone&&<span style={{color:C.mint,fontSize:11,flexShrink:0}}>✓</span>}
+                    <div style={{width:6,height:6,borderRadius:"50%",background:GC[exItem.group]||C.blueL,flexShrink:0}}/>
+                    <div style={{fontSize:14,fontWeight:800,color:allDone?C.mint:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{exItem.name}</div>
+                    {allDone&&<span style={{color:C.mint,fontSize:10,flexShrink:0}}>✓</span>}
                   </div>
-                  <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
                     {exDone>0&&<span style={{fontSize:10,color:C.mint,fontWeight:700}}>{exVol}kg</span>}
-                    <span style={{fontSize:10,color:C.sub}}>{exDone}/{exWork.length} séries</span>
-                    <button onClick={()=>{setCurrentEx(exIdx);setShowExMenu(true);}} style={{width:24,height:24,borderRadius:99,background:"none",border:"none",color:C.sub,fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>⋯</button>
+                    <span style={{fontSize:10,color:C.sub}}>{exDone}/{exWork.length}</span>
+                    <button onClick={()=>{setCurrentEx(exIdx);setShowExMenu(true);}} style={{width:22,height:22,borderRadius:99,background:"none",border:"none",color:C.sub,fontSize:15,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>⋯</button>
                   </div>
                 </div>
-                <button onClick={()=>setRestPickerEi(exIdx)} style={{display:"flex",alignItems:"center",gap:4,background:"none",border:"none",padding:0,paddingLeft:13,marginTop:2,cursor:"pointer"}}><span style={{fontSize:10,color:C.muted}}>Descanso: {exItem.rest==null?"Desativado":(exItem.rest>=60?Math.floor(exItem.rest/60)+"min"+(exItem.rest%60>0?" "+exItem.rest%60+"s":""):exItem.rest+"s")}</span><span style={{fontSize:9,color:C.muted,marginLeft:2}}>✎</span></button>
+                <button onClick={()=>setRestPickerEi(exIdx)} style={{display:"flex",alignItems:"center",gap:4,background:"none",border:"none",padding:0,paddingLeft:12,marginTop:1,cursor:"pointer"}}><span style={{fontSize:9,color:C.muted}}>Descanso: {exItem.rest==null?"Off":(exItem.rest>=60?Math.floor(exItem.rest/60)+"min"+(exItem.rest%60>0?" "+exItem.rest%60+"s":""):exItem.rest+"s")}</span><span style={{fontSize:8,color:C.muted,marginLeft:2}}>✎</span></button>
               </div>
-              <div style={{padding:"8px 12px 0"}}><ExerciseHistory exName={exItem.name} currentSets={exWork}/></div>
+              <div style={{padding:"6px 10px 0"}}><ExerciseHistory exName={exItem.name} currentSets={exWork}/></div>
               {exWarm.length>0&&<WarmupSection exWarm={exWarm} exIdx={exIdx} updateSet={updateSet} markDone={markDone}/>}
-              <div style={{padding:"6px 12px 0"}}>
-                <div style={{display:"grid",gridTemplateColumns:"24px 1fr 1fr 1fr 34px 34px",gap:3,marginBottom:4,paddingBottom:3,borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
-                  {["#","Ant.","KG","Reps","RPE",""].map((h,i)=><div key={i} style={{fontSize:8,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:C.muted,textAlign:"center"}}>{h}</div>)}
+              <div style={{padding:"4px 10px 0"}}>
+                <div style={{display:"grid",gridTemplateColumns:"24px 1fr 1fr 1fr 30px 30px",gap:3,marginBottom:3,paddingBottom:3,borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
+                  {["#","Ant.","KG","Reps","RPE",""].map((h,i)=><div key={i} style={{fontSize:7,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:C.muted,textAlign:"center"}}>{h}</div>)}
                 </div>
                 {exWork.map((set,wi)=>{
                   const si=exWarm.length+wi;
@@ -1481,24 +1481,22 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
                   const rowBg=set.done?(setIsPR?"linear-gradient(135deg,#92400E33,#B4530926,#F59E0B1C)":C.mint+"0F"):"transparent";
                   const rowBorder=set.done?(setIsPR?"1px solid "+C.amber+"66":"1px solid "+C.mint+"22"):"1px solid transparent";
                   return(
-                    <div key={wi} style={{marginBottom:3}}>
-                      <div style={{borderRadius:10,background:setIsPR?"linear-gradient(135deg,#92400E33,#B4530926,#F59E0B1C)":set.done?C.mint+"0F":"transparent",border:setIsPR?"1px solid "+C.amber+"66":set.done?"1px solid "+C.mint+"22":"1px solid transparent",boxShadow:setIsPR?"0 0 16px "+C.amber+"22":"none",animation:isAnim?"prFlash 0.7s ease-out 1 forwards":"none",transition:"all 0.25s",padding:setIsPR?"5px 6px 6px":"2px 0"}}>
-                        {setIsPR&&<div style={{display:"flex",alignItems:"center",gap:5,paddingBottom:4}}>
-                          <span style={{fontSize:9,fontWeight:700,color:C.amber+"BB",letterSpacing:"0.06em",textTransform:"uppercase"}}>{setIsOrmPR?"Novo PR · 1RM est.":"Novo PR · Carga"}</span>
-                          <span style={{fontSize:9,color:C.amber+"66"}}>{setIsOrmPR?`${setORM}kg`:`${set.w}kg`} <span style={{color:C.amber+"44"}}>ant. {setIsOrmPR?bestORM:bestW}kg</span></span>
-                        </div>}
-                        <div style={{display:"grid",gridTemplateColumns:"24px 1fr 1fr 1fr 34px 34px",gap:3,alignItems:"center"}}>
-                          <div style={{width:24,height:24,borderRadius:6,background:setIsPR?"linear-gradient(135deg,#B45309,#F59E0B)":set.done?C.mint+"33":C.blueM+"22",border:"1px solid "+(setIsPR?"transparent":set.done?C.mint+"44":C.borderL),display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,boxShadow:setIsPR?"0 2px 8px "+C.amber+"55":"none"}}>
-                            {setIsPR?<span style={{fontSize:12}}>🏆</span>:<span style={{fontSize:10,fontWeight:800,color:set.done?C.mint:C.blueXL}}>{wi+1}</span>}
-                          </div>
-                          <div style={{fontSize:9,color:C.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"center"}}>{prevStr}</div>
-                          <SmartInput value={set.w} onChange={v=>!set.done&&updateSet(exIdx,si,"w",v)} readOnly={set.done} unit="kg" color={setIsPR?C.amber:set.done?C.mint:C.text} compact/>
-                          <SmartInput value={set.r} onChange={v=>!set.done&&updateSet(exIdx,si,"r",v)} readOnly={set.done} unit="reps" integer color={setIsPR?C.amber:set.done?C.mint:C.text} compact/>
-                          <button onClick={()=>!set.done&&(setCurrentEx(exIdx),setRpeModal({ei:exIdx,si,rest:exItem.rest}))} style={{height:32,borderRadius:7,cursor:set.done?"default":"pointer",background:set.rpe?(rpeColor+"22"):C.surface,border:"1px solid "+(set.rpe?(rpeColor+"66"):C.border),color:set.rpe?rpeColor:C.muted,fontSize:set.rpe?10:8,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center"}}>{set.rpe||"RPE"}</button>
-                          <button onClick={()=>markDone(si,exIdx)} style={{height:32,borderRadius:7,background:set.done?(setIsPR?C.amber+"33":C.mint+"33"):C.surface,border:"2px solid "+(set.done?(setIsPR?C.amber:C.mint):C.border),color:set.done?(setIsPR?C.amber:C.mint):C.muted,fontSize:14,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.15s"}}>{set.done?"✓":"○"}</button>
+                    <div key={wi} style={{marginBottom:2}}>
+                      {setIsPR&&<div style={{display:"flex",alignItems:"center",gap:5,paddingLeft:28,paddingBottom:2}}>
+                        <span style={{fontSize:8,fontWeight:700,color:C.amber,letterSpacing:"0.06em",textTransform:"uppercase"}}>🏆 {setIsOrmPR?"Novo PR · 1RM est.":"Novo PR · Carga"}</span>
+                        <span style={{fontSize:8,color:C.amber+"88"}}>{setIsOrmPR?`${setORM}kg`:`${set.w}kg`} ant. {setIsOrmPR?bestORM:bestW}kg</span>
+                      </div>}
+                      <div style={{display:"grid",gridTemplateColumns:"24px 1fr 1fr 1fr 30px 30px",gap:3,alignItems:"center",padding:"2px 0",borderRadius:8,background:setIsPR?"rgba(245,158,11,0.06)":set.done?"rgba(16,185,129,0.04)":"transparent",border:setIsPR?"1px solid "+C.amber+"44":set.done?"1px solid "+C.mint+"18":"1px solid transparent",animation:isAnim?"prFlash 0.7s ease-out 1 forwards":"none",transition:"background 0.25s,border 0.25s"}}>
+                        <div style={{width:24,height:24,borderRadius:6,background:setIsPR?"linear-gradient(135deg,#B45309,#F59E0B)":set.done?C.mint+"33":C.blueM+"22",border:"1px solid "+(setIsPR?"transparent":set.done?C.mint+"44":C.borderL),display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                          {setIsPR?<span style={{fontSize:11}}>🏆</span>:<span style={{fontSize:10,fontWeight:800,color:set.done?C.mint:C.blueXL}}>{wi+1}</span>}
                         </div>
+                        <div style={{fontSize:9,color:C.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"center"}}>{prevStr}</div>
+                        <SmartInput value={set.w} onChange={v=>!set.done&&updateSet(exIdx,si,"w",v)} readOnly={set.done} unit="kg" color={setIsPR?C.amber:set.done?C.mint:C.text} compact/>
+                        <SmartInput value={set.r} onChange={v=>!set.done&&updateSet(exIdx,si,"r",v)} readOnly={set.done} unit="reps" integer color={setIsPR?C.amber:set.done?C.mint:C.text} compact/>
+                        <button onClick={()=>!set.done&&(setCurrentEx(exIdx),setRpeModal({ei:exIdx,si,rest:exItem.rest}))} style={{height:28,borderRadius:6,cursor:set.done?"default":"pointer",background:set.rpe?(rpeColor+"22"):C.surface,border:"1px solid "+(set.rpe?(rpeColor+"66"):C.border),color:set.rpe?rpeColor:C.muted,fontSize:set.rpe?9:7,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center"}}>{set.rpe||"RPE"}</button>
+                        <button onClick={()=>markDone(si,exIdx)} style={{height:28,borderRadius:6,background:set.done?(setIsPR?C.amber+"33":C.mint+"33"):C.surface,border:"2px solid "+(set.done?(setIsPR?C.amber:C.mint):C.border),color:set.done?(setIsPR?C.amber:C.mint):C.muted,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.15s"}}>{set.done?"✓":"○"}</button>
                       </div>
-                      {estORM&&!set.done&&!setIsPR&&<div style={{fontSize:8,color:C.muted,paddingLeft:28,paddingBottom:1}}>1RM ~{estORM}kg</div>}
+                      {estORM&&!set.done&&!setIsPR&&<div style={{fontSize:8,color:C.muted,paddingLeft:28,paddingTop:1}}>1RM ~{estORM}kg</div>}
                     </div>
                   );
                 })}
