@@ -655,16 +655,16 @@ function HomeScreen({onNavigate}){
       </div>
 
       {/* ── Greeting ── */}
-      <div style={{padding:"20px 20px 0"}}>
-        <div style={{fontSize:11,fontWeight:600,color:C.sub,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:4}}>{getGreeting()},</div>
-        <div style={{fontSize:38,fontWeight:900,color:C.text,letterSpacing:"-1.5px",lineHeight:1}}>{USER.name}<span style={{color:C.blueXL}}>.</span></div>
+      <div style={{padding:"14px 20px 0"}}>
+        <div style={{fontSize:11,fontWeight:600,color:C.sub,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:2}}>{getGreeting()},</div>
+        <div style={{fontSize:34,fontWeight:900,color:C.text,letterSpacing:"-1.5px",lineHeight:1}}>{USER.name}<span style={{color:C.blueXL}}>.</span></div>
       </div>
 
-      <div style={{padding:"20px 16px 120px"}}>
+      <div style={{padding:"14px 16px 120px"}}>
 
         {/* ── Next Session card ── */}
-        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,overflow:"hidden",marginBottom:12}}>
-          <div style={{padding:"16px 20px 14px",borderBottom:"1px solid "+C.border}}>
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,overflow:"hidden",marginBottom:10}}>
+          <div style={{padding:"14px 20px 12px",borderBottom:"1px solid "+C.border}}>
             <div style={{fontSize:9,fontWeight:700,color:C.blueXL,letterSpacing:"0.16em",textTransform:"uppercase",marginBottom:8}}>Next Session</div>
             <div style={{fontSize:20,fontWeight:800,color:C.text,letterSpacing:"-0.5px",marginBottom:4,textTransform:"uppercase"}}>{USER.nextWorkout.name} — {USER.nextWorkout.label}</div>
             <div style={{fontSize:11,color:C.sub}}>Estimated duration: {Math.round(USER.nextWorkout.exercises.length*10)} min</div>
@@ -681,52 +681,52 @@ function HomeScreen({onNavigate}){
         </div>
 
         {/* ── Stats 2×2 grid ── */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
           {/* Esta semana */}
-          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"14px 16px"}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-              <svg width="16" height="16" fill="none" stroke={C.blueXL} strokeWidth="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"10px 14px"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+              <svg width="14" height="14" fill="none" stroke={C.blueXL} strokeWidth="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </div>
-            <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-1px",lineHeight:1}}>{weekWorkouts}<span style={{fontSize:16,color:C.sub,fontWeight:600}}>/{USER.weekGoal}</span></div>
-            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:4,marginBottom:8}}>Esta Semana</div>
+            <div style={{fontSize:24,fontWeight:900,color:C.text,letterSpacing:"-1px",lineHeight:1}}>{weekWorkouts}<span style={{fontSize:14,color:C.sub,fontWeight:600}}>/{USER.weekGoal}</span></div>
+            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3,marginBottom:6}}>Esta Semana</div>
             <div style={{background:C.border,borderRadius:99,height:2.5,overflow:"hidden"}}>
               <div style={{width:(weekProgress*100)+"%",height:"100%",background:C.blueXL,borderRadius:99,transition:"width 0.6s ease"}}/>
             </div>
           </div>
 
           {/* Volume */}
-          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"14px 16px"}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-              <svg width="16" height="16" fill="none" stroke={C.blueXL} strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"10px 14px"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+              <svg width="14" height="14" fill="none" stroke={C.blueXL} strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
               {delta!==0&&<span style={{fontSize:9,fontWeight:700,color:delta>0?C.mint:C.coral,background:(delta>0?C.mint:C.coral)+"18",padding:"2px 6px",borderRadius:99}}>{delta>0?"+":""}{delta}%</span>}
             </div>
-            <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-1px",lineHeight:1}}>{curr}<span style={{fontSize:13,color:C.sub,fontWeight:500,marginLeft:2}}>t</span></div>
-            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:4}}>Volume</div>
+            <div style={{fontSize:24,fontWeight:900,color:C.text,letterSpacing:"-1px",lineHeight:1}}>{curr}<span style={{fontSize:12,color:C.sub,fontWeight:500,marginLeft:2}}>t</span></div>
+            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Volume</div>
           </div>
 
           {/* Streak */}
-          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"14px 16px"}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-              <svg width="16" height="16" fill="none" stroke={C.amber} strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"10px 14px"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+              <svg width="14" height="14" fill="none" stroke={C.amber} strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             </div>
-            <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-1px",lineHeight:1}}>{USER.streak}</div>
-            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:4}}>Streak</div>
+            <div style={{fontSize:24,fontWeight:900,color:C.text,letterSpacing:"-1px",lineHeight:1}}>{USER.streak}</div>
+            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Streak</div>
           </div>
 
           {/* Peso corporal */}
-          <button onClick={()=>onNavigate("corpo")} style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"14px 16px",cursor:"pointer",textAlign:"left"}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-              <svg width="16" height="16" fill="none" stroke={C.blueXL} strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M3 21v-1a9 9 0 0 1 18 0v1"/></svg>
+          <button onClick={()=>onNavigate("corpo")} style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"10px 14px",cursor:"pointer",textAlign:"left"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+              <svg width="14" height="14" fill="none" stroke={C.blueXL} strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M3 21v-1a9 9 0 0 1 18 0v1"/></svg>
               {wDelta!==0&&<span style={{fontSize:9,fontWeight:700,color:wDeltaColor,background:wDeltaColor+"18",padding:"2px 6px",borderRadius:99}}>{wDelta>0?"+":""}{wDelta}kg</span>}
             </div>
-            <div style={{fontSize:22,fontWeight:900,color:C.text,letterSpacing:"-0.5px",lineHeight:1,marginBottom:6}}>{wEnd}<span style={{fontSize:12,color:C.sub,fontWeight:500,marginLeft:2}}>kg</span></div>
-            <Sparkline data={wSlice} color={wDelta<=0?C.mint:C.coral} height={28}/>
-            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:6}}>Bodyweight</div>
+            <div style={{fontSize:20,fontWeight:900,color:C.text,letterSpacing:"-0.5px",lineHeight:1,marginBottom:4}}>{wEnd}<span style={{fontSize:12,color:C.sub,fontWeight:500,marginLeft:2}}>kg</span></div>
+            <Sparkline data={wSlice} color={wDelta<=0?C.mint:C.coral} height={22}/>
+            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:4}}>Bodyweight</div>
           </button>
         </div>
 
         {/* ── Weekly Volume chart ── */}
-        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:"18px 18px 16px",marginBottom:12}}>
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:"16px 18px 14px",marginBottom:10}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16}}>
             <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.12em",textTransform:"uppercase"}}>Weekly Volume (ton)</div>
             <div style={{display:"flex",gap:4,alignItems:"center"}}>
