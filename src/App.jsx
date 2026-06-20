@@ -2342,7 +2342,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
     for(let d=1;d<=daysInMonth;d++) cells.push(d);
     return(
       <div style={{position:"fixed",inset:0,zIndex:800,background:"#080A0E",overflowY:"auto"}}>
-        <div style={{padding:"70px 20px 120px"}}>
+        <div style={{padding:"90px 20px 120px"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24}}>
             <button onClick={()=>setShowCalendar(false)} style={{width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:C.text,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
             <div style={{fontSize:18,fontWeight:800,color:C.text}}>Calendário</div>
