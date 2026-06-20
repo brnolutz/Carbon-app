@@ -1397,7 +1397,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
 @keyframes prFlash{0%{transform:scale(1);box-shadow:0 0 0 0 #F59E0B00}20%{transform:scale(1.04);box-shadow:0 0 32px 6px #F59E0BCC}100%{transform:scale(1);box-shadow:0 0 12px 2px #F59E0B44}}
 @keyframes prTextBounce{0%{opacity:0;transform:scale(0.8)}60%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
       `}</style>
-      <div style={{position:"sticky",top:0,zIndex:100,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,padding:"36px 16px 8px"}}>
+      <div style={{position:"sticky",top:0,zIndex:100,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",borderBottom:"1px solid "+C.border,padding:"52px 16px 10px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
           <button onClick={()=>{setScreen("plans");onMinimize&&onMinimize();}} style={{width:30,height:30,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="#6B7FA3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
