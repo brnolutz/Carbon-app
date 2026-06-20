@@ -330,28 +330,28 @@ function buildSets(plan){
 // ─── BOTTOM NAV ──────────────────────────────────────────────
 function BottomNav({active,onNavigate}){
   const tabs=[
-    {k:"home",l:"Home",i:<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/></svg>},
-    {k:"treino",l:"Treino",i:<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="6" cy="12" r="3"/><circle cx="18" cy="12" r="3"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="2" y1="12" x2="3" y2="12" strokeWidth="2.5"/><line x1="21" y1="12" x2="22" y2="12" strokeWidth="2.5"/></svg>},
-    {k:"progresso",l:"Progresso",i:<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>},
-    {k:"corpo",l:"Corpo",i:<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>},
-    {k:"coach",l:"Coach",i:<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>},
+    {k:"home",     l:"Home",      i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M3 12L12 3l9 9"/><path d="M9 21V12h6v9"/></svg>},
+    {k:"treino",   l:"Treino",    i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>},
+    {k:"progresso",l:"Progresso", i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>},
+    {k:"corpo",    l:"Corpo",     i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>},
+    {k:"coach",    l:"Coach",     i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>},
   ];
   return(
     <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,paddingBottom:"env(safe-area-inset-bottom,8px)",paddingLeft:12,paddingRight:12}}>
-      <div style={{background:"rgba(6,7,10,0.75)",backdropFilter:"blur(40px)",WebkitBackdropFilter:"blur(40px)",borderRadius:36,border:"1px solid rgba(255,255,255,0.05)",boxShadow:"0 8px 32px rgba(0,0,0,0.6),inset 0 1px 0 rgba(255,255,255,0.04)",display:"flex",justifyContent:"space-around",alignItems:"center",padding:"6px 8px 8px",marginBottom:8}}>
+      <div style={{background:"rgba(8,10,14,0.82)",backdropFilter:"blur(40px)",WebkitBackdropFilter:"blur(40px)",borderRadius:36,border:"1px solid rgba(255,255,255,0.08)",boxShadow:"0 8px 40px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.05)",display:"flex",justifyContent:"space-around",alignItems:"center",padding:"6px 8px 8px",marginBottom:8}}>
         {tabs.map(tab=>{
           const isActive=tab.k===active;
           return(
-            <button key={tab.k} onClick={()=>onNavigate(tab.k)} style={{background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",padding:0,color:isActive?"#fff":"rgba(255,255,255,0.3)"}}>
+            <button key={tab.k} onClick={()=>onNavigate(tab.k)} style={{background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",padding:0,color:isActive?"#fff":"rgba(255,255,255,0.32)"}}>
               {isActive?(
-                <div style={{background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.16)",borderRadius:20,padding:"6px 16px 5px",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
+                <div style={{background:"rgba(255,255,255,0.13)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:22,padding:"7px 18px 6px",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
                   {tab.i}
-                  <span style={{fontSize:10,fontWeight:700,color:"#fff"}}>{tab.l}</span>
+                  <span style={{fontSize:10,fontWeight:700,color:"#fff",whiteSpace:"nowrap"}}>{tab.l}</span>
                 </div>
               ):(
-                <div style={{padding:"6px 10px 5px",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
+                <div style={{padding:"7px 10px 6px",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
                   {tab.i}
-                  <span style={{fontSize:10,fontWeight:500,color:"rgba(255,255,255,0.3)"}}>{tab.l}</span>
+                  <span style={{fontSize:10,fontWeight:500,color:"rgba(255,255,255,0.32)",whiteSpace:"nowrap"}}>{tab.l}</span>
                 </div>
               )}
             </button>
@@ -2408,21 +2408,21 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   const rangeDelta=Math.round((rangeTotal-rangePrev)/rangePrev*100);
 
   return(
-    <div style={{background:"linear-gradient(160deg,#07090F 0%,#0A0F1E 50%,#07090F 100%)",minHeight:"100dvh",overflowX:"hidden"}}>
+    <div style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden"}}>
       <style>{`.prog-bar{transition:height 0.4s ease;}`}</style>
-      {/* Header */}
-      <div style={{padding:"56px 20px 0"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20}}>
-          <div>
-            
-            <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Progresso</div>
-          </div>
-          <button onClick={()=>setShowCalendar(true)} style={{width:44,height:44,borderRadius:14,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="3" stroke={C.sub} strokeWidth="1.8"/><path d="M3 9h18M8 2v4M16 2v4" stroke={C.sub} strokeWidth="1.8" strokeLinecap="round"/></svg>
-          </button>
+      {/* Header — same as Home/Treino/Coach */}
+      <div style={{padding:"52px 20px 0",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <CarbonLogo size={18} color={C.blueXL} strokeWidth={1.6}/>
+          <span style={{fontSize:12,fontWeight:700,letterSpacing:"0.2em",textTransform:"uppercase",color:"#FFFFFF"}}>Carbon</span>
         </div>
-
-        {/* Streak cards — BeFit style */}
+        <button onClick={()=>setShowCalendar(true)} style={{width:32,height:32,borderRadius:10,background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.08)",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="3" stroke={C.sub} strokeWidth="1.8"/><path d="M3 9h18M8 2v4M16 2v4" stroke={C.sub} strokeWidth="1.8" strokeLinecap="round"/></svg>
+        </button>
+      </div>
+      <div style={{padding:"8px 20px 0",marginBottom:16}}>
+        <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Progresso</div>
+      </div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
           <GlassCard style={{padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
             <div style={{fontSize:28}}>🔥</div>
