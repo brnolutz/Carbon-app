@@ -451,7 +451,7 @@ function WorkoutDetail({session,onClose}){
   const mColors={"Peito":"#2B4C8C","Costas":"#10B981","Ombros":"#A78BFA","Pernas":"#F59E0B","Braços":"#F472B6","Core":"#22D3EE"};
   const weekday=new Date(session.date+"T12:00:00").toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
   return(
-    <div style={{position:"fixed",inset:0,zIndex:600,background:C.bg,overflowY:"auto"}}>
+    <div style={{position:"fixed",inset:0,zIndex:600,background:C.bg,overflowY:"auto",paddingTop:52}}>
       <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"14px 16px 14px"}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onClose} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
