@@ -323,6 +323,12 @@ function buildSets(plan){
 }
 
 // ─── BOTTOM NAV ──────────────────────────────────────────────
+function GlassCard({children,style={},onClick}){
+  return(
+    <div onClick={onClick} style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderRadius:20,border:"1px solid rgba(255,255,255,0.08)",boxShadow:"0 4px 24px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.05)",cursor:onClick?"pointer":undefined,...style}}>{children}</div>
+  );
+}
+
 function BottomNav({active,onNavigate}){
   const tabs=[
     {k:"home",     l:"Home",      i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1H15v-5h-6v5H5a1 1 0 0 1-1-1z" strokeLinejoin="round"/></svg>},
@@ -2342,8 +2348,6 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   const GlassCard=({children,style={},onClick})=>(
     <div onClick={onClick} style={{background:"rgba(255,255,255,0.04)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderRadius:20,border:"1px solid rgba(255,255,255,0.08)",boxShadow:"0 4px 24px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.05)",cursor:onClick?"pointer":undefined,...style}}>{children}</div>
   );
-
-  // CALENDAR VIEW
   if(showCalendar){
     const y=calMonth.getFullYear(),m=calMonth.getMonth();
     const firstDay=new Date(y,m,1).getDay();
