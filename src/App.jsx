@@ -2618,14 +2618,48 @@ function VolumeSpiderChart({volumeByGroup,size=260}){
   );
 }
 
+// Map from muscle group → image file
+const MUSCLE_IMG = {
+  "Peito":       "/body-peito.png",
+  "Costas":      "/body-costas.png",
+  "Ombros":      "/body-ombros.png",
+  "Pernas":      "/body-pernas.png",
+  "Braços":      "/body-biceps.png",
+  "Core":        "/body-core.png",
+  "Glúteos":     "/body-gluteos.png",
+  "Panturrilha": "/body-panturrilha.png",
+};
+
+// Priority order — which muscle to show if multiple are active
+const MUSCLE_PRIORITY = ["Peito","Costas","Pernas","Ombros","Braços","Core","Glúteos","Panturrilha"];
+
 function BodyDiagram({muscleHeat,width=320}){
+  // Pick the most fatigued (lowest pct = most recently trained) muscle
+  // muscleHeat: { [group]: pct 0-100 }
+  const activeImg = useMemo(()=>{
+    // Find muscle with lowest recovery % (most active recently)
+    let best = null;
+    let bestPct = 101;
+    MUSCLE_PRIORITY.forEach(g=>{
+      const pct = muscleHeat[g];
+      if(pct != null && pct < bestPct){
+        bestPct = pct;
+        best = g;
+      }
+    });
+    // Only show highlight if muscle was trained recently (pct < 100)
+    if(best && bestPct < 100 && MUSCLE_IMG[best]) return MUSCLE_IMG[best];
+    return "/body-base.png";
+  },[muscleHeat]);
+
   const h=Math.round(width*0.67);
   return(
     <div style={{width:width,height:h,margin:"0 auto"}}>
       <img
-        src="/body-diagram-transparent.png"
+        key={activeImg}
+        src={activeImg}
         alt="Mapa muscular"
-        style={{width:"100%",height:"100%",objectFit:"contain",objectPosition:"center",display:"block"}}
+        style={{width:"100%",height:"100%",objectFit:"contain",objectPosition:"center",display:"block",transition:"opacity 0.4s ease"}}
       />
     </div>
   );
