@@ -2646,14 +2646,14 @@ function BodyDiagram({muscleHeat,width=320}){
     return "/body-base.png";
   },[muscleHeat]);
 
-  const h=Math.round(width*0.67);
+  const h=Math.round(width*0.75);
   return(
-    <div style={{width:width,height:h,margin:"0 auto"}}>
+    <div style={{width:width,height:h,margin:"0 auto",overflow:"hidden"}}>
       <img
         key={activeImg}
         src={activeImg}
         alt="Mapa muscular"
-        style={{width:"100%",height:"100%",objectFit:"contain",objectPosition:"center",display:"block",transition:"opacity 0.4s ease"}}
+        style={{width:"100%",height:"100%",objectFit:"contain",objectPosition:"center",display:"block",mixBlendMode:"lighten"}}
       />
     </div>
   );
@@ -2769,7 +2769,7 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
   return(
     <div style={{background:"#080A0E",minHeight:"100vh",paddingTop:52,paddingBottom:120}}>
       <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid "+C.border,padding:"14px 20px 14px"}}>
-        <div style={{fontSize:24,fontWeight:900,color:"#FFFFFF",letterSpacing:"-0.5px"}}>Meu Corpo</div>
+        <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>Meu Corpo</div>
       </div>
       <div style={{padding:"12px 16px 0"}}>
 
@@ -3069,7 +3069,7 @@ ${ctx}
       {/* Header */}
       <div style={{flexShrink:0,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderBottom:"1px solid "+C.border,padding:"14px 20px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <div>
-          <div style={{fontSize:22,fontWeight:900,color:"#FFFFFF",letterSpacing:"-0.5px",lineHeight:1}}>AI Coach</div>
+          <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>AI Coach</div>
           <div style={{fontSize:10,fontWeight:600,color:C.blueXL,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Powered by Claude</div>
         </div>
       </div>
