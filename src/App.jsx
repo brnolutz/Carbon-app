@@ -1919,9 +1919,9 @@ function ExercicioScreen({name,onNavigate,onBack}){
   const goBack=()=>{if(onBack)onBack();else onNavigate("treino");};
 
   return(
-    <div style={{position:"fixed",inset:0,zIndex:800,background:"#080A0E",display:"flex",flexDirection:"column",paddingBottom:100,paddingTop:52,overflowY:"auto"}}>
-      <div style={{position:"sticky",top:52,zIndex:50,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)"}}>
-        <div style={{padding:"14px 16px 0"}}>
+    <div style={{position:"fixed",inset:0,zIndex:800,background:"#080A0E",display:"flex",flexDirection:"column",paddingBottom:100,overflowY:"auto"}}>
+      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",paddingTop:52}}>
+        <div style={{padding:"10px 16px 0"}}>
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
             <button onClick={goBack} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
             <div>
