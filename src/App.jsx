@@ -3488,6 +3488,7 @@ function CalendarioFullScreen({onNavigate}){
 }
 
 
+function CorpoScreen({onNavigate,autoMeasure=false}){
   const MEASURE_FIELDS=["Braço D","Braço E","Peito","Cintura","Coxa D","Panturrilha D"];
   const MUSCLE_GROUPS_ALL=["Peito","Costas","Pernas","Ombros","Braços","Core","Glúteos","Panturrilha"];
   const EX_MAP_VOL={"Peito":["Supino","Crucifixo","Peitoral","Inclinado","Declinado"],"Costas":["Terra","Remada","Puxada","Barra Fixa","Pull"],"Pernas":["Agachamento","Leg Press","Cadeira","Mesa Flexora","Afundo"],"Ombros":["Desenvolvimento","Elevação Lateral","Aberturas","Arnold","Ombro"],"Braços":["Rosca","Tríceps","Coice","Martelo","Scott","Concentrada","Extensão"],"Core":["Abdominal","Core","Prancha","Elevação De Pernas"],"Glúteos":["Agachamento","Afundo","Romeno","Leg Press","Hip Thrust","Glúteo"],"Panturrilha":["Panturrilha","Elevação de Panturrilha","Calf"]};
