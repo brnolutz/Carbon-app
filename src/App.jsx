@@ -1975,28 +1975,25 @@ function ExercicioScreen({name,onNavigate,onBack}){
       <div style={{flex:1,overflowY:"auto",padding:"0 16px 20px"}}>
         {tab==="resumo"&&<div>
           <div style={{background:"#000",borderRadius:16,overflow:"hidden",margin:"16px 0",border:"1px solid "+C.border,minHeight:220,display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
-            {gifLoading&&(
-              <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                <div style={{width:32,height:32,borderRadius:"50%",border:"3px solid "+C.border,borderTopColor:gc,animation:"spin 0.8s linear infinite"}}/>
-                <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-              </div>
-            )}
             {gifUrl
               ? <img
                   src={gifUrl}
                   alt={exName}
                   onLoad={()=>setGifLoading(false)}
                   onError={()=>{setGifLoading(false);setGifUrl(null);}}
-                  style={{width:"100%",maxHeight:280,objectFit:"contain",display:gifLoading?"none":"block"}}
+                  style={{width:"100%",maxHeight:280,objectFit:"contain"}}
                 />
-              : !gifLoading&&(
-                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,padding:32}}>
-                  <div style={{width:48,height:48,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 3l14 9-14 9V3z" fill={C.sub}/></svg>
+              : gifLoading
+                ? <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:32}}>
+                    <div style={{width:32,height:32,borderRadius:"50%",border:"3px solid "+C.border,borderTopColor:gc,animation:"spin 0.8s linear infinite"}}/>
+                    <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
                   </div>
-                  <div style={{fontSize:12,color:C.muted}}>GIF em breve</div>
-                </div>
-              )
+                : <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,padding:32}}>
+                    <div style={{width:48,height:48,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 3l14 9-14 9V3z" fill={C.sub}/></svg>
+                    </div>
+                    <div style={{fontSize:12,color:C.muted}}>GIF em breve</div>
+                  </div>
             }
           </div>
           <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:12}}>
