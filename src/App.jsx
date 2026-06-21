@@ -5141,22 +5141,22 @@ function CarbonIntro({onDone}){
         transition:fading?"opacity 0.5s ease":"opacity 1s ease",
       }}>
       <div style={{
-        display:"flex",flexDirection:"column",alignItems:"center",gap:20,
+        display:"flex",flexDirection:"row",alignItems:"center",gap:16,
         transform:visible?"translateY(0)":"translateY(16px)",
         transition:"transform 1.2s ease",
       }}>
-        <img src="/carbon-logo-transparent.png" alt="Carbon" style={{width:"60vw",maxWidth:280,objectFit:"contain"}}/>
-        <div style={{fontSize:13,fontWeight:300,color:"rgba(255,255,255,0.5)",letterSpacing:"0.4em",textTransform:"uppercase"}}>Train · Recover · Evolve</div>
+        <img src="/carbon-logo-transparent.png" alt="Carbon" style={{height:60,objectFit:"contain"}}/>
+        <div style={{fontSize:28,fontWeight:300,color:"#fff",letterSpacing:"0.4em",textTransform:"uppercase"}}>CARBON</div>
       </div>
     </div>
   );
 }
 
 function SplashLoading(){
-  // Mesma tela do intro — sem logo quadrada
   return(
-    <div style={{position:"fixed",inset:0,background:"#000000",display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <img src="/carbon-logo-transparent.png" alt="Carbon" style={{width:"60vw",maxWidth:280,objectFit:"contain",opacity:0.9}}/>
+    <div style={{position:"fixed",inset:0,background:"#000000",display:"flex",alignItems:"center",justifyContent:"center",gap:16}}>
+      <img src="/carbon-logo-transparent.png" alt="Carbon" style={{height:60,objectFit:"contain"}}/>
+      <div style={{fontSize:28,fontWeight:300,color:"#fff",letterSpacing:"0.4em",textTransform:"uppercase"}}>CARBON</div>
     </div>
   );
 }
