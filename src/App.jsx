@@ -476,7 +476,34 @@ function GlassCard({children,style={},onClick}){
 }
 
 // ── Global top bar — Carbon logo strip shown on every screen ──
-function GlobalHeader(){ return null; }
+function GlobalHeader(){
+  return(
+    <>
+      <style>{`
+        .carbon-global-header{
+          position:fixed;top:0;left:0;right:0;
+          height:52px;
+          background:rgba(6,8,12,0.96);
+          backdrop-filter:blur(20px);
+          -webkit-backdrop-filter:blur(20px);
+          border-bottom:1px solid rgba(255,255,255,0.06);
+          display:flex;align-items:center;justify-content:center;
+          z-index:9000;
+        }
+        body.hide-carbon-header .carbon-global-header{
+          display:none;
+        }
+      `}</style>
+      <div className="carbon-global-header">
+        <img
+          src="/carbon-logo-transparent.png"
+          alt="Carbon"
+          style={{height:22,objectFit:"contain",opacity:0.9}}
+        />
+      </div>
+    </>
+  );
+}
 
 function BottomNav({active,onNavigate}){
   const tabs=[
