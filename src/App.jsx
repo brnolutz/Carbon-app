@@ -648,6 +648,349 @@ function ExerciciosBrowserScreen({onNavigate}){
 // ══════════════════════════════════════════════════════════════
 // HOME SCREEN
 // ══════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════
+// DELOAD WEEK SCREEN — story-style in-app guide + plan
+// ══════════════════════════════════════════════════════════════
+function DeloadWeekScreen({onBack}){
+  const[step,setStep]=useState(0);
+  const[intensity,setIntensity]=useState(60); // % of normal
+  const[method,setMethod]=useState("volume");
+  const[applied,setApplied]=useState(false);
+
+  useEffect(()=>{
+    document.body.classList.add("hide-carbon-header");
+    return()=>document.body.classList.remove("hide-carbon-header");
+  },[]);
+
+  const STORIES=[
+    {
+      emoji:"😮‍💨",
+      title:"O que é uma Semana de Deload?",
+      body:"Uma redução planejada de 30–50% na carga de treino, mantendo os movimentos normais. Seu corpo e sistema nervoso têm tempo de recuperar completamente.",
+      color:"#3B82F6",bg:"rgba(59,130,246,0.12)"
+    },
+    {
+      emoji:"🧠",
+      title:"Por que é importante?",
+      body:"Após semanas de esforço intenso, o sistema nervoso central fica fatigado. Pesos parecem mais pesados, coordenação cai. Um deload reseta tudo isso.",
+      color:"#8B5CF6",bg:"rgba(139,92,246,0.12)",
+      bullets:["Reduz risco de lesão","Quebra platôs","Melhora performance pós-deload","Suporta crescimento muscular"]
+    },
+    {
+      emoji:"📊",
+      title:"6 Sinais que Você Precisa",
+      color:"#F59E0B",bg:"rgba(245,158,11,0.12)",
+      bullets:["Força diminuindo semana a semana","DOMS constante que não passa","Sono ruim / FC elevada","Perda de motivação","Desconforto articular persistente","Treino parece pesado já no aquecimento"]
+    },
+    {
+      emoji:"⚡",
+      title:"Como Fazer?",
+      body:"Você ainda treina. Só reduz o estresse. Escolha o método que faz mais sentido para você:",
+      color:"#10B981",bg:"rgba(16,185,129,0.12)",
+      bullets:["Reduzir Volume: menos séries (–40–60%)","Reduzir Intensidade: menos peso (60–70%)","Reduzir Frequência: menos dias","Foco em Técnica: movimentos lentos, leves"]
+    },
+    {
+      emoji:"🔙",
+      title:"Retornando ao Treino",
+      body:"Após o deload, os treinos vão parecer mais fáceis. Movimentos mais suaves, pesos mais rápidos. É sinal que funcionou!",
+      color:"#06B6D4",bg:"rgba(6,182,212,0.12)",
+      bullets:["Volte ao programa normal","Não adicione volume extra na empolgação","Deixe a performance subir naturalmente"]
+    },
+  ];
+
+  const story=STORIES[step];
+
+  return(
+    <div style={{background:"#080A0E",minHeight:"100dvh",display:"flex",flexDirection:"column"}}>
+      {/* Stories header */}
+      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
+        <div style={{padding:"10px 16px",display:"flex",alignItems:"center",gap:10}}>
+          <button onClick={onBack} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
+          <div style={{flex:1,fontSize:15,fontWeight:700,color:"#fff"}}>Semana de Deload</div>
+        </div>
+        {/* Progress bar stories */}
+        <div style={{padding:"0 16px 12px",display:"flex",gap:4}}>
+          {STORIES.map((_,i)=>(
+            <div key={i} onClick={()=>setStep(i)} style={{flex:1,height:3,borderRadius:99,background:i<=step?"#3B82F6":"rgba(255,255,255,0.1)",cursor:"pointer",transition:"background 0.3s"}}/>
+          ))}
+        </div>
+      </div>
+
+      <div style={{flex:1,padding:"20px 16px",overflowY:"auto",paddingBottom:140}}>
+        {step<STORIES.length
+          ? <div>
+              {/* Story card */}
+              <div style={{background:story.bg,border:"1px solid "+story.color+"44",borderRadius:20,padding:"28px 20px",marginBottom:20,textAlign:"center"}}>
+                <div style={{fontSize:52,marginBottom:16}}>{story.emoji}</div>
+                <div style={{fontSize:22,fontWeight:900,color:"#fff",letterSpacing:"-0.5px",marginBottom:12,lineHeight:1.2}}>{story.title}</div>
+                {story.body&&<div style={{fontSize:14,color:"rgba(255,255,255,0.7)",lineHeight:1.7}}>{story.body}</div>}
+                {story.bullets&&<div style={{marginTop:14,textAlign:"left",display:"flex",flexDirection:"column",gap:8}}>
+                  {story.bullets.map((b,i)=>(
+                    <div key={i} style={{display:"flex",alignItems:"flex-start",gap:10,padding:"8px 12px",background:"rgba(255,255,255,0.05)",borderRadius:10}}>
+                      <div style={{width:6,height:6,borderRadius:"50%",background:story.color,flexShrink:0,marginTop:5}}/>
+                      <span style={{fontSize:13,color:"rgba(255,255,255,0.8)",lineHeight:1.5}}>{b}</span>
+                    </div>
+                  ))}
+                </div>}
+              </div>
+              {/* Nav buttons */}
+              <div style={{display:"flex",gap:10}}>
+                {step>0&&<button onClick={()=>setStep(s=>s-1)} style={{flex:1,padding:"14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:14,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer"}}>← Anterior</button>}
+                <button onClick={()=>setStep(s=>Math.min(STORIES.length,s+1))} style={{flex:2,padding:"14px",background:"linear-gradient(135deg,#1E40AF,#3B82F6)",border:"none",borderRadius:14,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer"}}>
+                  {step<STORIES.length-1?"Próximo →":"Configurar Deload →"}
+                </button>
+              </div>
+            </div>
+          : <div>
+              {/* Config screen */}
+              <div style={{fontSize:22,fontWeight:900,color:"#fff",marginBottom:6,letterSpacing:"-0.5px"}}>Configure seu Deload</div>
+              <div style={{fontSize:13,color:"rgba(255,255,255,0.4)",marginBottom:24}}>Ajuste a intensidade dos treinos desta semana</div>
+
+              {/* Method selector */}
+              <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>Método</div>
+              {[
+                {k:"volume",l:"Reduzir Volume",d:"Menos séries (−40–60%), mesmo peso"},
+                {k:"intensity",l:"Reduzir Intensidade",d:"Mesmo volume, peso mais leve (60–70%)"},
+                {k:"frequency",l:"Reduzir Frequência",d:"Menos dias de treino esta semana"},
+                {k:"technique",l:"Foco em Técnica",d:"Movimentos lentos e controlados"},
+              ].map(m=>(
+                <button key={m.k} onClick={()=>setMethod(m.k)} style={{width:"100%",display:"flex",alignItems:"center",gap:12,padding:"14px 16px",background:method===m.k?"rgba(59,130,246,0.15)":"rgba(255,255,255,0.03)",border:"1px solid "+(method===m.k?"rgba(59,130,246,0.5)":"rgba(255,255,255,0.07)"),borderRadius:12,marginBottom:8,cursor:"pointer",textAlign:"left"}}>
+                  <div style={{width:20,height:20,borderRadius:"50%",border:"2px solid "+(method===m.k?"#3B82F6":"rgba(255,255,255,0.2)"),background:method===m.k?"#3B82F6":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                    {method===m.k&&<div style={{width:8,height:8,borderRadius:"50%",background:"#fff"}}/>}
+                  </div>
+                  <div>
+                    <div style={{fontSize:14,fontWeight:700,color:"#fff"}}>{m.l}</div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>{m.d}</div>
+                  </div>
+                </button>
+              ))}
+
+              {/* Intensity slider */}
+              <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginTop:20,marginBottom:10}}>
+                Intensidade: <span style={{color:"#3B82F6"}}>{intensity}% do normal</span>
+              </div>
+              <input type="range" min="40" max="80" step="5" value={intensity} onChange={e=>setIntensity(+e.target.value)}
+                style={{width:"100%",accentColor:"#3B82F6",marginBottom:6}}/>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:"rgba(255,255,255,0.3)"}}>
+                <span>40% (suave)</span><span>60% (recomendado)</span><span>80% (leve)</span>
+              </div>
+
+              {/* Deload plan summary */}
+              <div style={{background:"rgba(59,130,246,0.08)",border:"1px solid rgba(59,130,246,0.2)",borderRadius:16,padding:"16px",marginTop:20,marginBottom:24}}>
+                <div style={{fontSize:13,fontWeight:700,color:"#60A5FA",marginBottom:10}}>Plano da Semana de Deload</div>
+                {method==="volume"&&<div style={{fontSize:12,color:"rgba(255,255,255,0.6)",lineHeight:1.8}}>
+                  • Mantenha os exercícios normais<br/>
+                  • Reduza séries para {Math.round(3*(1-intensity/100)+3*intensity/100*0.4)}–{Math.round(3*(intensity/100))} por exercício<br/>
+                  • Mantenha o mesmo peso<br/>
+                  • Nenhuma série até a falha
+                </div>}
+                {method==="intensity"&&<div style={{fontSize:12,color:"rgba(255,255,255,0.6)",lineHeight:1.8}}>
+                  • Use {intensity}% do peso normal<br/>
+                  • Mantenha as séries e repetições<br/>
+                  • Foco em forma perfeita<br/>
+                  • Velocidade controlada
+                </div>}
+                {method==="frequency"&&<div style={{fontSize:12,color:"rgba(255,255,255,0.6)",lineHeight:1.8}}>
+                  • Treine {Math.ceil(4*intensity/100)} dias esta semana<br/>
+                  • Priorize exercícios compostos<br/>
+                  • Sessões mais curtas (~30–40 min)<br/>
+                  • Descanse mais entre sessões
+                </div>}
+                {method==="technique"&&<div style={{fontSize:12,color:"rgba(255,255,255,0.6)",lineHeight:1.8}}>
+                  • Cargas leves ({intensity}% do normal)<br/>
+                  • Tempo sob tensão lento (3–4s excêntrico)<br/>
+                  • Foco total na conexão mente-músculo<br/>
+                  • Mobilidade e flexibilidade
+                </div>}
+              </div>
+
+              {applied
+                ? <div style={{textAlign:"center",padding:"20px",background:"rgba(16,185,129,0.1)",border:"1px solid rgba(16,185,129,0.3)",borderRadius:14}}>
+                    <div style={{fontSize:20}}>✅</div>
+                    <div style={{fontSize:14,fontWeight:700,color:"#10B981",marginTop:8}}>Semana de Deload ativa!</div>
+                    <div style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginTop:4}}>Retorna ao normal automaticamente na próxima semana</div>
+                  </div>
+                : <button onClick={()=>setApplied(true)} style={{width:"100%",padding:"16px",background:"linear-gradient(135deg,#1E40AF,#3B82F6)",border:"none",borderRadius:16,color:"#fff",fontSize:15,fontWeight:800,cursor:"pointer"}}>
+                    Iniciar Semana de Deload
+                  </button>
+              }
+            </div>
+        }
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// MONTHLY REPORT SCREEN — Hevy-style monthly summary
+// ══════════════════════════════════════════════════════════════
+function MonthlyReportScreen({onBack}){
+  const now=new Date();
+  const[selMonth,setSelMonth]=useState({y:now.getFullYear(),m:now.getMonth()});
+  const allSessions=getAllSessions();
+
+  useEffect(()=>{
+    document.body.classList.add("hide-carbon-header");
+    return()=>document.body.classList.remove("hide-carbon-header");
+  },[]);
+
+  const monthSessions=allSessions.filter(s=>{
+    if(!s.date) return false;
+    const d=new Date(s.date+"T12:00:00");
+    return d.getFullYear()===selMonth.y&&d.getMonth()===selMonth.m;
+  });
+
+  // Stats
+  const totalVol=monthSessions.reduce((a,s)=>a+(s.totalVol||0),0);
+  const totalSets=monthSessions.reduce((a,s)=>a+(s.totalSets||0),0);
+  const totalDur=monthSessions.reduce((a,s)=>a+(s.duration||0),0);
+  const totalReps=monthSessions.reduce((a,s)=>a+(s.exercises?.reduce((b,e)=>b+(e.setData?.reduce((c,st)=>c+(st.r||0),0)||0),0)||0),0);
+  const avgRpe=monthSessions.filter(s=>s.avgRpe).reduce((a,s,_,arr)=>a+(s.avgRpe/arr.length),0);
+  const prsThisMonth=monthSessions.reduce((a,s)=>a+(s.prs||0),0);
+
+  // Top exercises this month
+  const exCount={};
+  monthSessions.forEach(s=>s.exercises?.forEach(e=>{exCount[e.name]=(exCount[e.name]||0)+1;}));
+  const topEx=Object.entries(exCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  // Muscle distribution
+  const muscleVol={};
+  monthSessions.forEach(s=>s.exercises?.forEach(e=>{
+    const m=getExMuscle(e.name||"");
+    if(m) muscleVol[m]=(muscleVol[m]||0)+(e.setData?.length||e.sets||0);
+  }));
+  const totalMVol=Object.values(muscleVol).reduce((a,v)=>a+v,0)||1;
+
+  // Weeks in month
+  const daysInMonth=new Date(selMonth.y,selMonth.m+1,0).getDate();
+  const weeks=Math.ceil(daysInMonth/7);
+  const weekSessions=Array.from({length:weeks},(_,wi)=>{
+    const wStart=new Date(selMonth.y,selMonth.m,wi*7+1).toISOString().slice(0,10);
+    const wEnd=new Date(selMonth.y,selMonth.m,Math.min((wi+1)*7,daysInMonth)).toISOString().slice(0,10);
+    return monthSessions.filter(s=>s.date&&s.date>=wStart&&s.date<=wEnd).length;
+  });
+  const maxWeekSessions=Math.max(...weekSessions,1);
+
+  const monthName=new Date(selMonth.y,selMonth.m,1).toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+
+  const prevMonth=()=>{let m=selMonth.m-1,y=selMonth.y;if(m<0){m=11;y--;}setSelMonth({y,m});};
+  const nextMonth=()=>{let m=selMonth.m+1,y=selMonth.y;if(m>11){m=0;y++;}if(y>now.getFullYear()||(y===now.getFullYear()&&m>now.getMonth()))return;setSelMonth({y,m});};
+  const canNext=selMonth.m<now.getMonth()||selMonth.y<now.getFullYear();
+
+  return(
+    <div style={{background:"#080A0E",minHeight:"100dvh",overflowY:"auto",paddingBottom:100}}>
+      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
+        <div style={{padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
+          <button onClick={onBack} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
+          <div style={{flex:1,fontSize:16,fontWeight:800,color:"#fff"}}>Relatório Mensal</div>
+        </div>
+        {/* Month nav */}
+        <div style={{padding:"0 16px 12px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <button onClick={prevMonth} style={{width:32,height:32,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+          <div style={{fontSize:16,fontWeight:700,color:"#fff",textTransform:"capitalize"}}>{monthName}</div>
+          <button onClick={nextMonth} style={{width:32,height:32,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:canNext?"#fff":"rgba(255,255,255,0.2)",fontSize:16,cursor:canNext?"pointer":"default",display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
+        </div>
+      </div>
+
+      <div style={{padding:"16px 16px 0"}}>
+        {monthSessions.length===0
+          ? <div style={{textAlign:"center",padding:"60px 20px",color:"rgba(255,255,255,0.3)"}}>
+              <div style={{fontSize:40,marginBottom:12}}>📋</div>
+              <div style={{fontSize:16,fontWeight:600}}>Sem treinos em {monthName}</div>
+            </div>
+          : <>
+              {/* Main KPIs */}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
+                {[
+                  {l:"Treinos",v:monthSessions.length,c:"#3B82F6",icon:"🏋️"},
+                  {l:"Volume Total",v:totalVol.toFixed(1)+"t",c:"#10B981",icon:"📦"},
+                  {l:"Séries",v:totalSets,c:"#8B5CF6",icon:"🔢"},
+                  {l:"Repetições",v:totalReps,c:"#F59E0B",icon:"🔄"},
+                  {l:"Tempo Total",v:(totalDur/60).toFixed(1)+"h",c:"#06B6D4",icon:"⏱️"},
+                  {l:"PRs",v:prsThisMonth,c:"#F97316",icon:"🏆"},
+                ].map(k=>(
+                  <div key={k.l} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"14px 16px"}}>
+                    <div style={{fontSize:18,marginBottom:6}}>{k.icon}</div>
+                    <div style={{fontSize:24,fontWeight:900,color:k.c,letterSpacing:"-1px"}}>{k.v}</div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,0.4)",marginTop:3,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>{k.l}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Weekly frequency chart */}
+              <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"16px",marginBottom:12}}>
+                <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>Frequência Semanal</div>
+                <div style={{display:"flex",gap:6,alignItems:"flex-end",height:60}}>
+                  {weekSessions.map((n,i)=>(
+                    <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}>
+                      <div style={{width:"100%",height:Math.max(n/maxWeekSessions*50,n>0?4:0),background:n>0?"linear-gradient(180deg,#3B82F6,#1E40AF)":"rgba(255,255,255,0.05)",borderRadius:"4px 4px 0 0",transition:"height 0.4s"}}/>
+                      <div style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>S{i+1}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{fontSize:11,color:"rgba(255,255,255,0.3)",marginTop:8}}>Média: {(monthSessions.length/weeks).toFixed(1)} treinos/semana</div>
+              </div>
+
+              {/* Muscle distribution */}
+              {totalMVol>0&&<div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"16px",marginBottom:12}}>
+                <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>Distribuição Muscular</div>
+                {Object.entries(muscleVol).sort((a,b)=>b[1]-a[1]).map(([m,v])=>{
+                  const pct=v/totalMVol;
+                  const col=MUSCLE_COLORS[m]||"#3B82F6";
+                  return(
+                    <div key={m} style={{marginBottom:8}}>
+                      <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
+                        <span style={{fontSize:12,color:"#fff",fontWeight:600}}>{m}</span>
+                        <span style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>{v} séries</span>
+                      </div>
+                      <div style={{height:6,background:"rgba(255,255,255,0.05)",borderRadius:99}}>
+                        <div style={{height:"100%",width:(pct*100)+"%",background:col,borderRadius:99,transition:"width 0.4s"}}/>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>}
+
+              {/* Top exercises */}
+              {topEx.length>0&&<div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"16px",marginBottom:12}}>
+                <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>Top Exercícios</div>
+                {topEx.map(([ex,count],i)=>{
+                  const col=GC[EX_GROUP[ex]]||"#3B82F6";
+                  return(
+                    <div key={ex} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:i<topEx.length-1?"1px solid rgba(255,255,255,0.05)":"none"}}>
+                      <div style={{width:28,height:28,borderRadius:8,background:col+"22",border:"1px solid "+col+"44",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                        <span style={{fontSize:11,fontWeight:900,color:col}}>{i+1}</span>
+                      </div>
+                      <div style={{flex:1,fontSize:13,fontWeight:600,color:"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ex}</div>
+                      <div style={{fontSize:14,fontWeight:700,color:col,flexShrink:0}}>{count}×</div>
+                    </div>
+                  );
+                })}
+              </div>}
+
+              {/* Session list */}
+              <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>Sessões</div>
+              {monthSessions.map((s,i)=>(
+                <div key={i} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"12px 14px",marginBottom:8}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                    <div style={{fontSize:13,fontWeight:700,color:"#fff"}}>{s.name||"Treino"}</div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>{new Date(s.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</div>
+                  </div>
+                  <div style={{display:"flex",gap:14}}>
+                    <span style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>{s.duration}min</span>
+                    <span style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>{(s.totalVol||0).toFixed(1)}t</span>
+                    <span style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>{s.totalSets} séries</span>
+                    {s.prs>0&&<span style={{fontSize:11,color:"#F59E0B",fontWeight:700}}>{s.prs} PR{s.prs>1?"s":""}</span>}
+                  </div>
+                </div>
+              ))}
+            </>
+        }
+      </div>
+    </div>
+  );
+}
+
 function HomeScreen({onNavigate,onStartWorkout}){
   const[detail,setDetail]=useState(null);
   const[selRoutine,setSelRoutine]=useState(null);
@@ -655,6 +998,8 @@ function HomeScreen({onNavigate,onStartWorkout}){
   const[chartRange,setChartRange]=useState("3m");
   const[weightPeriod,setWeightPeriod]=useState("1M");
   const[feedCount,setFeedCount]=useState(5);
+  const[showDeload,setShowDeload]=useState(false);
+  const[showReport,setShowReport]=useState(false);
 
   const chartModes=[{k:"vol",l:"Volume",unit:"t",color:C.blueXL},{k:"dur",l:"Duração",unit:"min",color:C.mint},{k:"reps",l:"Repetições",unit:"",color:C.amber},{k:"sets",l:"Séries",unit:"",color:C.coral}];
   const activeMode=chartModes.find(m=>m.k===chartMode)||chartModes[0];
@@ -690,6 +1035,8 @@ function HomeScreen({onNavigate,onStartWorkout}){
 
   if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)}/>;
   if(selRoutine) return <RoutineScreen plan={selRoutine} onClose={()=>setSelRoutine(null)} onStart={()=>{if(nextPlan){const exs=buildSets(nextPlan);onStartWorkout(nextPlan,exs);onNavigate("treino");}setSelRoutine(null);}} onNavigate={onNavigate} onSaved={()=>{}} onDeleted={()=>setSelRoutine(null)}/>;
+  if(showDeload) return <DeloadWeekScreen onBack={()=>setShowDeload(false)}/>;
+  if(showReport) return <MonthlyReportScreen onBack={()=>setShowReport(false)}/>;
 
   return(
     <div style={{background:"#080A0E",minHeight:"100dvh",paddingTop:52}}>
@@ -825,6 +1172,21 @@ function HomeScreen({onNavigate,onStartWorkout}){
               </div>
             </button>
           ))}
+          {/* Deload + Report special buttons */}
+          <button onClick={()=>setShowDeload(true)} style={{background:"linear-gradient(135deg,rgba(139,92,246,0.15),rgba(59,130,246,0.1))",border:"1px solid rgba(139,92,246,0.3)",borderRadius:16,padding:"14px 16px",cursor:"pointer",textAlign:"left",display:"flex",flexDirection:"column",gap:8}}>
+            <svg width="16" height="16" fill="none" stroke="#8B5CF6" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+            <div>
+              <span style={{fontSize:13,fontWeight:700,color:"#C4B5FD",display:"block"}}>Deload Week</span>
+              <span style={{fontSize:10,color:"rgba(196,181,253,0.6)",display:"block",marginTop:2}}>Semana de recuperação</span>
+            </div>
+          </button>
+          <button onClick={()=>setShowReport(true)} style={{background:"linear-gradient(135deg,rgba(16,185,129,0.15),rgba(59,130,246,0.1))",border:"1px solid rgba(16,185,129,0.3)",borderRadius:16,padding:"14px 16px",cursor:"pointer",textAlign:"left",display:"flex",flexDirection:"column",gap:8}}>
+            <svg width="16" height="16" fill="none" stroke="#10B981" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <div>
+              <span style={{fontSize:13,fontWeight:700,color:"#6EE7B7",display:"block"}}>Relatório Mensal</span>
+              <span style={{fontSize:10,color:"rgba(110,231,183,0.6)",display:"block",marginTop:2}}>Análise do mês</span>
+            </div>
+          </button>
         </div>
 
         {/* ── PRs ── */}
@@ -1917,6 +2279,8 @@ function ExercicioScreen({name,onNavigate,onBack}){
   const[chartRange,setChartRange]=useState("3m");
   const[gifUrl,setGifUrl]=useState(null);
   const[gifLoading,setGifLoading]=useState(true);
+  const[showTopEx,setShowTopEx]=useState(false);
+  const[selTopEx,setSelTopEx]=useState(null);
   const exName=name||"Supino (Barra)";
   const info=EXERCISES_INFO[exName]||{group:"",secondary:[],type:"",equipment:"",muscles:[],instructions:[],tips:""};
   const gc=GC[info.group]||C.blueL;
@@ -1930,13 +2294,44 @@ function ExercicioScreen({name,onNavigate,onBack}){
     return()=>document.body.classList.remove("hide-carbon-header");
   },[]);
 
+  // Map Portuguese exercise names to English for wger API
+  const EX_TO_WGER={
+    "Supino (Barra)":"bench press","Supino Inclinado (Halter)":"incline dumbbell press","Supino Declinado (Halter)":"decline bench press",
+    "Desenvolvimento (Halter)":"dumbbell shoulder press","Elevação Lateral (Halter)":"lateral raise","Elevação Lateral (Cabo)":"cable lateral raise",
+    "Agachamento (Barra)":"barbell squat","Leg Press 45º (Máquina)":"leg press","Levantamento Terra (Barra)":"deadlift","Levantamento Terra Romeno (Barra)":"romanian deadlift",
+    "Puxada Alta na Polia (Máquina)":"lat pulldown","Remada Inclinada Apoiada No Peito (Halter)":"dumbbell bent over row","Barra Fixa":"pull up",
+    "Rosca Direta (Barra)":"barbell curl","Rosca Martelo (Halter)":"hammer curl","Rosca Scott (Barra)":"preacher curl",
+    "Tríceps Corda (Cabo)":"tricep rope pushdown","Extensão de Tríceps (Cabo)":"cable tricep extension",
+    "Afundo (Halter)":"dumbbell lunge","Elevação de Panturrilha Sentado (Máquina)":"seated calf raise","Cadeira Flexora (Máquina)":"leg curl","Cadeira Extensora (Máquina)":"leg extension",
+  };
+
   useEffect(()=>{
     setGifUrl(null);
     setGifLoading(true);
+    // Try Supabase first, then fallback to wger API
     supabase.from('exercise_gifs').select('gif_url').eq('exercise_name',exName).maybeSingle()
       .then(({data})=>{
-        if(data?.gif_url) setGifUrl(data.gif_url);
-        setGifLoading(false);
+        if(data?.gif_url){
+          setGifUrl(data.gif_url);
+          setGifLoading(false);
+        } else {
+          // Fallback: search wger exercise database for GIF
+          const enName=EX_TO_WGER[exName]||exName.toLowerCase().replace(/\s*\(.*?\)\s*/g,' ').trim();
+          fetch(`https://wger.de/api/v2/exercise/search/?term=${encodeURIComponent(enName)}&language=english&format=json`)
+            .then(r=>r.json())
+            .then(d=>{
+              const ex=d.suggestions?.[0];
+              if(ex?.data?.id){
+                return fetch(`https://wger.de/api/v2/exerciseinfo/${ex.data.id}/?format=json`).then(r=>r.json());
+              }
+            })
+            .then(info=>{
+              const gif=info?.images?.[0]?.image;
+              if(gif) setGifUrl(gif.startsWith('http')?gif:'https://wger.de'+gif);
+              setGifLoading(false);
+            })
+            .catch(()=>setGifLoading(false));
+        }
       })
       .catch(()=>setGifLoading(false));
   },[exName]);
@@ -1958,6 +2353,52 @@ function ExercicioScreen({name,onNavigate,onBack}){
 
   const goBack=()=>{if(onBack)onBack();else onNavigate("treino");};
 
+  // ── Top exercises overlay (drills down to ExercicioScreen again) ──
+  if(selTopEx) return <ExercicioScreen name={selTopEx} onBack={()=>setSelTopEx(null)} onNavigate={onNavigate}/>;
+
+  // Build top exercises from full history
+  const topExercises=Object.entries(HIST)
+    .map(([ex,sessions])=>({ex,count:sessions.length}))
+    .sort((a,b)=>b.count-a.count)
+    .slice(0,20);
+
+  if(showTopEx) return(
+    <div style={{position:"fixed",inset:0,zIndex:900,background:"#080A0E",display:"flex",flexDirection:"column"}}>
+      <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
+        <div style={{padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
+          <button onClick={()=>setShowTopEx(false)} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
+          <div>
+            <div style={{fontSize:18,fontWeight:800,color:"#fff",letterSpacing:"-0.5px"}}>Exercícios Principais</div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>Últimos {topExercises.length} mais realizados</div>
+          </div>
+        </div>
+      </div>
+      <div style={{flex:1,overflowY:"auto",padding:"8px 16px 80px"}}>
+        {topExercises.map(({ex,count},i)=>{
+          const grp=EX_GROUP[ex]||"";
+          const gc2=GC[grp]||C.blueL;
+          const lastSess=HIST[ex]?.[0];
+          const lastLoad=lastSess?.sets?.filter(s=>s.w>0)?.[0]?.w;
+          return(
+            <button key={ex} onClick={()=>setSelTopEx(ex)} style={{width:"100%",display:"flex",alignItems:"center",gap:12,padding:"14px 16px",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,marginBottom:8,cursor:"pointer",textAlign:"left"}}>
+              <div style={{width:36,height:36,borderRadius:10,background:gc2+"22",border:"1px solid "+gc2+"44",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <span style={{fontSize:13,fontWeight:900,color:gc2}}>#{i+1}</span>
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:14,fontWeight:700,color:"#fff",marginBottom:2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ex}</div>
+                <div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>{grp}{lastLoad?(" · Última: "+lastLoad+"kg"):""}</div>
+              </div>
+              <div style={{textAlign:"right",flexShrink:0}}>
+                <div style={{fontSize:18,fontWeight:900,color:gc2}}>{count}</div>
+                <div style={{fontSize:9,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:"0.06em"}}>vezes</div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+
   return(
     <div style={{position:"fixed",inset:0,zIndex:800,background:"#080A0E",display:"flex",flexDirection:"column",paddingBottom:100,overflowY:"auto"}}>
       <div style={{position:"sticky",top:0,zIndex:2147483646,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
@@ -1968,10 +2409,16 @@ function ExercicioScreen({name,onNavigate,onBack}){
               <div style={{fontSize:11,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:gc}}>{info.group}</div>
               <div style={{fontSize:20,fontWeight:800,color:C.text,letterSpacing:"-0.5px"}}>{exName}</div>
             </div>
-            <div style={{textAlign:"right",flexShrink:0}}>
-              <div style={{fontSize:18,fontWeight:900,color:C.mint}}>{hist.length}</div>
-              <div style={{fontSize:9,color:C.sub,textTransform:"uppercase",letterSpacing:"0.06em"}}>treinos</div>
-            </div>
+              <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+                <button onClick={()=>setShowTopEx(true)} style={{padding:"6px 10px",borderRadius:10,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",cursor:"pointer",display:"flex",alignItems:"center",gap:5}}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" fill="rgba(255,255,255,0.5)"/></svg>
+                  <span style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.5)"}}>Top</span>
+                </button>
+                <div style={{textAlign:"right"}}>
+                  <div style={{fontSize:18,fontWeight:900,color:C.mint}}>{hist.length}</div>
+                  <div style={{fontSize:9,color:C.sub,textTransform:"uppercase",letterSpacing:"0.06em"}}>treinos</div>
+                </div>
+              </div>
           </div>
           <div style={{display:"flex",borderBottom:"1px solid "+C.border}}>
             {["resumo","historico","instrucoes"].map(t=>(
@@ -2697,6 +3144,164 @@ function StrengthDetailScreen({onBack}){
   );
 }
 
+// ══════════════════════════════════════════════════════════════
+// VOLUME DETAIL SCREEN — sets per muscle group over time
+// ══════════════════════════════════════════════════════════════
+const MUSCLE_COLORS={"Peito":"#3B82F6","Costas":"#10B981","Pernas":"#F59E0B","Ombros":"#8B5CF6","Braços":"#EF4444","Core":"#06B6D4","Glúteos":"#F97316","Panturrilha":"#EC4899"};
+const MUSCLE_KEYWORDS={"Peito":["Supino","Crucifixo","Peitoral","Inclinado","Declinado","Chest"],"Costas":["Terra","Remada","Puxada","Barra Fixa","Pull","Row","Pulldown"],"Pernas":["Agachamento","Leg Press","Cadeira","Mesa Flexora","Afundo","Lunges"],"Ombros":["Desenvolvimento","Elevação Lateral","Aberturas","Arnold","Shoulder","Press"],"Braços":["Rosca","Tríceps","Coice","Martelo","Scott","Concentrada","Extensão","Curl"],"Core":["Abdominal","Core","Prancha","Elevação De Pernas","Plank"],"Glúteos":["Romeno","Hip Thrust","Glúteo","Levantamento Terra Romeno"],"Panturrilha":["Panturrilha","Elevação de Panturrilha","Calf","Sóleo"]};
+
+function getExMuscle(exName){
+  const n=exName.toLowerCase();
+  for(const [g,kws] of Object.entries(MUSCLE_KEYWORDS)){
+    if(kws.some(kw=>n.includes(kw.toLowerCase()))) return g;
+  }
+  return null;
+}
+
+function VolumeDetailScreen({onBack}){
+  const[interval,setInterval_]=useState("semana");
+  const[range,setRange]=useState("3m");
+  const[selMuscles,setSelMuscles]=useState(new Set(Object.keys(MUSCLE_COLORS)));
+
+  useEffect(()=>{
+    document.body.classList.add("hide-carbon-header");
+    return()=>document.body.classList.remove("hide-carbon-header");
+  },[]);
+
+  const allSessions=getAllSessions();
+  const muscles=Object.keys(MUSCLE_COLORS);
+
+  // Build time buckets
+  const now=new Date();
+  const rangeDays={"1m":30,"3m":91,"ano":365,"tudo":3650}[range]||91;
+  const startDate=new Date(now.getTime()-rangeDays*86400000);
+
+  // Helper: get bucket key for a date
+  const getBucket=(dateStr)=>{
+    const d=new Date(dateStr+"T12:00:00");
+    if(d<startDate) return null;
+    if(interval==="semana"){
+      const day=d.getDay();
+      const mon=new Date(d);mon.setDate(d.getDate()-(day===0?6:day-1));
+      return mon.toISOString().slice(0,10);
+    }
+    if(interval==="mes") return dateStr.slice(0,7);
+    if(interval==="ano") return dateStr.slice(0,4);
+    return dateStr.slice(0,10);
+  };
+
+  // Accumulate sets per muscle per bucket
+  const bucketData={};
+  allSessions.forEach(s=>{
+    if(!s.date) return;
+    const bk=getBucket(s.date);
+    if(!bk) return;
+    if(!bucketData[bk]) bucketData[bk]={};
+    s.exercises?.forEach(ex=>{
+      const muscle=getExMuscle(ex.name||"");
+      if(!muscle) return;
+      const sets=ex.setData?.length||ex.sets||0;
+      bucketData[bk][muscle]=(bucketData[bk][muscle]||0)+sets;
+    });
+  });
+
+  const sortedBuckets=Object.keys(bucketData).sort();
+  const maxVal=Math.max(...sortedBuckets.map(bk=>Math.max(...muscles.map(m=>bucketData[bk][m]||0))),1);
+
+  // Format bucket label
+  const fmtBucket=(bk)=>{
+    if(interval==="semana") return new Date(bk+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
+    if(interval==="mes"){const[y,m]=bk.split("-");return["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"][+m-1]+(y!==String(now.getFullYear())?" "+y.slice(2):"");}
+    return bk;
+  };
+
+  // Total sets per muscle in range
+  const totalsByMuscle={};
+  muscles.forEach(m=>{totalsByMuscle[m]=sortedBuckets.reduce((s,bk)=>s+(bucketData[bk][m]||0),0);});
+
+  const W=360,H=140,PAD=8;
+  const bw=sortedBuckets.length>0?(W-PAD*2)/sortedBuckets.length-2:20;
+
+  const toggleMuscle=(m)=>{
+    setSelMuscles(prev=>{const n=new Set(prev);if(n.has(m))n.delete(m);else n.add(m);return n;});
+  };
+
+  return(
+    <div style={{background:"#080A0E",minHeight:"100dvh",paddingBottom:100,overflowY:"auto"}}>
+      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
+        <div style={{padding:"12px 16px"}}>
+          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
+            <button onClick={onBack} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
+            <div style={{fontSize:18,fontWeight:800,color:"#fff",letterSpacing:"-0.5px"}}>Volume por Grupo Muscular</div>
+          </div>
+          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+            <div style={{display:"flex",background:"rgba(255,255,255,0.05)",borderRadius:10,padding:2,border:"1px solid rgba(255,255,255,0.08)"}}>
+              {[{k:"semana",l:"Sem"},{k:"mes",l:"Mês"},{k:"ano",l:"Ano"}].map(v=>(
+                <button key={v.k} onClick={()=>setInterval_(v.k)} style={{padding:"5px 10px",borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:700,background:interval===v.k?"rgba(255,255,255,0.15)":"transparent",color:interval===v.k?"#fff":"rgba(255,255,255,0.4)"}}>
+                  {v.l}
+                </button>
+              ))}
+            </div>
+            <div style={{display:"flex",background:"rgba(255,255,255,0.05)",borderRadius:10,padding:2,border:"1px solid rgba(255,255,255,0.08)"}}>
+              {[{k:"1m",l:"30d"},{k:"3m",l:"3M"},{k:"ano",l:"1A"},{k:"tudo",l:"Tudo"}].map(v=>(
+                <button key={v.k} onClick={()=>setRange(v.k)} style={{padding:"5px 10px",borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:700,background:range===v.k?"rgba(59,130,246,0.3)":"transparent",color:range===v.k?"#93C5FD":"rgba(255,255,255,0.4)"}}>
+                  {v.l}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{padding:"16px 16px 0"}}>
+        {/* Chart */}
+        <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:16,padding:"14px",marginBottom:16,overflowX:"auto"}}>
+          {sortedBuckets.length===0
+            ? <div style={{textAlign:"center",padding:"40px 0",color:"rgba(255,255,255,0.3)"}}>Sem dados para este período</div>
+            : <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{minWidth:Math.max(W,sortedBuckets.length*28)}}>
+                {/* Grid lines */}
+                {[0.25,0.5,0.75,1].map(f=>(
+                  <line key={f} x1={PAD} x2={W-PAD} y1={H-PAD-(f*(H-PAD*2))} y2={H-PAD-(f*(H-PAD*2))} stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
+                ))}
+                {/* Bars per bucket — stacked by muscle */}
+                {sortedBuckets.map((bk,bi)=>{
+                  const x=PAD+bi*(W-PAD*2)/sortedBuckets.length;
+                  let yBottom=H-PAD;
+                  const visibleMuscles=[...selMuscles];
+                  return visibleMuscles.map(m=>{
+                    const val=bucketData[bk][m]||0;
+                    if(val===0) return null;
+                    const barH=Math.max(2,(val/maxVal)*(H-PAD*2));
+                    const rect=<rect key={m} x={x+1} y={yBottom-barH} width={Math.min(bw-1,20)} height={barH} fill={MUSCLE_COLORS[m]} rx="2"/>;
+                    yBottom-=barH;
+                    return rect;
+                  });
+                })}
+                {/* X labels */}
+                {sortedBuckets.filter((_,i)=>i%Math.max(1,Math.floor(sortedBuckets.length/6))===0).map((bk,i)=>(
+                  <text key={i} x={PAD+(sortedBuckets.indexOf(bk))*(W-PAD*2)/sortedBuckets.length+bw/2} y={H-1} fontSize="7" fill="rgba(255,255,255,0.3)" textAnchor="middle">{fmtBucket(bk)}</text>
+                ))}
+              </svg>
+          }
+        </div>
+
+        {/* Muscle legend + totals */}
+        <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10}}>
+          Séries por Músculo · {range==="1m"?"Últimos 30 dias":range==="3m"?"Últimos 3 meses":range==="ano"?"Este ano":"Todo período"}
+        </div>
+        {muscles.sort((a,b)=>(totalsByMuscle[b]||0)-(totalsByMuscle[a]||0)).map(m=>(
+          <button key={m} onClick={()=>toggleMuscle(m)} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:selMuscles.has(m)?"rgba(255,255,255,0.04)":"rgba(255,255,255,0.01)",border:"1px solid "+(selMuscles.has(m)?"rgba(255,255,255,0.08)":"rgba(255,255,255,0.04)"),borderRadius:12,marginBottom:6,cursor:"pointer",opacity:selMuscles.has(m)?1:0.4}}>
+            <div style={{width:12,height:12,borderRadius:3,background:MUSCLE_COLORS[m],flexShrink:0}}/>
+            <div style={{flex:1,textAlign:"left",fontSize:13,fontWeight:600,color:"#fff"}}>{m}</div>
+            <div style={{fontSize:18,fontWeight:900,color:MUSCLE_COLORS[m]}}>{totalsByMuscle[m]||0}</div>
+            <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",marginLeft:4}}>séries</div>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Shared muscle recovery model (used by ProgressoScreen + CorpoScreen) ──
 const RECOVERY_HRS={
   "Peito":60,"Costas":72,"Pernas":96,"Ombros":48,"Braços":48,"Core":36,
@@ -2724,6 +3329,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   const[musclePeriod,setMusclePeriod]=useState("semana");
   const[showProgressDetail,setShowProgressDetail]=useState(false);
   const[showStrengthDetail,setShowStrengthDetail]=useState(false);
+  const[showVolumeDetail,setShowVolumeDetail]=useState(false);
 
   // Build workout dates set from FEED
   const workoutDates=useMemo(()=>{
@@ -2804,7 +3410,28 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
 
   // Streaks
   const streak=useMemo(()=>{let s=0;const d=new Date(today);while(true){const ds=d.toISOString().slice(0,10);if(!workoutDates.has(ds)&&ds!==todayStr)break;if(workoutDates.has(ds))s++;d.setDate(d.getDate()-1);if(s>365)break;}return s;},[workoutDates]);
-  const weeklyStreak=useMemo(()=>{const allSessions=getAllSessions();let s=0;const d=new Date(today);d.setDate(d.getDate()-d.getDay());while(s<52){const ds=d.toISOString().slice(0,10);const weekEnd=new Date(d.getTime()+6*86400000).toISOString().slice(0,10);const wk=allSessions.some(f=>f.date>=ds&&f.date<=weekEnd);if(!wk)break;s++;d.setDate(d.getDate()-7);}return s;},[savedCount]);
+  const weeklyStreak=useMemo(()=>{
+    const allSessions=getAllSessions();
+    if(!allSessions.length)return 0;
+    // Use Mon as week start; check each week going backwards
+    const getMonday=(d)=>{const r=new Date(d);const day=r.getDay();const diff=day===0?-6:1-day;r.setDate(r.getDate()+diff);r.setHours(0,0,0,0);return r;};
+    let streak=0;
+    let weekStart=getMonday(new Date(today));
+    // Check up to 200 weeks back
+    for(let i=0;i<200;i++){
+      const ws=weekStart.toISOString().slice(0,10);
+      const we=new Date(weekStart.getTime()+6*86400000).toISOString().slice(0,10);
+      const hasWorkout=allSessions.some(f=>f.date&&f.date>=ws&&f.date<=we);
+      if(!hasWorkout){
+        // If it's the current week and no workout yet, don't break (week not over)
+        if(i===0){weekStart.setDate(weekStart.getDate()-7);continue;}
+        break;
+      }
+      streak++;
+      weekStart.setDate(weekStart.getDate()-7);
+    }
+    return streak;
+  },[savedCount]);
 
   const thisWeekCount=useMemo(()=>{const allSessions=getAllSessions();const d=new Date(today);const start=new Date(d);start.setDate(d.getDate()-d.getDay());start.setHours(0,0,0,0);const startStr=start.toISOString().slice(0,10);const end=new Date(start.getTime()+6*86400000).toISOString().slice(0,10);return allSessions.filter(f=>f.date>=startStr&&f.date<=end).length;},[savedCount]);
 
@@ -2883,9 +3510,9 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
               const isToday=ds===todayStr;
               const hasW=workoutDates.has(ds);
               return(
-                <div key={i} style={{aspectRatio:"1",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,background:hasW?C.mint+"22":isToday?"linear-gradient(135deg,"+C.blueM+","+C.blueL+")":"rgba(255,255,255,0.03)",border:"1px solid "+(hasW?C.mint+"66":isToday?C.blueXL+"66":"rgba(255,255,255,0.05)"),position:"relative"}}>
-                  <span style={{fontSize:13,fontWeight:hasW||isToday?700:400,color:hasW?C.mint:isToday?"#fff":C.muted}}>{d}</span>
-                  {hasW&&<div style={{position:"absolute",bottom:3,width:4,height:4,borderRadius:"50%",background:C.mint}}/>}
+                <div key={i} style={{aspectRatio:"1",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,background:hasW?"linear-gradient(135deg,"+C.blueM+","+C.blueL+")":isToday?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.03)",border:"1px solid "+(hasW?C.blueXL+"88":isToday?"rgba(255,255,255,0.15)":"rgba(255,255,255,0.05)"),position:"relative"}}>
+                  <span style={{fontSize:13,fontWeight:hasW||isToday?700:400,color:hasW?"#fff":isToday?C.sub:C.muted}}>{d}</span>
+                  {hasW&&<div style={{position:"absolute",bottom:3,width:4,height:4,borderRadius:"50%",background:C.blueXL}}/>}
                 </div>
               );
             })}
@@ -2902,6 +3529,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
 
   if(showProgressDetail) return <ProgressDetailScreen onBack={()=>setShowProgressDetail(false)} onNavigate={onNavigate}/>;
   if(showStrengthDetail) return <StrengthDetailScreen onBack={()=>setShowStrengthDetail(false)}/>;
+  if(showVolumeDetail) return <VolumeDetailScreen onBack={()=>setShowVolumeDetail(false)}/>;
 
   const nWeeks={all:WEEKS.length,"3m":13,"1m":4,"1s":1}[chartRange]||13;
   const rangeKey=chartMode==="vol"?"vol":chartMode==="dur"?"dur":chartMode==="reps"?"reps":"sets";
@@ -2923,15 +3551,19 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
       </div>
       <div style={{padding:"0 16px"}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:8}}>
-          <GlassCard style={{padding:"8px 12px",display:"flex",alignItems:"center",gap:8}}>
-            <div style={{fontSize:18}}>🔥</div>
+          <GlassCard style={{padding:"8px 12px",display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:34,height:34,borderRadius:10,background:"linear-gradient(135deg,rgba(249,115,22,0.25),rgba(249,115,22,0.1))",border:"1px solid rgba(249,115,22,0.3)",backdropFilter:"blur(8px)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.5 5.5 6 9 6 13a6 6 0 0012 0c0-2.5-.8-4.5-2-6.5C15 8 14 9.5 13 11c-1-2-1-5-1-9z" fill="#F97316"/></svg>
+            </div>
             <div>
               <div style={{fontSize:16,fontWeight:900,color:C.text}}>{thisWeekCount}</div>
               <div style={{fontSize:9,color:C.sub}}>Ofensiva Semanal</div>
             </div>
           </GlassCard>
-          <GlassCard style={{padding:"8px 12px",display:"flex",alignItems:"center",gap:8}}>
-            <div style={{fontSize:18}}>🎯</div>
+          <GlassCard style={{padding:"8px 12px",display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:34,height:34,borderRadius:10,background:"linear-gradient(135deg,rgba(59,130,246,0.25),rgba(59,130,246,0.1))",border:"1px solid rgba(59,130,246,0.3)",backdropFilter:"blur(8px)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#3B82F6" strokeWidth="1.8"/><circle cx="12" cy="12" r="5" stroke="#3B82F6" strokeWidth="1.8"/><circle cx="12" cy="12" r="1.5" fill="#3B82F6"/><line x1="12" y1="3" x2="12" y2="6.5" stroke="#60A5FA" strokeWidth="1.5" strokeLinecap="round"/><line x1="16" y1="7" x2="18.2" y2="5.2" stroke="#60A5FA" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            </div>
             <div>
               <div style={{fontSize:16,fontWeight:900,color:C.text}}>{weeklyStreak}</div>
               <div style={{fontSize:9,color:C.sub}}>Sequência Semanal</div>
@@ -2955,9 +3587,9 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
               const hasW=workoutDates.has(ds);
               return(
                 <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
-                  <div style={{fontSize:8,fontWeight:600,color:hasW?C.mint:isToday?C.blueXL:C.muted}}>{dayNames[i]}</div>
-                  <div style={{width:26,height:26,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",background:hasW?"linear-gradient(135deg,"+C.mint+"44,"+C.mint+"22)":isToday?"linear-gradient(135deg,"+C.blueM+","+C.blueL+")":"rgba(255,255,255,0.03)",border:"1px solid "+(hasW?C.mint+"88":isToday?C.blueXL+"66":"rgba(255,255,255,0.05)")}}>
-                    <span style={{fontSize:10,fontWeight:hasW||isToday?800:400,color:hasW?C.mint:isToday?"#fff":C.muted}}>{d.getDate()}</span>
+                  <div style={{fontSize:8,fontWeight:600,color:hasW?C.blueXL:isToday?"rgba(255,255,255,0.5)":C.muted}}>{dayNames[i]}</div>
+                  <div style={{width:26,height:26,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",background:hasW?"linear-gradient(135deg,"+C.blueM+","+C.blueL+")":isToday?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.03)",border:"1px solid "+(hasW?C.blueXL+"88":isToday?"rgba(255,255,255,0.15)":"rgba(255,255,255,0.05)")}}>
+                    <span style={{fontSize:10,fontWeight:hasW||isToday?800:400,color:hasW?"#fff":isToday?C.sub:C.muted}}>{d.getDate()}</span>
                   </div>
                 </div>
               );
@@ -2972,6 +3604,10 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
         </GlassCard>
 
         {/* Chart */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+          <div style={{fontSize:11,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:C.sub}}>Volume &amp; Progresso</div>
+          <button onClick={()=>setShowVolumeDetail(true)} style={{fontSize:11,color:C.blueXL,fontWeight:600,background:"none",border:"none",cursor:"pointer"}}>Detalhes ›</button>
+        </div>
         <GlassCard style={{padding:"14px",marginBottom:8}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
             <div>
@@ -3325,8 +3961,21 @@ function CalendarioFullScreen({onNavigate}){
       const d=new Date(now.getFullYear(),now.getMonth()-11+m,1);
       months.push(d);
     }
+    const mesScrollRef=React.useRef(null);
+    React.useEffect(()=>{
+      if(mesScrollRef.current){
+        const containers=mesScrollRef.current.querySelectorAll('[data-month-idx]');
+        const targetIdx=months.length-2;
+        if(containers[targetIdx]){
+          const el=containers[targetIdx];
+          const elTop=el.getBoundingClientRect().top+window.scrollY;
+          const scrollParent=mesScrollRef.current.closest('[data-overflowy]')||document.documentElement;
+          scrollParent.scrollTop=Math.max(0,elTop-120);
+        }
+      }
+    },[]);
     return(
-      <div style={{padding:"0 16px 100px"}}>
+      <div style={{padding:"0 16px 100px"}} ref={mesScrollRef}>
         {/* Streak info */}
         <div style={{display:"flex",gap:8,marginBottom:16}}>
           <div style={{flex:1,background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"10px 14px",display:"flex",alignItems:"center",gap:8}}>
@@ -3358,7 +4007,7 @@ function CalendarioFullScreen({onNavigate}){
             return sd.getFullYear()===y&&sd.getMonth()===m;
           });
           return(
-            <div key={mi} style={{marginBottom:24}}>
+            <div key={mi} data-month-idx={mi} style={{marginBottom:24}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
                 <div style={{fontSize:16,fontWeight:800,color:C.text,textTransform:"capitalize"}}>{monthLabel}</div>
                 <div style={{fontSize:11,color:C.sub}}>{monthSessions.length} treinos</div>
@@ -3427,35 +4076,68 @@ function CalendarioFullScreen({onNavigate}){
   // PLURIANUAL view — GitHub-style heatmap
   const renderPlurianual=()=>{
     const now=new Date();
+    // Show last 14-week sequences across years
     const years=[now.getFullYear()-1,now.getFullYear()];
+    const seqLen=14; // user's 14-week sequences
+    // Build all week start dates for the range
+    const allWeeks=[];
+    years.forEach(y=>{
+      for(let m=0;m<12;m++){
+        const d=new Date(y,m,1);
+        // Get monday of that week
+        const day=d.getDay();
+        const mon=new Date(d);mon.setDate(d.getDate()-(day===0?6:day-1));
+        const wk=mon.toISOString().slice(0,10);
+        if(!allWeeks.includes(wk)) allWeeks.push(wk);
+      }
+    });
+    allWeeks.sort();
+    // For each week, check if had workout
+    const weekHasWorkout=(wkStart)=>{
+      const wkEnd=new Date(new Date(wkStart+"T12:00:00").getTime()+6*86400000).toISOString().slice(0,10);
+      return allSessions.some(s=>s.date&&s.date>=wkStart&&s.date<=wkEnd);
+    };
+    // Group into sequences of 14 weeks
+    const sequences=[];
+    let i=0;
+    while(i<allWeeks.length){
+      const seq=allWeeks.slice(i,i+seqLen);
+      sequences.push(seq);
+      i+=seqLen;
+    }
     return(
       <div style={{padding:"0 16px 100px"}}>
+        <div style={{fontSize:11,color:"rgba(255,255,255,0.3)",marginBottom:16,lineHeight:1.5}}>
+          Cada bloco = {seqLen} semanas · Azul = semana com treino
+        </div>
         {years.map(y=>{
-          const months=Array.from({length:12},(_,m)=>m);
+          const yearSeqs=sequences.filter(seq=>seq[0]?.startsWith(y.toString())||seq[seq.length-1]?.startsWith(y.toString()));
+          if(!yearSeqs.length) return null;
           return(
-            <div key={y} style={{marginBottom:24}}>
-              <div style={{fontSize:16,fontWeight:800,color:C.text,marginBottom:8}}>{y}</div>
-              <div style={{display:"flex",gap:2,alignItems:"flex-start"}}>
-                <div style={{display:"flex",flexDirection:"column",gap:1,marginRight:4}}>
-                  {["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"].map((m,i)=>(
-                    <div key={i} style={{fontSize:8,color:C.muted,height:10,display:"flex",alignItems:"center"}}>{m}</div>
-                  ))}
-                </div>
-                <div style={{flex:1}}>
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1}}>
-                    {months.map(m=>{
-                      const daysInMonth=new Date(y,m+1,0).getDate();
-                      return Array.from({length:daysInMonth},(_,di)=>{
-                        const d=di+1;
-                        const ds=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-                        const hasW=workoutDates.has(ds);
-                        const isToday=ds===todayStr;
-                        return <div key={ds} style={{aspectRatio:"1",borderRadius:1,background:hasW?"#3B82F6":isToday?"#1E3A8A":"rgba(255,255,255,0.05)"}}/>;
-                      });
-                    })}
+            <div key={y} style={{marginBottom:28}}>
+              <div style={{fontSize:16,fontWeight:800,color:"#fff",marginBottom:12}}>{y}</div>
+              {yearSeqs.map((seq,si)=>{
+                const startLabel=new Date(seq[0]+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"});
+                const endLabel=new Date(seq[seq.length-1]+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"});
+                const doneCount=seq.filter(w=>weekHasWorkout(w)).length;
+                return(
+                  <div key={si} style={{marginBottom:14}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                      <div style={{fontSize:10,color:"rgba(255,255,255,0.4)"}}>Bloco {si+1} · {startLabel} – {endLabel}</div>
+                      <div style={{fontSize:10,fontWeight:700,color:doneCount>=seqLen*0.7?"#3B82F6":"rgba(255,255,255,0.3)"}}>{doneCount}/{seqLen} sem.</div>
+                    </div>
+                    <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
+                      {seq.map((wk,wi)=>{
+                        const hasW=weekHasWorkout(wk);
+                        const isCurrentWeek=wk<=now.toISOString().slice(0,10)&&new Date(wk+"T12:00:00").getTime()+7*86400000>now.getTime();
+                        return(
+                          <div key={wi} style={{width:18,height:18,borderRadius:4,background:hasW?"linear-gradient(135deg,#1E40AF,#3B82F6)":isCurrentWeek?"rgba(255,255,255,0.1)":"rgba(255,255,255,0.05)",border:"1px solid "+(hasW?"rgba(59,130,246,0.6)":isCurrentWeek?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.05)"),boxShadow:hasW?"0 0 6px rgba(59,130,246,0.4)":"none"}}/>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              </div>
+                );
+              })}
             </div>
           );
         })}
@@ -3463,8 +4145,9 @@ function CalendarioFullScreen({onNavigate}){
     );
   };
 
+  const calScrollContainerRef=React.useRef(null);
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0,overflowY:"auto"}}>
+    <div ref={calScrollContainerRef} style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0,overflowY:"auto"}}>
       {/* Header */}
       <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
         <div style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
