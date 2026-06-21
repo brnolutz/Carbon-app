@@ -2721,7 +2721,7 @@ async function fetchExerciseImage(exName){
     const{data}=await supabase.from('exercise_gifs').select('gif_url').eq('exercise_name',exName).maybeSingle();
     if(data?.gif_url){_imgCache[exName]=data.gif_url;return data.gif_url;}
   }catch(e){}
-  // Buscar na API
+  // Buscar na API — retorna imagem diretamente como blob
   const id=EXERCISE_IDS[exName];
   if(!id) return null;
   try{
@@ -2729,27 +2729,13 @@ async function fetchExerciseImage(exName){
       headers:{
         'x-rapidapi-key': RAPIDAPI_KEY,
         'x-rapidapi-host': 'exercisedb.p.rapidapi.com',
-        'Content-Type': 'application/json',
       }
     });
     if(!res.ok) return null;
-    // Resposta pode ser blob (imagem direta) ou JSON com URL
-    const ct = res.headers.get('content-type')||'';
-    let imgUrl = null;
-    if(ct.includes('image')){
-      const blob = await res.blob();
-      imgUrl = URL.createObjectURL(blob);
-    } else {
-      const data = await res.json();
-      imgUrl = data.url || data.gifUrl || data.imageUrl || null;
-    }
-    if(!imgUrl) return null;
+    const blob = await res.blob();
+    if(!blob||blob.size===0) return null;
+    const imgUrl = URL.createObjectURL(blob);
     _imgCache[exName] = imgUrl;
-    // Salvar no Supabase
-    try{
-      const{data:u}=await supabase.auth.getUser();
-      if(u?.user?.id) await supabase.from('exercise_gifs').upsert({exercise_name:exName,gif_url:imgUrl},{onConflict:'exercise_name'});
-    }catch(e){}
     return imgUrl;
   }catch(e){ return null; }
 }
@@ -5155,24 +5141,22 @@ function CarbonIntro({onDone}){
         transition:fading?"opacity 0.5s ease":"opacity 1s ease",
       }}>
       <div style={{
-        display:"flex",flexDirection:"column",alignItems:"center",
+        display:"flex",flexDirection:"column",alignItems:"center",gap:20,
         transform:visible?"translateY(0)":"translateY(16px)",
         transition:"transform 1.2s ease",
       }}>
-        <img
-          src="/carbon-logo-transparent.png"
-          alt="Carbon"
-          style={{width:260,objectFit:"contain"}}
-        />
+        <img src="/carbon-logo-transparent.png" alt="Carbon" style={{width:"60vw",maxWidth:280,objectFit:"contain"}}/>
+        <div style={{fontSize:13,fontWeight:300,color:"rgba(255,255,255,0.5)",letterSpacing:"0.4em",textTransform:"uppercase"}}>Train · Recover · Evolve</div>
       </div>
     </div>
   );
 }
 
 function SplashLoading(){
+  // Mesma tela do intro — sem logo quadrada
   return(
-    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16}}>
-      <CarbonLogo size={40} color={C.blueXL} strokeWidth={1.3}/>
+    <div style={{position:"fixed",inset:0,background:"#000000",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <img src="/carbon-logo-transparent.png" alt="Carbon" style={{width:"60vw",maxWidth:280,objectFit:"contain",opacity:0.9}}/>
     </div>
   );
 }
