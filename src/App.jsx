@@ -3649,13 +3649,19 @@ function MedicoesScreen({onNavigate}){
   const nPts={all:fieldData.length,"1a":24,"3m":12,"1m":6}[range]||12;
   const chartPts=fieldData.slice(-nPts);
   const maxY=Math.max(...chartPts.map(d=>d.v),0.01);
-  const minY=Math.min(...chartPts.map(d=>d.v),0);
-  const W=400,H=160,PAD=10;
-  const px=(i)=>chartPts.length>1?i*(W-PAD*2)/(chartPts.length-1)+PAD:W/2;
-  const py=(v)=>H-PAD-((v-minY)/(maxY-minY||1))*(H-PAD*2);
+  const rawMin=Math.min(...chartPts.map(d=>d.v));
+  // Eixo Y começa um pouco abaixo do mínimo para o gráfico não ficar achatado
+  const margin=(maxY-rawMin)*0.3||maxY*0.05||1;
+  const minY=Math.max(0,rawMin-margin);
+  const W=400,H=160,PAD=10,LPAD=44;
+  const px=(i)=>chartPts.length>1?i*(W-LPAD-PAD)/(chartPts.length-1)+LPAD:W/2;
+  const py=(v)=>H-PAD*2-((v-minY)/(maxY-minY||1))*(H-PAD*3);
   const last=chartPts[chartPts.length-1];
   const prev=chartPts[chartPts.length-2];
   const delta=prev&&prev.v>0?+(last?.v-prev.v).toFixed(2):null;
+  const unit=sel==="Peso"?"kg":"cm";
+  // Quais pontos mostrar rótulo (não mostrar todos se muitos)
+  const showLabel=(i)=>chartPts.length<=6||i===0||i===chartPts.length-1||i===Math.floor(chartPts.length/2);
 
   async function saveEntry(){
     const today=new Date().toISOString().slice(0,10);
@@ -3707,20 +3713,27 @@ function MedicoesScreen({onNavigate}){
         {chartPts.length>1&&<div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:16}}>
           <div style={{position:"relative"}}>
             <div style={{position:"absolute",left:0,top:0,bottom:20,width:40,display:"flex",flexDirection:"column",justifyContent:"space-between",pointerEvents:"none"}}>
-              {[maxY,Math.round((maxY+minY)/2*10)/10,minY].map((v,i)=><span key={i} style={{fontSize:8,color:C.muted}}>{v}{sel==="Peso"?"kg":"cm"}</span>)}
+              {[maxY,Math.round((maxY+minY)/2*10)/10,rawMin].map((v,i)=><span key={i} style={{fontSize:8,color:C.muted,lineHeight:1}}>{v}{unit}</span>)}
             </div>
             <div style={{marginLeft:44}}>
-              <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{overflow:"visible"}}>
+              <svg width="100%" height={H+20} viewBox={`0 0 ${W} ${H+20}`} preserveAspectRatio="none" style={{overflow:"visible"}}>
                 <defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={gc} stopOpacity="0.3"/><stop offset="100%" stopColor={gc} stopOpacity="0"/></linearGradient></defs>
-                {[0,0.5,1].map((f,i)=><line key={i} x1={PAD} y1={PAD+(H-PAD*2)*f} x2={W-PAD} y2={PAD+(H-PAD*2)*f} stroke={C.border} strokeWidth="1" strokeDasharray="4,4"/>)}
+                {[0,0.5,1].map((f,i)=><line key={i} x1={LPAD} y1={PAD+(H-PAD*3)*f} x2={W-PAD} y2={PAD+(H-PAD*3)*f} stroke={C.border} strokeWidth="1" strokeDasharray="4,4"/>)}
                 {<polygon points={[...chartPts.map((d,i)=>`${px(i)},${py(d.v)}`),`${px(chartPts.length-1)},${H-PAD}`,`${px(0)},${H-PAD}`].join(" ")} fill="url(#mg)"/>}
                 <polyline points={chartPts.map((d,i)=>`${px(i)},${py(d.v)}`).join(" ")} fill="none" stroke={gc} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                {chartPts.map((d,i)=><circle key={i} cx={px(i)} cy={py(d.v)} r="3.5" fill={gc} stroke={C.bg} strokeWidth="2"/>)}
+                {chartPts.map((d,i)=>(
+                  <g key={i}>
+                    <circle cx={px(i)} cy={py(d.v)} r="3.5" fill={gc} stroke={C.bg} strokeWidth="2"/>
+                    {showLabel(i)&&<text x={px(i)} y={py(d.v)-8} textAnchor="middle" fontSize="9" fill={gc} fontWeight="700">{d.v}{unit}</text>}
+                  </g>
+                ))}
+                {/* Datas no eixo X */}
+                {chartPts.map((d,i)=>showLabel(i)&&(
+                  <text key={i} x={px(i)} y={H+14} textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.3)">
+                    {new Date(d.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})}
+                  </text>
+                ))}
               </svg>
-              <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
-                <span style={{fontSize:9,color:C.muted}}>{new Date(chartPts[0].date+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})}</span>
-                <span style={{fontSize:9,color:C.muted}}>{new Date(chartPts[chartPts.length-1].date+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})}</span>
-              </div>
             </div>
           </div>
         </div>}
