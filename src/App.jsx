@@ -4526,6 +4526,7 @@ function ForgeAppInner(){
   function startWorkout(plan,exercises){
     const startTs=Date.now();
     setActiveWorkout({plan,exercises,currentEx:0,elapsed:0,startTs});
+    setTreinoSub("active");
     setScreen("treino");
   }
 
