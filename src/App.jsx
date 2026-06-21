@@ -2336,6 +2336,11 @@ function ProgressDetailScreen({onBack,onNavigate}){
   const[range,setRange]=useState("3m");
   const[mode,setMode]=useState("vol");
 
+  useEffect(()=>{
+    document.body.classList.add("hide-carbon-header");
+    return()=>document.body.classList.remove("hide-carbon-header");
+  },[]);
+
   const modesCfg={
     vol:{l:"Volume",unit:"t",color:C.blueXL,fmt:(v)=>v.toFixed(1)},
     dur:{l:"Duração",unit:"min",color:C.mint,fmt:(v)=>Math.round(v)+""},
@@ -2539,6 +2544,10 @@ function shortExName(name){
 }
 
 function StrengthDetailScreen({onBack}){
+  useEffect(()=>{
+    document.body.classList.add("hide-carbon-header");
+    return()=>document.body.classList.remove("hide-carbon-header");
+  },[]);
   const allEx=useMemo(()=>getAllHistExercises(),[]);
   const groupsForSelector=useMemo(()=>{
     const set=new Set(allEx.map(exGroupOrOther));
@@ -2933,49 +2942,17 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
             ))}
           </div>
         </GlassCard>
-      </div>
 
-      {/* Muscle recovery */}
-      <div style={{padding:"0 20px 16px"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-          <div style={{fontSize:11,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:C.sub}}>Recuperação muscular</div>
-          <button onClick={()=>onNavigate("corpo")} style={{fontSize:11,color:C.blueXL,fontWeight:600,background:"none",border:"none",cursor:"pointer"}}>Detalhes ›</button>
+        {/* Training Progression */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8,marginTop:4}}>
+          <div style={{fontSize:11,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:C.sub}}>Progressão por Exercício</div>
+          <button onClick={()=>setShowProgressDetail(true)} style={{fontSize:11,color:C.blueXL,fontWeight:600,background:"none",border:"none",cursor:"pointer"}}>Detalhes ›</button>
         </div>
-        <GlassCard style={{padding:"16px"}}>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:14}}>
-            {[{l:"Prontos",v:muscles.filter(m=>m.pct===100).length,c:C.mint},{l:"Recup.",v:muscles.filter(m=>m.pct<100&&m.pct>50).length,c:C.amber},{l:"Fadig.",v:muscles.filter(m=>m.pct<=50).length,c:C.coral},{l:"Dias s/ treino",v:0,c:C.sub}].map(s=>(
-              <div key={s.l} style={{background:C.card,borderRadius:10,padding:"8px",textAlign:"center",border:"1px solid "+C.border}}>
-                <div style={{fontSize:18,fontWeight:900,color:s.c}}>{s.v}</div>
-                <div style={{fontSize:9,color:C.muted,marginTop:2,lineHeight:1.2}}>{s.l}</div>
-              </div>
-            ))}
-          </div>
-          {/* Spider chart mini */}
-          <SpiderChart muscles={muscles}/>
-          {/* Muscle bars */}
-          <div style={{marginTop:8}}>
-            {muscles.map(m=>(
-              <div key={m.g} style={{marginBottom:10}}>
-                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:3}}>
-                  <div style={{fontSize:10,color:C.sub,width:75,flexShrink:0}}>{m.g}</div>
-                  <div style={{flex:1,height:5,background:C.card,borderRadius:3,overflow:"hidden"}}>
-                    <div style={{height:"100%",width:m.pct+"%",background:m.color,borderRadius:3}}/>
-                  </div>
-                  <div style={{fontSize:10,fontWeight:700,color:m.color,width:28,textAlign:"right",flexShrink:0}}>{m.pct===100?"✓":m.pct+"%"}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </GlassCard>
-      </div>
-
-      {/* Training Progression */}
-      <div style={{padding:"0 20px 16px"}}>
         <TrainingProgressionCard onOpenDetail={()=>setShowStrengthDetail(true)}/>
       </div>
 
       {/* Recent workouts */}
-      <div style={{padding:"0 20px 140px"}}>
+      <div style={{padding:"0 16px 140px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
           <div style={{fontSize:11,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:C.sub}}>Treinos recentes</div>
           <button onClick={()=>onNavigate("historico")} style={{fontSize:11,color:C.blueXL,fontWeight:600,background:"none",border:"none",cursor:"pointer"}}>Ver todos ›</button>
