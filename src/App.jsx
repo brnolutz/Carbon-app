@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@supabase/supabase-js";
 
@@ -710,7 +710,7 @@ function ExerciciosBrowserScreen({onNavigate}){
   });
   return(
     <div style={{background:"#080A0E",minHeight:"100vh",paddingBottom:100}}>
-      <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"14px 16px 14px"}}>
+      <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",paddingTop:52,padding:"52px 16px 14px"}}>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
           <button onClick={()=>onNavigate("home")} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
           <div style={{fontSize:18,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Exercícios</div>
@@ -3198,6 +3198,8 @@ const EX_TO_MUSCLE={
 // PROGRESSO SCREEN — BeFit-inspired glassmorphism v2
 // ══════════════════════════════════════════════════════════════
 function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
+  const scrollRef=useRef(null);
+  useLayoutEffect(()=>{if(scrollRef.current)scrollRef.current.scrollTop=0;},[]);
   const[chartMode,setChartMode]=useState("vol");
   const[chartRange,setChartRange]=useState("3m");
   const[weekOffset,setWeekOffset]=useState(0);
@@ -3397,7 +3399,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   const rangeDelta=Math.round((rangeTotal-rangePrev)/rangePrev*100);
 
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingTop:52,paddingBottom:120}} ref={el=>{if(el)el.scrollTop=0;}}>
+    <div ref={scrollRef} style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingTop:52,paddingBottom:120,overflowY:"auto"}}>
       {calendarEl}
       <style>{`.prog-bar{transition:height 0.4s ease;}`}</style>
       <div style={{padding:"10px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -3624,6 +3626,8 @@ function BodyDiagram({muscleHeat,width=320}){
 // MEDIÇÕES SCREEN — track body measurements over time
 // ══════════════════════════════════════════════════════════════
 function MedicoesScreen({onNavigate}){
+  const scrollRef=useRef(null);
+  useLayoutEffect(()=>{if(scrollRef.current)scrollRef.current.scrollTop=0;},[]);
   const ALL_FIELDS=["Peso","Braço D","Braço E","Peito","Cintura","Coxa D","Panturrilha D"];
   const[sel,setSel]=useState("Peso");
   const[range,setRange]=useState("3m");
@@ -3672,7 +3676,7 @@ function MedicoesScreen({onNavigate}){
   const gc=C.blueXL;
 
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0,overflowY:"auto",paddingBottom:120}}>
+    <div ref={scrollRef} style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0,overflowY:"auto",paddingBottom:120}}>
       {/* Header */}
       <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
         <div style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
