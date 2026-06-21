@@ -3824,17 +3824,35 @@ function CalendarioFullScreen({onNavigate}){
   }
 
   // MÊS view — scrollable months
+  const mesScrollRef=useRef(null);
   const renderMes=()=>{
-    const months=[];
     const now=new Date();
-    for(let m=0;m<12;m++){
-      const d=new Date(now.getFullYear(),now.getMonth()-11+m,1);
-      months.push(d);
+    // Começa em março de 2026 (primeiro mês com registros)
+    const FIRST=new Date(2026,2,1); // março 2026
+    const months=[];
+    let cur=new Date(FIRST);
+    while(cur<=new Date(now.getFullYear(),now.getMonth(),1)){
+      months.push(new Date(cur));
+      cur.setMonth(cur.getMonth()+1);
     }
     return(
-      <div style={{padding:"0 16px 100px"}}>
+      <div
+        ref={el=>{
+          if(el&&!el._scrolled){
+            el._scrolled=true;
+            // Rola para mostrar os últimos 2 meses (penúltimo mês visível)
+            setTimeout(()=>{
+              const items=el.querySelectorAll("[data-month]");
+              if(items.length>=2){
+                items[items.length-2].scrollIntoView({block:"start"});
+              }
+            },50);
+          }
+        }}
+        style={{flex:1,overflowY:"auto",padding:"0 16px 100px"}}
+      >
         {/* Streak info */}
-        <div style={{display:"flex",gap:8,marginBottom:16}}>
+        <div style={{display:"flex",gap:8,marginBottom:16,paddingTop:8}}>
           <div style={{flex:1,background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"10px 14px",display:"flex",alignItems:"center",gap:8}}>
             <span style={{fontSize:18}}>🔥</span>
             <div>
@@ -3864,7 +3882,7 @@ function CalendarioFullScreen({onNavigate}){
             return sd.getFullYear()===y&&sd.getMonth()===m;
           });
           return(
-            <div key={mi} style={{marginBottom:24}}>
+            <div key={mi} data-month={`${y}-${m}`} style={{marginBottom:24}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
                 <div style={{fontSize:16,fontWeight:800,color:C.text,textTransform:"capitalize"}}>{monthLabel}</div>
                 <div style={{fontSize:11,color:C.sub}}>{monthSessions.length} treinos</div>
@@ -3970,9 +3988,9 @@ function CalendarioFullScreen({onNavigate}){
   };
 
   return(
-    <div data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0,overflowY:"auto"}}>
-      {/* Header */}
-      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
+    <div data-screen-container="1" className="screen-root" style={{background:"#080A0E",height:"100dvh",display:"flex",flexDirection:"column",paddingTop:0,overflow:"hidden"}}>
+      {/* Header fixo */}
+      <div style={{flexShrink:0,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52,zIndex:50}}>
         <div style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <button onClick={()=>onNavigate("home")} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
@@ -3986,9 +4004,12 @@ function CalendarioFullScreen({onNavigate}){
           </div>
         </div>
       </div>
-      {view==="mes"&&renderMes()}
-      {view==="ano"&&renderAno()}
-      {view==="plurianual"&&renderPlurianual()}
+      {/* Conteúdo scrollável */}
+      <div style={{flex:1,overflowY:"auto"}}>
+        {view==="mes"&&renderMes()}
+        {view==="ano"&&renderAno()}
+        {view==="plurianual"&&renderPlurianual()}
+      </div>
     </div>
   );
 }
