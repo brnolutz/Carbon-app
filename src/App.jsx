@@ -2676,146 +2676,150 @@ const EXERCISES_INFO = {
   "Abdominal Na Máquina":{group:"Core",secondary:[],type:"Isolado",equipment:"Máquina",muscles:["Reto abdominal"],instructions:["Sentado na máquina, mãos nas alças.","Flexione o tronco contra a resistência.","Contraia o abdômen no ponto mais baixo.","Retorne controlado."],tips:"Expire ao contrair — isso aumenta a ativação do core."},
 };
 
-// ── Mapa de imagens dos exercícios (free-exercise-db, GitHub raw) ────────────
-const BASE_IMG = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/";
-const EXERCISE_IMAGES = {
-  "Supino (Barra)": [BASE_IMG+"Barbell_Bench_Press_-_Medium_Grip/0.jpg", BASE_IMG+"Barbell_Bench_Press_-_Medium_Grip/1.jpg"],
-  "Supino Declinado (Halter)": [BASE_IMG+"Decline_Dumbbell_Bench_Press/0.jpg", BASE_IMG+"Decline_Dumbbell_Bench_Press/1.jpg"],
-  "Supino Inclinado (Halter)": [BASE_IMG+"Incline_Dumbbell_Bench_With_Palms_Facing_In/0.jpg", BASE_IMG+"Incline_Dumbbell_Bench_With_Palms_Facing_In/1.jpg"],
-  "Crucifixo na Polia (Máquina)": [BASE_IMG+"Cable_Rear_Delt_Fly/0.jpg", BASE_IMG+"Cable_Rear_Delt_Fly/1.jpg"],
-  "Levantamento Terra (Barra)": [BASE_IMG+"Barbell_Deadlift/0.jpg", BASE_IMG+"Barbell_Deadlift/1.jpg"],
-  "Barra Fixa": [BASE_IMG+"Band_Assisted_Pull-Up/0.jpg", BASE_IMG+"Band_Assisted_Pull-Up/1.jpg"],
-  "Remada Inclinada Apoiada No Peito (Halter)": [BASE_IMG+"Bent-Arm_Dumbbell_Pullover/0.jpg", BASE_IMG+"Bent-Arm_Dumbbell_Pullover/1.jpg"],
-  "Puxada Alta na Polia (Máquina)": [BASE_IMG+"Close-Grip_Front_Lat_Pulldown/0.jpg", BASE_IMG+"Close-Grip_Front_Lat_Pulldown/1.jpg"],
-  "Levantamento Terra Romeno (Barra)": [BASE_IMG+"Romanian_Deadlift/0.jpg", BASE_IMG+"Romanian_Deadlift/1.jpg"],
-  "Desenvolvimento (Halter)": [BASE_IMG+"Dumbbell_One-Arm_Shoulder_Press/0.jpg", BASE_IMG+"Dumbbell_One-Arm_Shoulder_Press/1.jpg"],
-  "Elevação Lateral (Halter)": [BASE_IMG+"Dumbbell_Lying_One-Arm_Rear_Lateral_Raise/0.jpg", BASE_IMG+"Dumbbell_Lying_One-Arm_Rear_Lateral_Raise/1.jpg"],
-  "Elevação Lateral Unilateral (Cabo)": [BASE_IMG+"Cable_Seated_Lateral_Raise/0.jpg", BASE_IMG+"Cable_Seated_Lateral_Raise/1.jpg"],
-  "Aberturas Invertidas De Ombro Posterior (Na Máquina)": [BASE_IMG+"Barbell_Rear_Delt_Row/0.jpg", BASE_IMG+"Barbell_Rear_Delt_Row/1.jpg"],
-  "Agachamento (Barra)": [BASE_IMG+"Barbell_Full_Squat/0.jpg", BASE_IMG+"Barbell_Full_Squat/1.jpg"],
-  "Leg Press 45º (Máquina)": [BASE_IMG+"Calf_Press_On_The_Leg_Press_Machine/0.jpg", BASE_IMG+"Calf_Press_On_The_Leg_Press_Machine/1.jpg"],
-  "Mesa Flexora (Máquina)": [BASE_IMG+"Ball_Leg_Curl/0.jpg", BASE_IMG+"Ball_Leg_Curl/1.jpg"],
-  "Extensora (Máquina)": [BASE_IMG+"Leg_Extensions/0.jpg", BASE_IMG+"Leg_Extensions/1.jpg"],
-  "Afundo (Halter)": [BASE_IMG+"Dumbbell_Lunges/0.jpg", BASE_IMG+"Dumbbell_Lunges/1.jpg"],
-  "Elevação de Panturrilha Sentado (Máquina)": [BASE_IMG+"Barbell_Seated_Calf_Raise/0.jpg", BASE_IMG+"Barbell_Seated_Calf_Raise/1.jpg"],
-  "Elevação Unilateral de Panturrilha em Pé (Máquina)": [BASE_IMG+"Rocking_Standing_Calf_Raise/0.jpg", BASE_IMG+"Rocking_Standing_Calf_Raise/1.jpg"],
-  "Rosca Direta na Barra W": [BASE_IMG+"Close-Grip_EZ-Bar_Curl_with_Band/0.jpg", BASE_IMG+"Close-Grip_EZ-Bar_Curl_with_Band/1.jpg"],
-  "Rosca Scott (Barra)": [BASE_IMG+"Cable_Preacher_Curl/0.jpg", BASE_IMG+"Cable_Preacher_Curl/1.jpg"],
-  "Rosca Inclinada (Halter)": [BASE_IMG+"Alternate_Incline_Dumbbell_Curl/0.jpg", BASE_IMG+"Alternate_Incline_Dumbbell_Curl/1.jpg"],
-  "Rosca Martelo (Halter)": [BASE_IMG+"Alternate_Hammer_Curl/0.jpg", BASE_IMG+"Alternate_Hammer_Curl/1.jpg"],
-  "Tríceps na Paralela (Com Peso)": [BASE_IMG+"Dips_-_Triceps_Version/0.jpg", BASE_IMG+"Dips_-_Triceps_Version/1.jpg"],
-  "Extensão de tríceps acima da cabeça (cabo)": [BASE_IMG+"Cable_Incline_Triceps_Extension/0.jpg", BASE_IMG+"Cable_Incline_Triceps_Extension/1.jpg"],
-  "Abdominal (Corda)": [BASE_IMG+"Bosu_Ball_Cable_Crunch_With_Side_Bends/0.jpg", BASE_IMG+"Bosu_Ball_Cable_Crunch_With_Side_Bends/1.jpg"],
-  "Abdominal Na Máquina": [BASE_IMG+"Ab_Crunch_Machine/0.jpg", BASE_IMG+"Ab_Crunch_Machine/1.jpg"],
+// ── ExerciseDB — GIFs anatômicos com músculos destacados ─────
+const RAPIDAPI_KEY = "863ed60540msha869e2cf0791bd5p1ccf0cjsn2febf3210d99";
+const EXERCISEDB_HOST = "exercisedb.p.rapidapi.com";
+
+// Mapa PT-BR → ID do ExerciseDB
+const EXERCISEDB_IDS = {
+  "Supino (Barra)": "0001",
+  "Supino Declinado (Halter)": "0076",
+  "Supino Inclinado (Halter)": "0090",
+  "Crucifixo na Polia (Máquina)": "1191",
+  "Levantamento Terra (Barra)": "0014",
+  "Barra Fixa": "0026",
+  "Remada Inclinada Apoiada No Peito (Halter)": "0107",
+  "Puxada Alta na Polia (Máquina)": "0019",
+  "Levantamento Terra Romeno (Barra)": "0038",
+  "Desenvolvimento (Halter)": "0092",
+  "Elevação Lateral (Halter)": "0079",
+  "Elevação Lateral Unilateral (Cabo)": "0620",
+  "Aberturas Invertidas De Ombro Posterior (Na Máquina)": "0291",
+  "Agachamento (Barra)": "0047",
+  "Leg Press 45º (Máquina)": "0280",
+  "Mesa Flexora (Máquina)": "0051",
+  "Extensora (Máquina)": "0052",
+  "Afundo (Halter)": "0041",
+  "Elevação de Panturrilha Sentado (Máquina)": "1355",
+  "Elevação Unilateral de Panturrilha em Pé (Máquina)": "0341",
+  "Rosca Direta na Barra W": "0032",
+  "Rosca Scott (Barra)": "0286",
+  "Rosca Inclinada (Halter)": "0098",
+  "Rosca Martelo (Halter)": "0097",
+  "Tríceps na Paralela (Com Peso)": "0045",
+  "Extensão de tríceps acima da cabeça (cabo)": "1701",
+  "Abdominal (Corda)": "0024",
+  "Abdominal Na Máquina": "0025",
 };
 
-// Popula o Supabase automaticamente com os URLs (roda 1x por usuário)
-async function seedExerciseGifs(){
+// Cache em memória para não repetir chamadas à API
+const _gifCache = {};
+
+// Busca o GIF do ExerciseDB e cacheia no Supabase para economizar requisições
+async function fetchExerciseGif(exName){
+  // 1. Checar cache em memória
+  if(_gifCache[exName]) return _gifCache[exName];
+
+  // 2. Checar cache no Supabase
   try{
-    const{data:userData}=await supabase.auth.getUser();
-    const uid=userData?.user?.id;
-    if(!uid)return;
-    // Verifica se já foi populado
-    const{data:existing}=await supabase.from('exercise_gifs').select('exercise_name').limit(1);
-    if(existing&&existing.length>0)return; // já populado
-    // Insere todos os exercícios
-    const rows=Object.entries(EXERCISE_IMAGES).map(([name,imgs])=>({
-      exercise_name:name,
-      gif_url:imgs[0], // imagem 0 (posição inicial)
-      img_url_1:imgs[1], // imagem 1 (posição final)
-    }));
-    await supabase.from('exercise_gifs').upsert(rows,{onConflict:'exercise_name'});
-    console.log('exercise_gifs populado!',rows.length,'exercícios');
-  }catch(e){console.log('seedExerciseGifs:',e);}
+    const{data}=await supabase.from('exercise_gifs').select('gif_url').eq('exercise_name',exName).maybeSingle();
+    if(data?.gif_url){
+      _gifCache[exName]=data.gif_url;
+      return data.gif_url;
+    }
+  }catch(e){}
+
+  // 3. Buscar na API do ExerciseDB
+  const id=EXERCISEDB_IDS[exName];
+  if(!id) return null;
+  try{
+    const res=await fetch(`https://exercisedb.p.rapidapi.com/exercises/exercise/${id}`,{
+      headers:{
+        'X-RapidAPI-Key': RAPIDAPI_KEY,
+        'X-RapidAPI-Host': EXERCISEDB_HOST,
+      }
+    });
+    if(!res.ok) return null;
+    const data=await res.json();
+    const gifUrl=data.gifUrl;
+    if(!gifUrl) return null;
+    // 4. Salvar no Supabase para não precisar chamar API de novo
+    _gifCache[exName]=gifUrl;
+    try{
+      const{data:userData}=await supabase.auth.getUser();
+      const uid=userData?.user?.id;
+      if(uid){
+        await supabase.from('exercise_gifs').upsert({exercise_name:exName,gif_url:gifUrl},{onConflict:'exercise_name'});
+      }
+    }catch(e){}
+    return gifUrl;
+  }catch(e){
+    return null;
+  }
 }
 
-// Componente de slideshow automático (simula animação como GIF)
+// Componente de GIF anatômico — igual ao Hevy
 function ExerciseSlideshow({exName,color}){
-  const imgs=EXERCISE_IMAGES[exName]||[];
-  const[frame,setFrame]=useState(0);
+  const[gifUrl,setGifUrl]=useState(null);
+  const[loading,setLoading]=useState(true);
   const[playing,setPlaying]=useState(true);
-  const[loaded,setLoaded]=useState([false,false]);
-  const intervalRef=useRef(null);
+  const[paused,setPaused]=useState(false);
 
   useEffect(()=>{
-    setFrame(0);
-    setLoaded([false,false]);
-    setPlaying(true);
+    setGifUrl(null);
+    setLoading(true);
+    setPaused(false);
+    fetchExerciseGif(exName).then(url=>{
+      setGifUrl(url);
+      setLoading(false);
+    });
   },[exName]);
 
-  useEffect(()=>{
-    if(imgs.length<2)return;
-    if(playing){
-      intervalRef.current=setInterval(()=>setFrame(f=>f===0?1:0),800);
-    }else{
-      clearInterval(intervalRef.current);
-    }
-    return()=>clearInterval(intervalRef.current);
-  },[playing,exName,imgs.length]);
-
-  if(imgs.length===0) return(
-    <div style={{background:"#000",borderRadius:16,minHeight:220,display:"flex",alignItems:"center",justifyContent:"center",border:"1px solid "+color+"33",margin:"16px 0"}}>
-      <div style={{textAlign:"center",color:"rgba(255,255,255,0.2)"}}>
-        <div style={{fontSize:32,marginBottom:8}}>🏋️</div>
-        <div style={{fontSize:12}}>Animação em breve</div>
-      </div>
+  if(loading) return(
+    <div style={{background:"#fff",borderRadius:16,minHeight:220,display:"flex",alignItems:"center",justifyContent:"center",margin:"16px 0",border:"1px solid "+color+"22"}}>
+      <div style={{width:32,height:32,borderRadius:"50%",border:"3px solid #eee",borderTopColor:color,animation:"spin 0.8s linear infinite"}}/>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
     </div>
   );
 
-  const allLoaded=loaded[0]&&loaded[1];
+  if(!gifUrl) return(
+    <div style={{background:"#f8f8f8",borderRadius:16,minHeight:180,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",margin:"16px 0",border:"1px solid rgba(0,0,0,0.06)",gap:8}}>
+      <div style={{fontSize:32}}>🏋️</div>
+      <div style={{fontSize:12,color:"#999"}}>Animação em breve</div>
+    </div>
+  );
 
   return(
-    <div style={{position:"relative",margin:"16px 0",borderRadius:16,overflow:"hidden",background:"#fff",border:"1px solid "+color+"33",minHeight:220}}>
-      {/* Preload ambas as imagens */}
-      {imgs.map((src,i)=>(
-        <img
-          key={src}
-          src={src}
-          onLoad={()=>setLoaded(l=>{const n=[...l];n[i]=true;return n;})}
-          style={{
-            position:i===0?"relative":"absolute",
-            top:0,left:0,
-            width:"100%",
-            maxHeight:300,
-            objectFit:"contain",
-            display:"block",
-            opacity:frame===i&&allLoaded?1:0,
-            transition:"opacity 0.1s",
-          }}
-          alt={exName}
-        />
-      ))}
-      {/* Loading spinner */}
-      {!allLoaded&&(
-        <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"#fff"}}>
-          <div style={{width:32,height:32,borderRadius:"50%",border:"3px solid #eee",borderTopColor:color,animation:"spin 0.8s linear infinite"}}/>
-          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-        </div>
-      )}
-      {/* Botão play/pause */}
-      {allLoaded&&imgs.length>1&&(
-        <button
-          onClick={()=>setPlaying(p=>!p)}
-          style={{
-            position:"absolute",top:10,right:10,
-            width:36,height:36,borderRadius:"50%",
-            background:"rgba(0,0,0,0.45)",
-            border:"none",cursor:"pointer",
-            display:"flex",alignItems:"center",justifyContent:"center",
-          }}
-        >
-          {playing
-            ?<svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-            :<svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
-          }
-        </button>
-      )}
-      {/* Indicador de frame */}
-      {allLoaded&&imgs.length>1&&(
-        <div style={{position:"absolute",bottom:8,left:"50%",transform:"translateX(-50%)",display:"flex",gap:4}}>
-          {imgs.map((_,i)=><div key={i} style={{width:6,height:6,borderRadius:"50%",background:frame===i?"rgba(0,0,0,0.7)":"rgba(0,0,0,0.25)"}}/>)}
-        </div>
-      )}
+    <div style={{position:"relative",margin:"16px 0",borderRadius:16,overflow:"hidden",background:"#fff",border:"1px solid rgba(0,0,0,0.06)"}}>
+      <img
+        src={paused?undefined:gifUrl}
+        alt={exName}
+        style={{width:"100%",maxHeight:300,objectFit:"contain",display:"block"}}
+        onError={()=>setGifUrl(null)}
+      />
+      {/* Se pausado mostra primeiro frame estático */}
+      {paused&&<img
+        src={gifUrl+"&paused=1"}
+        alt={exName}
+        style={{width:"100%",maxHeight:300,objectFit:"contain",display:"block",position:"absolute",top:0,left:0}}
+        onError={()=>{}}
+      />}
+      {/* Botão pause/play */}
+      <button
+        onClick={()=>setPaused(p=>!p)}
+        style={{
+          position:"absolute",top:10,right:10,
+          width:36,height:36,borderRadius:"50%",
+          background:"rgba(0,0,0,0.35)",
+          border:"none",cursor:"pointer",
+          display:"flex",alignItems:"center",justifyContent:"center",
+        }}
+      >
+        {paused
+          ?<svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+          :<svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+        }
+      </button>
     </div>
   );
 }
