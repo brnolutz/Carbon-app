@@ -3596,6 +3596,20 @@ function CalendarioFullScreen({onNavigate}){
     setMeasureDraft({});
   }
 
+  const distPeriods=[{k:"1m",l:"Este mês",days:30},{k:"3m",l:"3 meses",days:90},{k:"1a",l:"Ano",days:365},{k:"all",l:"Tudo",days:9999}];
+  const distCfg=distPeriods.find(p=>p.k===distPeriod)||distPeriods[0];
+  const distCutoff=distCfg.days<9999?new Date(Date.now()-distCfg.days*86400000).toISOString().slice(0,10):"2000-01-01";
+  const distPrevCutoff=distCfg.days<9999?new Date(Date.now()-distCfg.days*2*86400000).toISOString().slice(0,10):"2000-01-01";
+  const allSForDist=getAllSessions();
+  const distCurS=allSForDist.filter(s=>s.date>=distCutoff);
+  const distPrevS=distCfg.days<9999?allSForDist.filter(s=>s.date>=distPrevCutoff&&s.date<distCutoff):[];
+  const distStat=(ss)=>({count:ss.length,dur:ss.reduce((a,s)=>a+(s.duration||0),0),vol:ss.reduce((a,s)=>a+(s.totalVol||0),0),sets:ss.reduce((a,s)=>a+(s.totalSets||0),0)});
+  const distCur=distStat(distCurS),distPrev=distStat(distPrevS);
+  const distDiff=(a,b)=>b>0?Math.round((a-b)/b*100):null;
+  const distVbg={};
+  distCurS.forEach(s=>(s.exercises||[]).forEach(e=>{Object.entries(EX_MAP_VOL).forEach(([g,kws])=>{if(kws.some(kw=>(e.name||"").toLowerCase().includes(kw.toLowerCase())))distVbg[g]=(distVbg[g]||0)+(e.vol||0);});}));
+  const distKpis=[{l:"Treinos",v:distCur.count,d:distDiff(distCur.count,distPrev.count)},{l:"Duração",v:distCur.dur>=60?Math.floor(distCur.dur/60)+"h"+(distCur.dur%60>0?" "+distCur.dur%60+"min":""):distCur.dur+"min",d:distDiff(distCur.dur,distPrev.dur)},{l:"Volume",v:distCur.vol.toFixed(1)+"t",d:distDiff(distCur.vol,distPrev.vol)},{l:"Séries",v:distCur.sets,d:distDiff(distCur.sets,distPrev.sets)}];
+
   return(
     <div style={{background:"#080A0E",minHeight:"100vh",paddingTop:52,paddingBottom:120}}>
       <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",padding:"14px 20px 14px"}}>
@@ -3604,42 +3618,26 @@ function CalendarioFullScreen({onNavigate}){
       <div style={{padding:"12px 16px 0"}}>
 
         {/* ── DISTRIBUIÇÃO MUSCULAR + STATS ── */}
-        {(()=>{
-          const periods=[{k:"1m",l:"Este mês",days:30},{k:"3m",l:"3 meses",days:90},{k:"1a",l:"Ano",days:365},{k:"all",l:"Tudo",days:9999}];
-          const cfg=periods.find(p=>p.k===distPeriod)||periods[0];
-          const cutoff=cfg.days<9999?new Date(Date.now()-cfg.days*86400000).toISOString().slice(0,10):"2000-01-01";
-          const prevCutoff=cfg.days<9999?new Date(Date.now()-cfg.days*2*86400000).toISOString().slice(0,10):"2000-01-01";
-          const allS=getAllSessions();
-          const curS=allS.filter(s=>s.date>=cutoff);
-          const prevS=cfg.days<9999?allS.filter(s=>s.date>=prevCutoff&&s.date<cutoff):[];
-          const stat=(sessions)=>({count:sessions.length,dur:sessions.reduce((a,s)=>a+(s.duration||0),0),vol:sessions.reduce((a,s)=>a+(s.totalVol||0),0),sets:sessions.reduce((a,s)=>a+(s.totalSets||0),0)});
-          const cur=stat(curS),prev=stat(prevS);
-          const diff=(a,b)=>b>0?Math.round((a-b)/b*100):null;
-          const vbg={};
-          curS.forEach(s=>(s.exercises||[]).forEach(e=>{Object.entries(EX_MAP_VOL).forEach(([g,kws])=>{if(kws.some(kw=>(e.name||"").toLowerCase().includes(kw.toLowerCase())))vbg[g]=(vbg[g]||0)+(e.vol||0);});}));
-          return(
-            <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:14,marginBottom:10}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-                <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em"}}>Distribuição Muscular</div>
-                <div style={{display:"flex",gap:4}}>
-                  {periods.map(p=>(
-                    <button key={p.k} onClick={()=>setDistPeriod(p.k)} style={{padding:"3px 7px",borderRadius:99,fontSize:9,fontWeight:700,cursor:"pointer",background:distPeriod===p.k?C.blueXL:"transparent",border:"1px solid "+(distPeriod===p.k?C.blueXL:C.border),color:distPeriod===p.k?"#fff":C.sub}}>{p.l}</button>
-                  ))}
-                </div>
-              </div>
-              <VolumeSpiderChart volumeByGroup={vbg} size={Math.min(240,window.innerWidth-80)}/>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginTop:10}}>
-                {[{l:"Treinos",v:cur.count,d:diff(cur.count,prev.count)},{l:"Duração",v:cur.dur>=60?Math.floor(cur.dur/60)+"h"+(cur.dur%60>0?" "+cur.dur%60+"min":""):cur.dur+"min",d:diff(cur.dur,prev.dur)},{l:"Volume",v:cur.vol.toFixed(1)+"t",d:diff(cur.vol,prev.vol)},{l:"Séries",v:cur.sets,d:diff(cur.sets,prev.sets)}].map(s=>(
-                  <div key={s.l} style={{background:C.surface,borderRadius:10,padding:"8px 10px",border:"1px solid "+C.border}}>
-                    <div style={{fontSize:9,color:C.sub,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:2}}>{s.l}</div>
-                    <div style={{fontSize:16,fontWeight:900,color:C.text}}>{s.v}</div>
-                    {s.d!==null&&cfg.days<9999&&<div style={{fontSize:9,fontWeight:700,color:s.d>=0?C.mint:C.coral,marginTop:1}}>{s.d>=0?"↑":"↓"}{Math.abs(s.d)}% vs anterior</div>}
-                  </div>
-                ))}
-              </div>
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:14,marginBottom:10}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+            <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em"}}>Distribuição Muscular</div>
+            <div style={{display:"flex",gap:4}}>
+              {distPeriods.map(p=>(
+                <button key={p.k} onClick={()=>setDistPeriod(p.k)} style={{padding:"3px 7px",borderRadius:99,fontSize:9,fontWeight:700,cursor:"pointer",background:distPeriod===p.k?C.blueXL:"transparent",border:"1px solid "+(distPeriod===p.k?C.blueXL:C.border),color:distPeriod===p.k?"#fff":C.sub}}>{p.l}</button>
+              ))}
             </div>
-          );
-        })()}
+          </div>
+          <VolumeSpiderChart volumeByGroup={distVbg} size={Math.min(240,window.innerWidth-80)}/>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginTop:10}}>
+            {distKpis.map(s=>(
+              <div key={s.l} style={{background:C.surface,borderRadius:10,padding:"8px 10px",border:"1px solid "+C.border}}>
+                <div style={{fontSize:9,color:C.sub,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:2}}>{s.l}</div>
+                <div style={{fontSize:16,fontWeight:900,color:C.text}}>{s.v}</div>
+                {s.d!==null&&distCfg.days<9999&&<div style={{fontSize:9,fontWeight:700,color:s.d>=0?C.mint:C.coral,marginTop:1}}>{s.d>=0?"↑":"↓"}{Math.abs(s.d)}% vs anterior</div>}
+              </div>
+            ))}
+          </div>
+        </div>
 
         {/* ── RECOVERY STATS ROW ── */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:10}}>
