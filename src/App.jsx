@@ -2716,16 +2716,17 @@ const _imgCache = {};
 
 async function fetchExerciseImage(exName){
   if(_imgCache[exName]) return _imgCache[exName];
-  // Checar Supabase
+  // Checar Supabase cache
   try{
     const{data}=await supabase.from('exercise_gifs').select('gif_url').eq('exercise_name',exName).maybeSingle();
     if(data?.gif_url){_imgCache[exName]=data.gif_url;return data.gif_url;}
   }catch(e){}
-  // Buscar na API — retorna imagem diretamente como blob
+  // Buscar GIF na API — retorna image/gif diretamente
   const id=EXERCISE_IDS[exName];
   if(!id) return null;
   try{
     const res=await fetch(`https://exercisedb.p.rapidapi.com/image?exerciseId=${id}&resolution=180`,{
+      method:'GET',
       headers:{
         'x-rapidapi-key': RAPIDAPI_KEY,
         'x-rapidapi-host': 'exercisedb.p.rapidapi.com',
@@ -2733,20 +2734,33 @@ async function fetchExerciseImage(exName){
     });
     if(!res.ok) return null;
     const blob = await res.blob();
-    if(!blob||blob.size===0) return null;
+    if(!blob||blob.size<100) return null;
     const imgUrl = URL.createObjectURL(blob);
     _imgCache[exName] = imgUrl;
+    // Salvar no Supabase para cache persistente
+    try{
+      const{data:u}=await supabase.auth.getUser();
+      if(u?.user?.id){
+        // Converter blob para base64 para salvar no Supabase
+        const reader=new FileReader();
+        reader.readAsDataURL(blob);
+        reader.onloadend=async()=>{
+          await supabase.from('exercise_gifs').upsert({exercise_name:exName,gif_url:reader.result},{onConflict:'exercise_name'});
+        };
+      }
+    }catch(e){}
     return imgUrl;
-  }catch(e){ return null; }
+  }catch(e){ console.error('fetchExerciseImage',e); return null; }
 }
 
 function ExerciseSlideshow({exName,color}){
   const[imgUrl,setImgUrl]=useState(null);
   const[loading,setLoading]=useState(true);
   const[paused,setPaused]=useState(false);
+  const[pausedUrl,setPausedUrl]=useState(null);
 
   useEffect(()=>{
-    setImgUrl(null);setLoading(true);setPaused(false);
+    setImgUrl(null);setPausedUrl(null);setLoading(true);setPaused(false);
     fetchExerciseImage(exName).then(url=>{
       setImgUrl(url);
       setLoading(false);
@@ -2754,23 +2768,40 @@ function ExerciseSlideshow({exName,color}){
   },[exName]);
 
   return(
-    <div style={{position:"relative",margin:"16px 0",borderRadius:16,overflow:"hidden",background:"#fff",minHeight:200,display:"flex",alignItems:"center",justifyContent:"center"}}>
+    <div style={{position:"relative",margin:"16px 0",borderRadius:16,overflow:"hidden",background:"#fff",minHeight:220}}>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       {loading&&(
-        <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:200}}>
-          <div style={{width:30,height:30,borderRadius:"50%",border:"3px solid #eee",borderTopColor:color,animation:"spin 0.8s linear infinite"}}/>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:220,background:"#fff"}}>
+          <div style={{width:32,height:32,borderRadius:"50%",border:"3px solid #eee",borderTopColor:color,animation:"spin 0.8s linear infinite"}}/>
         </div>
       )}
       {!loading&&imgUrl&&(
-        <img src={imgUrl} alt={exName}
-          style={{width:"100%",maxHeight:280,objectFit:"contain",display:"block"}}
+        <img
+          key={paused?'paused':'playing'}
+          src={paused?(pausedUrl||imgUrl):imgUrl}
+          alt={exName}
+          style={{width:"100%",maxHeight:300,objectFit:"contain",display:"block"}}
         />
       )}
       {!loading&&!imgUrl&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,padding:32}}>
-          <div style={{fontSize:32}}>🏋️</div>
-          <div style={{fontSize:12,color:"#999"}}>Imagem não disponível</div>
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,padding:40,background:"#f8f8f8"}}>
+          <div style={{fontSize:36}}>🏋️</div>
+          <div style={{fontSize:12,color:"#999"}}>Animação em breve</div>
         </div>
+      )}
+      {/* Botão pause/play */}
+      {!loading&&imgUrl&&(
+        <button onClick={()=>setPaused(p=>!p)} style={{
+          position:"absolute",top:10,right:10,
+          width:36,height:36,borderRadius:"50%",
+          background:"rgba(0,0,0,0.4)",border:"none",
+          cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",
+        }}>
+          {paused
+            ?<svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
+            :<svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          }
+        </button>
       )}
     </div>
   );
