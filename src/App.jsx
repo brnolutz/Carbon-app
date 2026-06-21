@@ -5084,8 +5084,8 @@ function LoginScreen(){
     }}>
       <div style={{width:"100%",maxWidth:340,display:"flex",flexDirection:"column",alignItems:"center"}}>
         {/* Logo */}
-        <div style={{marginBottom:52,display:"flex",flexDirection:"column",alignItems:"center"}}>
-          <img src="/carbon-splash.png" alt="Carbon" style={{width:200,objectFit:"contain"}}/>
+        <div style={{marginBottom:48,display:"flex",flexDirection:"column",alignItems:"center"}}>
+          <img src="/carbon-logo-transparent.png" alt="Carbon" style={{width:160,objectFit:"contain"}}/>
         </div>
 
         {/* Form */}
@@ -5158,14 +5158,14 @@ function CarbonIntro({onDone}){
         transition:fading?"opacity 0.5s ease":"opacity 1s ease",
       }}>
       <div style={{
-        display:"flex",flexDirection:"column",alignItems:"center",gap:22,
+        display:"flex",flexDirection:"column",alignItems:"center",
         transform:visible?"translateY(0)":"translateY(16px)",
         transition:"transform 1.2s ease",
       }}>
         <img
-          src="/carbon-splash.png"
+          src="/carbon-logo-transparent.png"
           alt="Carbon"
-          style={{width:220,objectFit:"contain"}}
+          style={{width:260,objectFit:"contain"}}
         />
       </div>
     </div>
