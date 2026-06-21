@@ -471,7 +471,16 @@ function buildSets(plan){
 // ─── BOTTOM NAV ──────────────────────────────────────────────
 function GlassCard({children,style={},onClick}){
   return(
-    <div onClick={onClick} style={{background:"#0A0D14",borderRadius:20,border:"1px solid rgba(255,255,255,0.07)",cursor:onClick?"pointer":undefined,...style}}>{children}</div>
+    <div onClick={onClick} style={{
+      background:"rgba(255,255,255,0.04)",
+      backdropFilter:"blur(20px)",
+      WebkitBackdropFilter:"blur(20px)",
+      borderRadius:20,
+      border:"1px solid rgba(255,255,255,0.1)",
+      boxShadow:"0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)",
+      cursor:onClick?"pointer":undefined,
+      ...style
+    }}>{children}</div>
   );
 }
 
@@ -1397,10 +1406,31 @@ function HomeScreen({onNavigate,onStartWorkout}){
     return{label:dt.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}),y:d[chartMode]||0};
   });
   const maxY=Math.max(...chartData.map(d=>d.y))||1;
-  const lastW=WEEKLY[WEEKS[WEEKS.length-1]]||{};
-  const prevW=WEEKLY[WEEKS[WEEKS.length-2]]||{};
-  const curr=lastW[chartMode]||0;const prev=prevW[chartMode]||1;
-  const delta=Math.round((curr-prev)/prev*100);
+  // KPI: soma do período selecionado vs período anterior
+  const now=new Date();
+  const dayMs=24*60*60*1000;
+  const periodDays={"1s":7,"1m":30,"3m":90,"all":3650}[chartRange]||90;
+  const cutoff=new Date(now-periodDays*dayMs);
+  const prevCutoff=new Date(now-periodDays*2*dayMs);
+  const allSess=getAllSessions();
+  const periodSess=allSess.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=cutoff);
+  const prevPeriodSess=allSess.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=prevCutoff&&new Date(s.date+"T12:00:00")<cutoff);
+  const sumPeriod=(sess,field)=>sess.reduce((a,s)=>a+(s[field]||0),0);
+  const curr=(()=>{
+    if(chartMode==="vol") return Math.round(sumPeriod(periodSess,"totalVol")*10)/10;
+    if(chartMode==="dur") return Math.round(sumPeriod(periodSess,"duration"));
+    if(chartMode==="sets") return sumPeriod(periodSess,"totalSets");
+    if(chartMode==="reps") return periodSess.reduce((a,s)=>a+(s.exercises?.reduce((b,e)=>b+(e.setData?.reduce((c,st)=>c+(st.r||0),0)||0),0)||0),0);
+    return 0;
+  })();
+  const prevVal=(()=>{
+    if(chartMode==="vol") return Math.round(sumPeriod(prevPeriodSess,"totalVol")*10)/10;
+    if(chartMode==="dur") return Math.round(sumPeriod(prevPeriodSess,"duration"));
+    if(chartMode==="sets") return sumPeriod(prevPeriodSess,"totalSets");
+    if(chartMode==="reps") return prevPeriodSess.reduce((a,s)=>a+(s.exercises?.reduce((b,e)=>b+(e.setData?.reduce((c,st)=>c+(st.r||0),0)||0),0)||0),0);
+    return 0;
+  })();
+  const delta=prevVal>0?Math.round((curr-prevVal)/prevVal*100):0;
 
   const wPeriods=[{k:"1S",l:"1 sem",n:7},{k:"15D",l:"15 dias",n:15},{k:"1M",l:"30 dias",n:30},{k:"3M",l:"3 meses",n:90},{k:"TUDO",l:"Tudo",n:999}];
   const wpConf=wPeriods.find(p=>p.k===weightPeriod)||wPeriods[2];
@@ -2790,7 +2820,7 @@ function ExerciseSlideshow({exName,color}){
       )}
       {error&&(
         <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,padding:40,background:"#f8f8f8",minHeight:220,justifyContent:"center"}}>
-          <div style={{fontSize:36}}>🏋️</div>
+          <div style={{fontSize:24}}>🏋️</div>
           <div style={{fontSize:12,color:"#999"}}>Animação não disponível</div>
         </div>
       )}
@@ -3020,8 +3050,6 @@ function HistoricoScreen({onNavigate}){
   const totalVol=FEED.reduce((a,s)=>a+s.totalVol,0);
   const totalPRs=FEED.reduce((a,s)=>a+s.prs,0);
 
-  if(showDeload) return <DeloadWeekScreen onBack={()=>setShowDeload(false)} onDeloadStarted={()=>setShowDeload(false)}/>;
-  if(showReport) return <MonthlyReportScreen onBack={()=>setShowReport(false)}/>;
   if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)}/>;
 
   return(
