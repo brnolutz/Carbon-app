@@ -182,7 +182,37 @@ async function saveWeightGoal(v){
   }catch(e){console.error(e);}
 }
 
-// ─── INITIAL LOAD + ONE-TIME HISTORICAL MIGRATION ───────────
+// ─── ROUTINES (Supabase-backed) ──────────────────────────────
+let _routinesCache=[];
+function loadRoutines(){return _routinesCache;}
+async function fetchRoutines(){
+  const{data:userData}=await supabase.auth.getUser();
+  const uid=userData?.user?.id;
+  if(!uid)return;
+  const{data,error}=await supabase.from('routines').select('*').eq('user_id',uid).order('created_at');
+  if(!error)_routinesCache=(data||[]).map(r=>({...r,exercises:r.exercises||[]}));
+}
+async function saveRoutine(routine){
+  const{data:userData}=await supabase.auth.getUser();
+  const uid=userData?.user?.id;
+  if(!uid)return null;
+  const row={user_id:uid,name:routine.name,label:routine.label,color:routine.color||'#3B82F6',exercises:routine.exercises,updated_at:new Date().toISOString()};
+  if(routine.id){
+    await supabase.from('routines').update(row).eq('id',routine.id);
+    _routinesCache=_routinesCache.map(r=>r.id===routine.id?{...r,...row}:r);
+    return routine.id;
+  } else {
+    const{data,error}=await supabase.from('routines').insert({...row}).select().single();
+    if(!error&&data){_routinesCache=[..._routinesCache,data];return data.id;}
+  }
+  return null;
+}
+async function deleteRoutine(id){
+  await supabase.from('routines').delete().eq('id',id);
+  _routinesCache=_routinesCache.filter(r=>r.id!==id);
+}
+
+
 async function loadAllUserData(){
   const{data:userData}=await supabase.auth.getUser();
   const uid=userData?.user?.id;
@@ -213,6 +243,7 @@ async function loadAllUserData(){
   _measureHistoryCache=(measRes.data||[]).map(measureRowToEntry).sort((a,b)=>a.date.localeCompare(b.date));
   _weightGoalCache=settRes.data?.weight_goal??74;
   refreshDerivedData();
+  await fetchRoutines();
 }
 
 // ─── SHARED UTILS ────────────────────────────────────────────
@@ -804,20 +835,27 @@ function HomeScreen({onNavigate,onStartWorkout}){
 }
 
 // ── Routine Screen — shown when tapping a plan card ──
-function RoutineScreen({plan,onClose,onStart,onNavigate}){
+function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
   const[chartMode,setChartMode]=useState("vol");
   const[chartRange,setChartRange]=useState("3m");
   const[selEx,setSelEx]=useState(null);
+  const[showMenu,setShowMenu]=useState(false);
+  const[editing,setEditing]=useState(plan.isNew||false);
+  const[draft,setDraft]=useState({name:plan.name||"",label:plan.label||"",color:plan.color||"#3B82F6",exercises:plan.exercises||[]});
+  const[saving,setSaving]=useState(false);
+  const[showDelConfirm,setShowDelConfirm]=useState(false);
+  const[showExGallery,setShowExGallery]=useState(false);
+
+  const isNew=plan.isNew||!plan.id;
 
   const allSessions=useMemo(()=>{
     return loadSavedSessions()
-      .filter(s=>s.name&&s.name.toLowerCase().includes(plan.label.toLowerCase()))
+      .filter(s=>s.name&&s.name.toLowerCase().includes((plan.label||"").toLowerCase()))
       .sort((a,b)=>a.date.localeCompare(b.date));
   },[plan]);
 
   const nPts={all:allSessions.length,"1a":12,"3m":6,"1m":4}[chartRange]||6;
   const sessions=allSessions.slice(-nPts);
-
   const chartData=sessions.map(s=>({
     label:new Date(s.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}),
     y:chartMode==="vol"?(s.totalVol||0):chartMode==="sets"?(s.totalSets||0):(s.duration||0)
@@ -829,8 +867,91 @@ function RoutineScreen({plan,onClose,onStart,onNavigate}){
   const px2=(i)=>chartData.length>1?i*(W-PAD*2)/(chartData.length-1)+PAD:W/2;
   const py2=(v)=>H-PAD-((v-minY)/(maxY-minY||1))*(H-PAD*2);
 
+  async function handleSave(){
+    if(!draft.label.trim())return;
+    setSaving(true);
+    await saveRoutine({...plan,...draft,id:plan.id});
+    setSaving(false);
+    setEditing(false);
+    onSaved&&onSaved();
+  }
+
+  async function handleDelete(){
+    if(plan.id){await deleteRoutine(plan.id);}
+    onDeleted&&onDeleted();
+  }
+
+  async function handleDuplicate(){
+    await saveRoutine({name:draft.name+" (cópia)",label:draft.label+" (cópia)",color:draft.color,exercises:draft.exercises});
+    onSaved&&onSaved();
+    setShowMenu(false);
+  }
+
   if(selEx) return <ExercicioScreen name={selEx} onBack={()=>setSelEx(null)} onNavigate={onNavigate}/>;
 
+  // EDIT MODE
+  if(editing){
+    return(
+      <div style={{position:"fixed",inset:0,zIndex:700,background:"#080A0E",overflowY:"auto",paddingTop:52}}>
+        <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"14px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <button onClick={()=>isNew?onClose():setEditing(false)} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+          <div style={{fontSize:15,fontWeight:700,color:C.text}}>{isNew?"Nova Rotina":"Editar Rotina"}</div>
+          <button onClick={handleSave} disabled={saving} style={{padding:"7px 14px",borderRadius:99,background:C.blueXL,border:"none",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",opacity:saving?0.6:1}}>{saving?"Salvando...":"Salvar"}</button>
+        </div>
+        <div style={{padding:"20px 16px 120px"}}>
+          {/* Name */}
+          <div style={{marginBottom:16}}>
+            <div style={{fontSize:10,color:C.sub,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>Nome</div>
+            <input value={draft.label} onChange={e=>setDraft(d=>({...d,label:e.target.value}))} placeholder="Ex: Push, Pull, Legs..." style={{width:"100%",boxSizing:"border-box",background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"12px 16px",fontSize:16,fontWeight:700,color:C.text,outline:"none"}}/>
+          </div>
+          <div style={{marginBottom:16}}>
+            <div style={{fontSize:10,color:C.sub,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>Identificador (DIA 1, etc.)</div>
+            <input value={draft.name} onChange={e=>setDraft(d=>({...d,name:e.target.value}))} placeholder="Ex: DIA 1" style={{width:"100%",boxSizing:"border-box",background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"12px 16px",fontSize:14,color:C.text,outline:"none"}}/>
+          </div>
+          {/* Color picker */}
+          <div style={{marginBottom:20}}>
+            <div style={{fontSize:10,color:C.sub,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:8}}>Cor</div>
+            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
+              {["#3B82F6","#10B981","#F59E0B","#EF4444","#A78BFA","#F472B6","#22D3EE","#FB923C"].map(c=>(
+                <button key={c} onClick={()=>setDraft(d=>({...d,color:c}))} style={{width:32,height:32,borderRadius:"50%",background:c,border:draft.color===c?"3px solid #fff":"3px solid transparent",cursor:"pointer"}}/>
+              ))}
+            </div>
+          </div>
+          {/* Exercises */}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+            <div style={{fontSize:13,fontWeight:700,color:C.text}}>Exercícios</div>
+            <button onClick={()=>setShowExGallery(true)} style={{fontSize:12,fontWeight:700,color:C.blueXL,background:"none",border:"none",cursor:"pointer"}}>+ Adicionar</button>
+          </div>
+          {draft.exercises.map((ex,i)=>(
+            <div key={i} style={{background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"12px 16px",marginBottom:8,display:"flex",alignItems:"center",gap:10}}>
+              <div style={{flex:1}}>
+                <div style={{fontSize:13,fontWeight:700,color:C.text,marginBottom:4}}>{ex.name}</div>
+                <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                  <input type="number" value={ex.sets?.length||3} onChange={e=>{const n=parseInt(e.target.value)||1;setDraft(d=>({...d,exercises:d.exercises.map((ee,ii)=>ii!==i?ee:{...ee,sets:Array(n).fill({w:ex.sets?.[0]?.w||0,r:ex.sets?.[0]?.r||8})})}));}} style={{width:44,background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"4px 8px",fontSize:12,color:C.text,outline:"none",textAlign:"center"}} min="1" max="10"/>
+                  <span style={{fontSize:11,color:C.sub}}>séries</span>
+                  <span style={{fontSize:11,color:C.muted}}>·</span>
+                  <input type="number" value={ex.sets?.[0]?.r||8} onChange={e=>{const r=parseInt(e.target.value)||1;setDraft(d=>({...d,exercises:d.exercises.map((ee,ii)=>ii!==i?ee:{...ee,sets:(ee.sets||[]).map(s=>({...s,r}))})}))} } style={{width:44,background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"4px 8px",fontSize:12,color:C.text,outline:"none",textAlign:"center"}} min="1"/>
+                  <span style={{fontSize:11,color:C.sub}}>reps</span>
+                  <span style={{fontSize:11,color:C.muted}}>·</span>
+                  <input type="number" value={ex.sets?.[0]?.w||0} onChange={e=>{const w=parseFloat(e.target.value)||0;setDraft(d=>({...d,exercises:d.exercises.map((ee,ii)=>ii!==i?ee:{...ee,sets:(ee.sets||[]).map(s=>({...s,w}))})}))} } style={{width:52,background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"4px 8px",fontSize:12,color:C.text,outline:"none",textAlign:"center"}} min="0" step="0.5"/>
+                  <span style={{fontSize:11,color:C.sub}}>kg</span>
+                </div>
+              </div>
+              <button onClick={()=>setDraft(d=>({...d,exercises:d.exercises.filter((_,ii)=>ii!==i)}))} style={{width:28,height:28,borderRadius:"50%",background:"none",border:"none",color:C.coral,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>×</button>
+            </div>
+          ))}
+        </div>
+        {showExGallery&&(
+          <ExerciseGallery onAdd={(name,group)=>{
+            setDraft(d=>({...d,exercises:[...d.exercises,{name,group,rest:90,sets:[{w:0,r:8},{w:0,r:8},{w:0,r:8}]}]}));
+            setShowExGallery(false);
+          }} onClose={()=>setShowExGallery(false)}/>
+        )}
+      </div>
+    );
+  }
+
+  // VIEW MODE
   return(
     <div style={{position:"fixed",inset:0,zIndex:700,background:"#080A0E",overflowY:"auto",paddingTop:52}}>
       {/* Header */}
@@ -840,18 +961,13 @@ function RoutineScreen({plan,onClose,onStart,onNavigate}){
             <button onClick={onClose} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
             <div style={{fontSize:13,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.06em"}}>Rotina</div>
           </div>
-          <button style={{fontSize:12,fontWeight:700,color:C.blueXL,background:"none",border:"none",cursor:"pointer",padding:"6px 10px"}}>Editar</button>
+          <button onClick={()=>setShowMenu(true)} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>⋯</button>
         </div>
       </div>
 
       <div style={{padding:"20px 16px 120px"}}>
-        {/* Title */}
-        <div style={{marginBottom:16}}>
-          <div style={{fontSize:22,fontWeight:900,color:C.text,letterSpacing:"-0.5px",marginBottom:2}}>{plan.name} — {plan.label.toUpperCase()}</div>
-        </div>
-
-        {/* Iniciar button */}
-        <button onClick={onStart} style={{width:"100%",padding:"14px",background:C.grad,border:"none",borderRadius:14,color:"#fff",fontSize:15,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:20}}>
+        <div style={{fontSize:22,fontWeight:900,color:C.text,letterSpacing:"-0.5px",marginBottom:2}}>{plan.name?plan.name+" — ":""}{(plan.label||"").toUpperCase()}</div>
+        <button onClick={onStart} style={{width:"100%",padding:"14px",background:C.grad,border:"none",borderRadius:14,color:"#fff",fontSize:15,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginTop:16,marginBottom:20}}>
           <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
           Iniciar Rotina
         </button>
@@ -879,9 +995,9 @@ function RoutineScreen({plan,onClose,onStart,onNavigate}){
             </div>
             <div style={{marginLeft:40}}>
               <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{overflow:"visible"}}>
-                <defs><linearGradient id="rg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={C.blueXL} stopOpacity="0.3"/><stop offset="100%" stopColor={C.blueXL} stopOpacity="0"/></linearGradient></defs>
+                <defs><linearGradient id="rg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={C.blueXL} stopOpacity="0.3"/><stop offset="100%" stopColor={C.blueXL} stopOpacity="0"/></linearGradient></defs>
                 {[0,0.5,1].map((f,i)=><line key={i} x1={PAD} y1={PAD+(H-PAD*2)*f} x2={W-PAD} y2={PAD+(H-PAD*2)*f} stroke={C.border} strokeWidth="1" strokeDasharray="4,4"/>)}
-                {chartData.length>1&&<polygon points={[...chartData.map((d,i)=>`${px2(i)},${py2(d.y)}`),`${px2(chartData.length-1)},${H-PAD}`,`${px2(0)},${H-PAD}`].join(" ")} fill="url(#rg)"/>}
+                {chartData.length>1&&<polygon points={[...chartData.map((d,i)=>`${px2(i)},${py2(d.y)}`),`${px2(chartData.length-1)},${H-PAD}`,`${px2(0)},${H-PAD}`].join(" ")} fill="url(#rg2)"/>}
                 <polyline points={chartData.map((d,i)=>`${px2(i)},${py2(d.y)}`).join(" ")} fill="none" stroke={C.blueXL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 {chartData.map((d,i)=>(
                   <g key={i}>
@@ -898,40 +1014,32 @@ function RoutineScreen({plan,onClose,onStart,onNavigate}){
           </div>
         </div>}
 
-        {/* Exercises list with series detail */}
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
           <div style={{fontSize:13,fontWeight:700,color:C.text}}>Exercícios</div>
-          <button style={{fontSize:12,fontWeight:700,color:C.blueXL,background:"none",border:"none",cursor:"pointer"}}>Editar Rotina</button>
+          {plan.id&&<button onClick={()=>setEditing(true)} style={{fontSize:12,fontWeight:700,color:C.blueXL,background:"none",border:"none",cursor:"pointer"}}>Editar Rotina</button>}
         </div>
 
-        {plan.exercises.map((ex,i)=>{
-          const hist=HIST[ex.name]||[];
-          const lastSet=hist[hist.length-1];
+        {(plan.exercises||[]).map((ex,i)=>{
           const gc=GC[ex.group]||C.blueL;
           const restMin=ex.rest>=60?Math.floor(ex.rest/60)+"min"+(ex.rest%60>0?" "+ex.rest%60+"s":""):ex.rest+"s";
           return(
             <div key={i} style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,marginBottom:10,overflow:"hidden"}}>
-              {/* Exercise header */}
               <button onClick={()=>setSelEx(ex.name)} style={{width:"100%",padding:"12px 16px",background:"none",border:"none",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:12}}>
                 <div style={{width:36,height:36,borderRadius:10,background:gc+"18",border:"1px solid "+gc+"33",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                   <div style={{width:8,height:8,borderRadius:"50%",background:gc}}/>
                 </div>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontSize:14,fontWeight:700,color:gc,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ex.name}</div>
-                </div>
+                <div style={{flex:1}}><div style={{fontSize:14,fontWeight:700,color:gc,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ex.name}</div></div>
                 <svg width="14" height="14" fill="none" stroke={C.muted} strokeWidth="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
-              {/* Rest time */}
               <div style={{padding:"0 16px 8px",display:"flex",alignItems:"center",gap:6}}>
                 <svg width="12" height="12" fill="none" stroke={C.blueXL} strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 <span style={{fontSize:11,color:C.blueXL}}>Descanso: {restMin}</span>
               </div>
-              {/* Series table */}
               <div style={{borderTop:"1px solid "+C.border}}>
                 <div style={{display:"grid",gridTemplateColumns:"40px 1fr 1fr 1fr",padding:"6px 16px",borderBottom:"1px solid "+C.border}}>
                   {["SÉRIE","KG","REPS",""].map((h,i)=><div key={i} style={{fontSize:9,fontWeight:700,color:C.muted,letterSpacing:"0.06em"}}>{h}</div>)}
                 </div>
-                {ex.sets.map((s,si)=>(
+                {(ex.sets||[]).map((s,si)=>(
                   <div key={si} style={{display:"grid",gridTemplateColumns:"40px 1fr 1fr 1fr",padding:"8px 16px",borderBottom:si<ex.sets.length-1?"1px solid "+C.border+"44":"none",alignItems:"center"}}>
                     <div style={{fontSize:13,fontWeight:700,color:C.sub}}>{si+1}</div>
                     <div style={{fontSize:13,color:C.text,fontWeight:600}}>{s.w>0?s.w:"—"}</div>
@@ -944,9 +1052,43 @@ function RoutineScreen({plan,onClose,onStart,onNavigate}){
           );
         })}
       </div>
+
+      {/* ⋯ Menu */}
+      {showMenu&&(
+        <div style={{position:"fixed",inset:0,zIndex:900,background:"rgba(0,0,0,0.6)",backdropFilter:"blur(4px)"}} onClick={()=>setShowMenu(false)}>
+          <div onClick={e=>e.stopPropagation()} style={{position:"absolute",bottom:0,left:0,right:0,background:C.card,borderRadius:"20px 20px 0 0",padding:"20px 0 40px"}}>
+            <div style={{width:36,height:4,borderRadius:2,background:C.border,margin:"0 auto 20px"}}/>
+            {[
+              {icon:"⧉",label:"Duplicar Rotina",action:handleDuplicate,color:C.text},
+              {icon:"✎",label:"Editar Rotina",action:()=>{setEditing(true);setShowMenu(false);},color:C.text},
+              {icon:"×",label:"Deletar Rotina",action:()=>{setShowDelConfirm(true);setShowMenu(false);},color:C.coral},
+            ].map(item=>(
+              <button key={item.label} onClick={item.action} style={{width:"100%",padding:"18px 24px",background:"none",border:"none",cursor:"pointer",display:"flex",alignItems:"center",gap:16,borderBottom:"1px solid "+C.border}}>
+                <span style={{fontSize:18,color:item.color,width:24,textAlign:"center"}}>{item.icon}</span>
+                <span style={{fontSize:15,fontWeight:600,color:item.color}}>{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirm */}
+      {showDelConfirm&&(
+        <div style={{position:"fixed",inset:0,zIndex:900,background:"rgba(0,0,0,0.7)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:24,width:"100%",maxWidth:320}}>
+            <div style={{fontSize:17,fontWeight:800,color:C.text,marginBottom:8}}>Deletar rotina?</div>
+            <div style={{fontSize:13,color:C.sub,marginBottom:20}}>Esta ação não pode ser desfeita.</div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>setShowDelConfirm(false)} style={{flex:1,padding:"12px",borderRadius:12,background:C.surface,border:"1px solid "+C.border,color:C.sub,fontWeight:700,cursor:"pointer"}}>Cancelar</button>
+              <button onClick={handleDelete} style={{flex:1,padding:"12px",borderRadius:12,background:C.coral+"22",border:"1px solid "+C.coral+"55",color:C.coral,fontWeight:700,cursor:"pointer"}}>Deletar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
 // ══════════════════════════════════════════════════════════════
 // TREINO SCREEN (RPEModal + RestTimer + ExerciseHistory + Gallery + PlanSelector + ActiveWorkout + FinishScreen)
@@ -1198,6 +1340,12 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
   const[retroDurMin,setRetroDurMin]=useState(null);
   const[searchQ,setSearchQ]=useState("");
   const[selectedPlan,setSelectedPlan]=useState(null);
+  const[routines,setRoutines]=useState(()=>loadRoutines());
+  const[routinesSaved,setRoutinesSaved]=useState(0);
+
+  // Reload routines when saved
+  useEffect(()=>{setRoutines(loadRoutines());},[routinesSaved]);
+  function refreshRoutines(){fetchRoutines().then(()=>{setRoutines(loadRoutines());setRoutinesSaved(n=>n+1);});}
 
   // Sync screen state when workout starts/ends externally
   useEffect(()=>{
@@ -1318,12 +1466,13 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
 
   // PLAN SELECTOR
   if(screen==="plans"){
-    const filtered=PLANS.filter(p=>{
+    const allPlans=routines.length>0?routines:PLANS;
+    const filtered=allPlans.filter(p=>{
       if(!searchQ) return true;
       const q=searchQ.toLowerCase();
-      return p.name.toLowerCase().includes(q)||p.label.toLowerCase().includes(q)||p.exercises.some(e=>e.name.toLowerCase().includes(q));
+      return (p.name||"").toLowerCase().includes(q)||(p.label||"").toLowerCase().includes(q)||p.exercises.some(e=>(e.name||"").toLowerCase().includes(q));
     });
-    const estimateDur=(p)=>Math.round(p.exercises.reduce((t,e)=>t+e.sets.length*(1.5+(e.rest||90)/60),0));
+    const estimateDur=(p)=>Math.round(p.exercises.reduce((t,e)=>t+(e.sets?.length||3)*(1.5+(e.rest||90)/60),0));
     return(
       <div style={{background:"#080A0E",minHeight:"100dvh",position:"relative",paddingTop:52}}>
         <div style={{padding:"0 20px 8px"}}>
@@ -1340,9 +1489,9 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
           </div>
         </div>
 
-        {/* Nova Rotina button — Hevy style */}
+        {/* Nova Rotina button */}
         <div style={{padding:"0 16px",marginBottom:10}}>
-          <button style={{width:"100%",padding:"10px 16px",background:C.card,border:"1px solid rgba(255,255,255,0.10)",borderRadius:12,color:C.sub,fontSize:13,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:8}}>
+          <button onClick={()=>setSelectedPlan({isNew:true,name:"",label:"Nova Rotina",color:"#3B82F6",exercises:[]})} style={{width:"100%",padding:"10px 16px",background:C.card,border:"1px solid rgba(255,255,255,0.10)",borderRadius:12,color:C.sub,fontSize:13,fontWeight:600,cursor:"pointer",display:"flex",alignItems:"center",gap:8}}>
             <svg width="14" height="14" fill="none" stroke={C.sub} strokeWidth="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Nova Rotina
           </button>
@@ -1389,8 +1538,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
             );
           })}
         </div>
-        {/* ROUTINE SCREEN overlay */}
-        {selectedPlan&&<RoutineScreen plan={selectedPlan} onClose={()=>setSelectedPlan(null)} onStart={()=>{startPlan(selectedPlan);setSelectedPlan(null);}} onNavigate={onNavigate}/>}
+        {selectedPlan&&<RoutineScreen plan={selectedPlan} onClose={()=>setSelectedPlan(null)} onStart={()=>{if(!selectedPlan.isNew){startPlan(selectedPlan);setSelectedPlan(null);}}} onNavigate={onNavigate} onSaved={refreshRoutines} onDeleted={()=>{refreshRoutines();setSelectedPlan(null);}}/> }
         <BottomNav active="treino" onNavigate={onNavigate}/>
       </div>
     );
