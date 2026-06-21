@@ -698,10 +698,66 @@ function FeedCard({session,onOpen}){
 // ══════════════════════════════════════════════════════════════
 // EXERCÍCIOS BROWSER — search all exercises outside a workout
 // ══════════════════════════════════════════════════════════════
+function TopExercisesScreen({onBack,onSelectEx}){
+  const topExercises=useMemo(()=>{
+    const count={};
+    getAllSessions().forEach(s=>s.exercises?.forEach(e=>{
+      if(e.name)count[e.name]=(count[e.name]||0)+1;
+    }));
+    return Object.entries(count)
+      .sort((a,b)=>b[1]-a[1])
+      .slice(0,15)
+      .map(([name,times])=>({name,times,group:EX_GROUP[name]||""}));
+  },[]);
+  const maxTimes=topExercises[0]?.times||1;
+  return(
+    <div className="screen-root" style={{background:"#080A0E",minHeight:"100vh",paddingBottom:100}}>
+      <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",paddingTop:52,padding:"52px 16px 14px"}}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <button onClick={onBack} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
+          <div>
+            <div style={{fontSize:18,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Principais Exercícios</div>
+            <div style={{fontSize:11,color:C.muted}}>Os que você mais treinou</div>
+          </div>
+        </div>
+      </div>
+      <div style={{padding:"12px 16px 0"}}>
+        {topExercises.length===0
+          ?<div style={{textAlign:"center",padding:"40px 20px",color:C.muted}}>
+            <div style={{fontSize:32,marginBottom:12}}>📊</div>
+            <div style={{fontSize:14}}>Sem histórico ainda</div>
+          </div>
+          :topExercises.map((e,i)=>{
+            const gc=GC[e.group]||C.blueL;
+            return(
+              <button key={e.name} onClick={()=>onSelectEx(e.name)} style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"14px 16px",marginBottom:8,cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:12}}>
+                <div style={{width:32,height:32,borderRadius:8,background:gc+"22",border:"1px solid "+gc+"44",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <span style={{fontSize:12,fontWeight:900,color:gc}}>{i+1}</span>
+                </div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontSize:13,fontWeight:700,color:C.text,marginBottom:5,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.name}</div>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <div style={{flex:1,height:3,background:"rgba(255,255,255,0.06)",borderRadius:99}}>
+                      <div style={{height:"100%",width:(e.times/maxTimes*100)+"%",background:gc,borderRadius:99}}/>
+                    </div>
+                    <span style={{fontSize:10,color:C.muted,flexShrink:0}}>{e.times}×</span>
+                  </div>
+                </div>
+                <span style={{color:C.muted,fontSize:16}}>›</span>
+              </button>
+            );
+          })
+        }
+      </div>
+    </div>
+  );
+}
+
 function ExerciciosBrowserScreen({onNavigate}){
   const[search,setSearch]=useState("");
   const[selGroup,setSelGroup]=useState("Todos");
   const[showTop,setShowTop]=useState(false);
+  const[selEx,setSelEx]=useState(null);
   const groups=["Todos",...Object.keys(ALL_EXERCISES)];
   const allFlat=Object.entries(ALL_EXERCISES).flatMap(([g,exs])=>exs.map(e=>({name:e,group:g})));
   const filtered=allFlat.filter(e=>{
@@ -710,57 +766,8 @@ function ExerciciosBrowserScreen({onNavigate}){
     return matchGroup&&matchSearch;
   });
 
-  // Principais exercícios — ordenados por quantidade de vezes feitos no histórico
-  const topExercises=useMemo(()=>{
-    const count={};
-    getAllSessions().forEach(s=>s.exercises?.forEach(e=>{
-      if(e.name)count[e.name]=(count[e.name]||0)+1;
-    }));
-    return Object.entries(count)
-      .sort((a,b)=>b[1]-a[1])
-      .slice(0,10)
-      .map(([name,times])=>({name,times,group:EX_GROUP[name]||""}));
-  },[]);
-
-  if(showTop) return(
-    <div className="screen-root" style={{background:"#080A0E",minHeight:"100vh",paddingBottom:100}}>
-      <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",paddingTop:52,padding:"52px 16px 14px"}}>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <button onClick={()=>setShowTop(false)} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
-          <div style={{fontSize:18,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Principais Exercícios</div>
-        </div>
-      </div>
-      <div style={{padding:"12px 16px 0"}}>
-        <div style={{fontSize:11,color:C.muted,marginBottom:16}}>Exercícios que você mais treinou</div>
-        {topExercises.map((e,i)=>{
-          const gc=GC[e.group]||C.blueL;
-          const maxTimes=topExercises[0].times;
-          return(
-            <button key={e.name} onClick={()=>onNavigate("exercicio",{name:e.name})} style={{width:"100%",background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"14px 16px",marginBottom:8,cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:12}}>
-              <div style={{width:32,height:32,borderRadius:8,background:gc+"22",border:"1px solid "+gc+"44",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                <span style={{fontSize:12,fontWeight:900,color:gc}}>{i+1}</span>
-              </div>
-              <div style={{flex:1,minWidth:0}}>
-                <div style={{fontSize:13,fontWeight:700,color:C.text,marginBottom:4,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{e.name}</div>
-                <div style={{height:3,background:"rgba(255,255,255,0.06)",borderRadius:99}}>
-                  <div style={{height:"100%",width:(e.times/maxTimes*100)+"%",background:gc,borderRadius:99}}/>
-                </div>
-              </div>
-              <div style={{textAlign:"right",flexShrink:0}}>
-                <div style={{fontSize:14,fontWeight:800,color:gc}}>{e.times}×</div>
-                <div style={{fontSize:9,color:C.muted}}>vezes</div>
-              </div>
-            </button>
-          );
-        })}
-        {topExercises.length===0&&<div style={{textAlign:"center",padding:"40px 20px",color:C.muted}}>
-          <div style={{fontSize:32,marginBottom:12}}>📊</div>
-          <div style={{fontSize:14}}>Sem histórico ainda</div>
-        </div>}
-      </div>
-      <BottomNav active="treino" onNavigate={onNavigate}/>
-    </div>
-  );
+  if(selEx) return <ExercicioScreen name={selEx} onBack={()=>setSelEx(null)} onNavigate={onNavigate}/>;
+  if(showTop) return <TopExercisesScreen onBack={()=>setShowTop(false)} onSelectEx={name=>{setShowTop(false);setSelEx(name);}}/>;
 
   return(
     <div className="screen-root" style={{background:"#080A0E",minHeight:"100vh",paddingBottom:100}}>
@@ -768,7 +775,6 @@ function ExerciciosBrowserScreen({onNavigate}){
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
           <button onClick={()=>onNavigate("home")} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
           <div style={{fontSize:18,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Exercícios</div>
-          {/* Botão de principais exercícios */}
           <button onClick={()=>setShowTop(true)} style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:5,padding:"6px 12px",borderRadius:99,background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.3)",cursor:"pointer"}}>
             <span style={{fontSize:12}}>🏆</span>
             <span style={{fontSize:11,fontWeight:700,color:C.blueXL}}>Principais</span>
@@ -1003,9 +1009,9 @@ function MonthlyReportScreen({onBack}){
 
   const allSessions=getAllSessions();
 
-  // Gera dados dos últimos 6 meses para o gráfico comparativo
-  const last6=Array.from({length:6},(_,i)=>{
-    let m=selMonth.m-5+i,y=selMonth.y;
+  // Gera dados dos últimos 12 meses para o gráfico comparativo
+  const last12=Array.from({length:12},(_,i)=>{
+    let m=selMonth.m-11+i,y=selMonth.y;
     while(m<0){m+=12;y--;}
     while(m>11){m-=12;y++;}
     const sessions=allSessions.filter(s=>{
@@ -1022,8 +1028,8 @@ function MonthlyReportScreen({onBack}){
       series:sessions.reduce((a,s)=>a+(s.totalSets||0),0),
     };
   });
-  const curBar=last6[5];
-  const prevBar=last6[4];
+  const curBar=last12[11];
+  const prevBar=last12[10];
 
   const monthSessions=allSessions.filter(s=>{
     if(!s.date)return false;
@@ -1086,7 +1092,7 @@ function MonthlyReportScreen({onBack}){
     {k:"series",l:"Séries",c:"#F59E0B"},
   ];
   const activeChart=CHART_KEYS.find(c=>c.k===chartKey)||CHART_KEYS[0];
-  const barMax=Math.max(...last6.map(d=>d[chartKey]),0.01);
+  const barMax=Math.max(...last12.map(d=>d[chartKey]),0.01);
 
   // Delta vs mês anterior
   const delta=(field)=>{
@@ -1146,11 +1152,11 @@ function MonthlyReportScreen({onBack}){
                   <button key={ck.k} onClick={()=>setChartKey(ck.k)} style={{padding:"4px 10px",borderRadius:99,flexShrink:0,fontSize:10,fontWeight:700,cursor:"pointer",background:chartKey===ck.k?ck.c+"33":"transparent",border:"1px solid "+(chartKey===ck.k?ck.c:"rgba(255,255,255,0.1)"),color:chartKey===ck.k?ck.c:"rgba(255,255,255,0.4)"}}>{ck.l}</button>
                 ))}
               </div>
-              <div style={{display:"flex",alignItems:"flex-end",gap:6,height:80}}>
-                {last6.map((d,i)=>{
+              <div style={{display:"flex",alignItems:"flex-end",gap:3,height:80}}>
+                {last12.map((d,i)=>{
                   const val=d[chartKey]||0;
                   const h=Math.max(val/barMax*68,val>0?4:0);
-                  const isCur=i===5;
+                  const isCur=i===11;
                   return(
                     <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
                       {val>0&&<div style={{fontSize:8,color:isCur?activeChart.c:"rgba(255,255,255,0.3)",fontWeight:isCur?700:400,lineHeight:1}}>{val}</div>}
@@ -2648,6 +2654,7 @@ function ExercicioScreen({name,onNavigate,onBack}){
   const[chartRange,setChartRange]=useState("3m");
   const[gifUrl,setGifUrl]=useState(null);
   const[gifLoading,setGifLoading]=useState(true);
+  const[showTop,setShowTop]=useState(false);
   const exName=name||"Supino (Barra)";
   const info=EXERCISES_INFO[exName]||{group:"",secondary:[],type:"",equipment:"",muscles:[],instructions:[],tips:""};
   const gc=GC[info.group]||C.blueL;
@@ -2689,6 +2696,8 @@ function ExercicioScreen({name,onNavigate,onBack}){
 
   const goBack=()=>{if(onBack)onBack();else onNavigate("treino");};
 
+  if(showTop) return <TopExercisesScreen onBack={()=>setShowTop(false)} onSelectEx={name=>{setShowTop(false);onNavigate("exercicio",{name});}}/>;
+
   return(
     <div style={{position:"fixed",inset:0,zIndex:800,background:"#080A0E",display:"flex",flexDirection:"column",paddingBottom:100,overflowY:"auto"}}>
       <div style={{position:"sticky",top:0,zIndex:2147483646,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
@@ -2699,9 +2708,13 @@ function ExercicioScreen({name,onNavigate,onBack}){
               <div style={{fontSize:11,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:gc}}>{info.group}</div>
               <div style={{fontSize:20,fontWeight:800,color:C.text,letterSpacing:"-0.5px"}}>{exName}</div>
             </div>
-            <div style={{textAlign:"right",flexShrink:0}}>
-              <div style={{fontSize:18,fontWeight:900,color:C.mint}}>{hist.length}</div>
-              <div style={{fontSize:9,color:C.sub,textTransform:"uppercase",letterSpacing:"0.06em"}}>treinos</div>
+            <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:4}}>
+              <div style={{textAlign:"right"}}>
+                <div style={{fontSize:18,fontWeight:900,color:C.mint}}>{hist.length}</div>
+                <div style={{fontSize:9,color:C.sub,textTransform:"uppercase",letterSpacing:"0.06em"}}>treinos</div>
+              </div>
+              {/* Botão discreto — principais */}
+              <button onClick={()=>setShowTop(true)} style={{fontSize:9,fontWeight:700,color:C.muted,background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:99,padding:"3px 8px",cursor:"pointer",whiteSpace:"nowrap"}}>🏆 principais</button>
             </div>
           </div>
           <div style={{display:"flex",borderBottom:"1px solid "+C.border}}>
