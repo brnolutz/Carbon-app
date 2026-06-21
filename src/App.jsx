@@ -3712,7 +3712,28 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
 
   // Streaks
   const streak=useMemo(()=>{let s=0;const d=new Date(today);while(true){const ds=d.toISOString().slice(0,10);if(!workoutDates.has(ds)&&ds!==todayStr)break;if(workoutDates.has(ds))s++;d.setDate(d.getDate()-1);if(s>365)break;}return s;},[workoutDates]);
-  const weeklyStreak=useMemo(()=>{const allSessions=getAllSessions();let s=0;const d=new Date(today);d.setDate(d.getDate()-d.getDay());while(s<52){const ds=d.toISOString().slice(0,10);const weekEnd=new Date(d.getTime()+6*86400000).toISOString().slice(0,10);const wk=allSessions.some(f=>f.date>=ds&&f.date<=weekEnd);if(!wk)break;s++;d.setDate(d.getDate()-7);}return s;},[savedCount]);
+  const weeklyStreak=useMemo(()=>{
+    const allSessions=getAllSessions();
+    let s=0;
+    const d=new Date(today);
+    // Começa no domingo da semana atual
+    d.setDate(d.getDate()-d.getDay());
+    let firstWeek=true;
+    while(s<52){
+      const ds=d.toISOString().slice(0,10);
+      const weekEnd=new Date(d.getTime()+6*86400000).toISOString().slice(0,10);
+      const hasWorkout=allSessions.some(f=>f.date>=ds&&f.date<=weekEnd);
+      if(!hasWorkout){
+        // Se é a semana atual e ainda não treinou, pula para semana anterior
+        if(firstWeek){d.setDate(d.getDate()-7);firstWeek=false;continue;}
+        break;
+      }
+      s++;
+      firstWeek=false;
+      d.setDate(d.getDate()-7);
+    }
+    return s;
+  },[savedCount]);
 
   const thisWeekCount=useMemo(()=>{const allSessions=getAllSessions();const d=new Date(today);const start=new Date(d);start.setDate(d.getDate()-d.getDay());start.setHours(0,0,0,0);const startStr=start.toISOString().slice(0,10);const end=new Date(start.getTime()+6*86400000).toISOString().slice(0,10);return allSessions.filter(f=>f.date>=startStr&&f.date<=end).length;},[savedCount]);
 
