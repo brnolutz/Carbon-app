@@ -74,6 +74,7 @@ const supabase=createClient(SUPABASE_URL,SUPABASE_KEY);
 let _sessionsCache=[];
 let _measureHistoryCache=[];
 let _weightGoalCache=74;
+let _deloadCache=null; // {active,method,intensity,startDate,endDate,sessionsInDeload:[]}
 let FEED=[];
 let WEEKLY={};
 let WEEKS=[];
@@ -186,6 +187,45 @@ async function saveWeightGoal(v){
   }catch(e){console.error(e);}
 }
 
+// ─── DELOAD (persisted in user_settings.deload_config) ───────
+function loadDeload(){return _deloadCache;}
+async function saveDeload(config){
+  _deloadCache=config;
+  try{
+    const{data:userData}=await supabase.auth.getUser();
+    const uid=userData?.user?.id;
+    if(!uid)return;
+    await supabase.from('user_settings').upsert({user_id:uid,deload_config:config,updated_at:new Date().toISOString()});
+  }catch(e){console.error('saveDeload error',e);}
+}
+async function startDeload(method,intensity){
+  const startDate=new Date().toISOString().slice(0,10);
+  const endDate=new Date(Date.now()+7*24*60*60*1000).toISOString().slice(0,10);
+  const config={active:true,method,intensity,startDate,endDate,sessionsInDeload:[]};
+  await saveDeload(config);
+  return config;
+}
+async function endDeload(){
+  if(!_deloadCache)return;
+  const config={..._deloadCache,active:false,endedAt:new Date().toISOString().slice(0,10)};
+  await saveDeload(config);
+  return config;
+}
+function applyDeloadToExercises(exercises,method,intensity){
+  const factor=intensity/100;
+  return exercises.map(ex=>{
+    const sets=(ex.setData||ex.sets||[]);
+    const newSets=Array.isArray(sets)?sets.map(s=>{
+      if(method==='volume'){return{...s,r:Math.max(1,Math.round((s.r||8)*factor))};}
+      if(method==='intensity'){return{...s,w:s.w?Math.round(s.w*factor*2)/2:s.w};}
+      if(method==='technique'){return{...s,w:s.w?Math.round(s.w*factor*2)/2:s.w,tempo:'3-1-2'};}
+      return s;
+    }):sets;
+    const numSets=method==='volume'?Math.max(1,Math.round((ex.sets||3)*factor)):ex.sets;
+    return{...ex,sets:numSets,setData:newSets,deloadModified:true};
+  });
+}
+
 // ─── ROUTINES (Supabase-backed) ──────────────────────────────
 let _routinesCache=[];
 function loadRoutines(){return _routinesCache;}
@@ -246,6 +286,12 @@ async function loadAllUserData(){
   _sessionsCache=(sessRes.data||[]).map(rowToSession);
   _measureHistoryCache=(measRes.data||[]).map(measureRowToEntry).sort((a,b)=>a.date.localeCompare(b.date));
   _weightGoalCache=settRes.data?.weight_goal??74;
+  _deloadCache=settRes.data?.deload_config??null;
+  // Auto-expire deload if past endDate
+  if(_deloadCache?.active){
+    const today=new Date().toISOString().slice(0,10);
+    if(today>_deloadCache.endDate){_deloadCache={..._deloadCache,active:false,endedAt:today};}
+  }
   refreshDerivedData();
   await fetchRoutines();
 }
@@ -346,7 +392,8 @@ const USER = {
 
 function buildSets(plan){
   const seen=new Set();
-  return plan.exercises.map(ex=>{
+  const dl=loadDeload();
+  const exercises=plan.exercises.map(ex=>{
     const isFirst=!seen.has(ex.group)&&ex.warmup;seen.add(ex.group);
     const bw=ex.sets[0].w;
     const warm=isFirst?[
@@ -356,6 +403,23 @@ function buildSets(plan){
     ]:[];
     return{...ex,activeSets:[...warm,...ex.sets.map(s=>({w:s.w,r:s.r,done:false,type:"work",rpe:null}))]};
   });
+  // Apply deload modifications if active
+  if(dl?.active){
+    const factor=dl.intensity/100;
+    return exercises.map(ex=>{
+      if(dl.method==="volume"){
+        const workSets=ex.activeSets.filter(s=>s.type==="work");
+        const warmSets=ex.activeSets.filter(s=>s.type!=="work");
+        const reduced=workSets.slice(0,Math.max(1,Math.round(workSets.length*factor)));
+        return{...ex,activeSets:[...warmSets,...reduced],_deload:true};
+      }
+      if(dl.method==="intensity"||dl.method==="technique"){
+        return{...ex,activeSets:ex.activeSets.map(s=>s.type==="work"?{...s,w:s.w?Math.round(s.w*factor*2)/2:s.w}:s),_deload:true};
+      }
+      return ex;
+    });
+  }
+  return exercises;
 }
 
 // ─── BOTTOM NAV ──────────────────────────────────────────────
@@ -652,11 +716,11 @@ function ExerciciosBrowserScreen({onNavigate}){
 // ══════════════════════════════════════════════════════════════
 // DELOAD WEEK SCREEN
 // ══════════════════════════════════════════════════════════════
-function DeloadWeekScreen({onBack}){
+function DeloadWeekScreen({onBack,onDeloadStarted}){
   const[step,setStep]=useState(0);
   const[intensity,setIntensity]=useState(60);
   const[method,setMethod]=useState("volume");
-  const[applied,setApplied]=useState(false);
+  const[saving,setSaving]=useState(false);
   useEffect(()=>{document.body.classList.add("hide-carbon-header");return()=>document.body.classList.remove("hide-carbon-header");},[]);
   const STORIES=[
     {emoji:"😮‍💨",title:"O que é uma Semana de Deload?",body:"Uma redução planejada de 30–50% na carga de treino. Seu corpo e sistema nervoso têm tempo de recuperar completamente.",color:"#3B82F6",bg:"rgba(59,130,246,0.12)"},
@@ -665,17 +729,32 @@ function DeloadWeekScreen({onBack}){
     {emoji:"⚡",title:"Como Fazer?",body:"Você ainda treina. Só reduz o estresse.",color:"#10B981",bg:"rgba(16,185,129,0.12)",bullets:["Reduzir Volume: menos séries (–40–60%)","Reduzir Intensidade: menos peso (60–70%)","Reduzir Frequência: menos dias","Foco em Técnica: movimentos lentos"]},
     {emoji:"🔙",title:"Retornando ao Treino",body:"Após o deload, treinos vão parecer mais fáceis. É sinal que funcionou!",color:"#06B6D4",bg:"rgba(6,182,212,0.12)",bullets:["Volte ao programa normal","Não adicione volume extra","Deixe a performance subir naturalmente"]},
   ];
+  const METHODS=[
+    {k:"volume",l:"Reduzir Volume",d:"Menos séries (−40–60%), mesmo peso",icon:"📉"},
+    {k:"intensity",l:"Reduzir Intensidade",d:"Mesmo volume, peso mais leve (60–70%)",icon:"🏋️"},
+    {k:"frequency",l:"Reduzir Frequência",d:"Menos dias de treino esta semana",icon:"📅"},
+    {k:"technique",l:"Foco em Técnica",d:"Movimentos lentos e controlados",icon:"🎯"},
+  ];
   const story=STORIES[step];
+  const endDate=new Date(Date.now()+7*24*60*60*1000).toLocaleDateString("pt-BR",{day:"2-digit",month:"short"});
+  async function handleStart(){
+    setSaving(true);
+    await startDeload(method,intensity);
+    setSaving(false);
+    if(onDeloadStarted)onDeloadStarted();
+    onBack();
+  }
   return(
     <div style={{background:"#080A0E",minHeight:"100dvh",display:"flex",flexDirection:"column"}}>
       <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
         <div style={{padding:"10px 16px",display:"flex",alignItems:"center",gap:10}}>
           <button onClick={onBack} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
           <div style={{flex:1,fontSize:15,fontWeight:700,color:"#fff"}}>Semana de Deload</div>
+          {step>=STORIES.length&&<div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>até {endDate}</div>}
         </div>
-        <div style={{padding:"0 16px 12px",display:"flex",gap:4}}>
+        {step<STORIES.length&&<div style={{padding:"0 16px 12px",display:"flex",gap:4}}>
           {STORIES.map((_,i)=>(<div key={i} onClick={()=>setStep(i)} style={{flex:1,height:3,borderRadius:99,background:i<=step?"#3B82F6":"rgba(255,255,255,0.1)",cursor:"pointer"}}/>))}
-        </div>
+        </div>}
       </div>
       <div style={{flex:1,padding:"20px 16px",overflowY:"auto",paddingBottom:140}}>
         {step<STORIES.length
@@ -697,37 +776,110 @@ function DeloadWeekScreen({onBack}){
           </div>
           :<div>
             <div style={{fontSize:22,fontWeight:900,color:"#fff",marginBottom:6}}>Configure seu Deload</div>
-            <div style={{fontSize:13,color:"rgba(255,255,255,0.4)",marginBottom:24}}>Ajuste a intensidade desta semana</div>
+            <div style={{fontSize:13,color:"rgba(255,255,255,0.4)",marginBottom:24}}>Seus treinos desta semana serão ajustados automaticamente</div>
             <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>Método</div>
-            {[{k:"volume",l:"Reduzir Volume",d:"Menos séries (−40–60%), mesmo peso"},{k:"intensity",l:"Reduzir Intensidade",d:"Mesmo volume, peso mais leve (60–70%)"},{k:"frequency",l:"Reduzir Frequência",d:"Menos dias de treino"},{k:"technique",l:"Foco em Técnica",d:"Movimentos lentos e controlados"}].map(m=>(
+            {METHODS.map(m=>(
               <button key={m.k} onClick={()=>setMethod(m.k)} style={{width:"100%",display:"flex",alignItems:"center",gap:12,padding:"14px 16px",background:method===m.k?"rgba(59,130,246,0.15)":"rgba(255,255,255,0.03)",border:"1px solid "+(method===m.k?"rgba(59,130,246,0.5)":"rgba(255,255,255,0.07)"),borderRadius:12,marginBottom:8,cursor:"pointer",textAlign:"left"}}>
+                <div style={{fontSize:22,width:32,textAlign:"center"}}>{m.icon}</div>
+                <div style={{flex:1}}><div style={{fontSize:14,fontWeight:700,color:"#fff"}}>{m.l}</div><div style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:2}}>{m.d}</div></div>
                 <div style={{width:20,height:20,borderRadius:"50%",border:"2px solid "+(method===m.k?"#3B82F6":"rgba(255,255,255,0.2)"),background:method===m.k?"#3B82F6":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                   {method===m.k&&<div style={{width:8,height:8,borderRadius:"50%",background:"#fff"}}/>}
                 </div>
-                <div><div style={{fontSize:14,fontWeight:700,color:"#fff"}}>{m.l}</div><div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>{m.d}</div></div>
               </button>
             ))}
-            <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginTop:20,marginBottom:10}}>
-              Intensidade: <span style={{color:"#3B82F6"}}>{intensity}% do normal</span>
-            </div>
-            <input type="range" min="40" max="80" step="5" value={intensity} onChange={e=>setIntensity(+e.target.value)} style={{width:"100%",accentColor:"#3B82F6",marginBottom:6}}/>
-            <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:"rgba(255,255,255,0.3)"}}><span>40% (suave)</span><span>60% (recomendado)</span><span>80% (leve)</span></div>
-            <div style={{background:"rgba(59,130,246,0.08)",border:"1px solid rgba(59,130,246,0.2)",borderRadius:16,padding:"16px",marginTop:20,marginBottom:24}}>
-              <div style={{fontSize:13,fontWeight:700,color:"#60A5FA",marginBottom:10}}>Plano da Semana</div>
-              {method==="volume"&&<div style={{fontSize:12,color:"rgba(255,255,255,0.6)",lineHeight:1.8}}>• Mantenha os exercícios normais<br/>• Reduza séries em 40–60%<br/>• Mantenha o mesmo peso<br/>• Sem séries até a falha</div>}
-              {method==="intensity"&&<div style={{fontSize:12,color:"rgba(255,255,255,0.6)",lineHeight:1.8}}>• Use {intensity}% do peso normal<br/>• Mantenha séries e reps<br/>• Foco em forma perfeita</div>}
-              {method==="frequency"&&<div style={{fontSize:12,color:"rgba(255,255,255,0.6)",lineHeight:1.8}}>• Treine menos dias<br/>• Sessões mais curtas (~30–40 min)<br/>• Descanse mais entre sessões</div>}
-              {method==="technique"&&<div style={{fontSize:12,color:"rgba(255,255,255,0.6)",lineHeight:1.8}}>• Cargas leves ({intensity}% do normal)<br/>• Tempo sob tensão lento<br/>• Foco na conexão mente-músculo</div>}
-            </div>
-            {applied
-              ?<div style={{textAlign:"center",padding:"20px",background:"rgba(16,185,129,0.1)",border:"1px solid rgba(16,185,129,0.3)",borderRadius:14}}>
-                <div style={{fontSize:20}}>✅</div>
-                <div style={{fontSize:14,fontWeight:700,color:"#10B981",marginTop:8}}>Semana de Deload ativa!</div>
+            {method!=="frequency"&&<>
+              <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginTop:20,marginBottom:10}}>
+                Intensidade: <span style={{color:"#3B82F6"}}>{intensity}% do normal</span>
               </div>
-              :<button onClick={()=>setApplied(true)} style={{width:"100%",padding:"16px",background:"linear-gradient(135deg,#1E40AF,#3B82F6)",border:"none",borderRadius:16,color:"#fff",fontSize:15,fontWeight:800,cursor:"pointer"}}>Iniciar Semana de Deload</button>
-            }
+              <input type="range" min="40" max="80" step="5" value={intensity} onChange={e=>setIntensity(+e.target.value)} style={{width:"100%",accentColor:"#3B82F6",marginBottom:6}}/>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:"rgba(255,255,255,0.3)"}}><span>40% leve</span><span>60% ideal</span><span>80% mínimo</span></div>
+            </>}
+            <div style={{background:"rgba(59,130,246,0.08)",border:"1px solid rgba(59,130,246,0.2)",borderRadius:16,padding:"16px",marginTop:20,marginBottom:8}}>
+              <div style={{fontSize:13,fontWeight:700,color:"#60A5FA",marginBottom:10}}>📋 O que vai mudar nos seus treinos</div>
+              {method==="volume"&&<div style={{fontSize:12,color:"rgba(255,255,255,0.7)",lineHeight:1.9}}>• Séries reduzidas para {intensity}% do normal<br/>• Peso mantido<br/>• Sem séries até a falha</div>}
+              {method==="intensity"&&<div style={{fontSize:12,color:"rgba(255,255,255,0.7)",lineHeight:1.9}}>• Peso reduzido para {intensity}% do normal<br/>• Séries e reps mantidos<br/>• Foco em forma perfeita</div>}
+              {method==="frequency"&&<div style={{fontSize:12,color:"rgba(255,255,255,0.7)",lineHeight:1.9}}>• Treine no máximo 3x esta semana<br/>• Sessões mais curtas (~30–40 min)<br/>• Descanse mais entre sessões</div>}
+              {method==="technique"&&<div style={{fontSize:12,color:"rgba(255,255,255,0.7)",lineHeight:1.9}}>• Peso reduzido para {intensity}% do normal<br/>• Tempo sob tensão lento (3-1-2)<br/>• Foco na conexão mente-músculo</div>}
+            </div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.3)",textAlign:"center",marginBottom:24}}>Deload ativo até {endDate} — você pode encerrar a qualquer momento</div>
+            <button onClick={handleStart} disabled={saving} style={{width:"100%",padding:"16px",background:saving?"rgba(59,130,246,0.4)":"linear-gradient(135deg,#1E40AF,#3B82F6)",border:"none",borderRadius:16,color:"#fff",fontSize:15,fontWeight:800,cursor:saving?"default":"pointer",opacity:saving?0.7:1}}>
+              {saving?"Ativando...":"🏃 Iniciar Semana de Deload"}
+            </button>
           </div>
         }
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// DELOAD REPORT SCREEN
+// ══════════════════════════════════════════════════════════════
+function DeloadReportScreen({deload,onClose}){
+  useEffect(()=>{document.body.classList.add("hide-carbon-header");return()=>document.body.classList.remove("hide-carbon-header");},[]);
+  const sessions=getAllSessions().filter(s=>{
+    if(!deload?.startDate||!s.date)return false;
+    return s.date>=deload.startDate&&s.date<=(deload.endedAt||deload.endDate||"9999");
+  });
+  const totalVol=sessions.reduce((a,s)=>a+(s.totalVol||0),0);
+  const totalSets=sessions.reduce((a,s)=>a+(s.totalSets||0),0);
+  const methodLabels={volume:"Redução de Volume",intensity:"Redução de Intensidade",frequency:"Redução de Frequência",technique:"Foco em Técnica"};
+  return(
+    <div style={{background:"#080A0E",minHeight:"100dvh",overflowY:"auto",paddingBottom:100}}>
+      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
+        <div style={{padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
+          <button onClick={onClose} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+          <div style={{flex:1,fontSize:16,fontWeight:800,color:"#fff"}}>Relatório de Deload</div>
+        </div>
+      </div>
+      <div style={{padding:"20px 16px"}}>
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{fontSize:48,marginBottom:8}}>🎉</div>
+          <div style={{fontSize:22,fontWeight:900,color:"#fff",marginBottom:4}}>Deload concluído!</div>
+          <div style={{fontSize:13,color:"rgba(255,255,255,0.4)"}}>
+            {new Date(deload.startDate+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})} → {new Date((deload.endedAt||deload.endDate)+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})}
+          </div>
+        </div>
+        <div style={{background:"rgba(59,130,246,0.08)",border:"1px solid rgba(59,130,246,0.2)",borderRadius:16,padding:"16px",marginBottom:16}}>
+          <div style={{fontSize:12,fontWeight:700,color:"#60A5FA",marginBottom:8,textTransform:"uppercase",letterSpacing:"0.08em"}}>Método utilizado</div>
+          <div style={{fontSize:15,fontWeight:700,color:"#fff"}}>{methodLabels[deload.method]||deload.method}</div>
+          <div style={{fontSize:12,color:"rgba(255,255,255,0.4)",marginTop:4}}>Intensidade: {deload.intensity}% do normal</div>
+        </div>
+        {sessions.length>0
+          ?<><div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:16}}>
+            {[{l:"Treinos",v:sessions.length,icon:"🏋️"},{l:"Volume",v:totalVol.toFixed(1)+"t",icon:"📦"},{l:"Séries",v:totalSets,icon:"🔢"}].map(k=>(
+              <div key={k.l} style={{background:"rgba(255,255,255,0.04)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"12px",textAlign:"center"}}>
+                <div style={{fontSize:20,marginBottom:4}}>{k.icon}</div>
+                <div style={{fontSize:18,fontWeight:800,color:"#fff"}}>{k.v}</div>
+                <div style={{fontSize:10,color:"rgba(255,255,255,0.4)",marginTop:2}}>{k.l}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{fontSize:13,fontWeight:700,color:"rgba(255,255,255,0.5)",marginBottom:10,textTransform:"uppercase",letterSpacing:"0.08em"}}>Treinos realizados</div>
+          {sessions.map(s=>(
+            <div key={s.id} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"14px 16px",marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <div style={{fontSize:14,fontWeight:700,color:"#fff"}}>{s.name||"Treino"}</div>
+                <div style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:2}}>{new Date(s.date+"T12:00:00").toLocaleDateString("pt-BR",{weekday:"short",day:"2-digit",month:"short"})}</div>
+              </div>
+              <div style={{textAlign:"right"}}>
+                <div style={{fontSize:13,fontWeight:700,color:"#3B82F6"}}>{(s.totalVol||0).toFixed(1)}t</div>
+                <div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>{s.totalSets||0} séries</div>
+              </div>
+            </div>
+          ))}</>
+          :<div style={{textAlign:"center",padding:"24px",background:"rgba(255,255,255,0.03)",borderRadius:14,marginBottom:16}}>
+            <div style={{fontSize:32,marginBottom:8}}>😴</div>
+            <div style={{fontSize:14,color:"rgba(255,255,255,0.5)"}}>Nenhum treino registrado durante o deload</div>
+          </div>
+        }
+        <div style={{background:"rgba(16,185,129,0.08)",border:"1px solid rgba(16,185,129,0.2)",borderRadius:16,padding:"16px",marginTop:8}}>
+          <div style={{fontSize:13,fontWeight:700,color:"#10B981",marginBottom:8}}>✅ Voltando ao treino normal</div>
+          <div style={{fontSize:12,color:"rgba(255,255,255,0.6)",lineHeight:1.8}}>• Retome o programa com carga normal<br/>• Não adicione volume extra nos primeiros dias<br/>• Deixe a performance subir naturalmente<br/>• Próximo deload em 4–6 semanas</div>
+        </div>
+        <button onClick={onClose} style={{width:"100%",padding:"16px",background:"linear-gradient(135deg,#1E40AF,#3B82F6)",border:"none",borderRadius:16,color:"#fff",fontSize:15,fontWeight:800,cursor:"pointer",marginTop:24}}>
+          Voltar ao treino normal 💪
+        </button>
       </div>
     </div>
   );
@@ -892,6 +1044,17 @@ function HomeScreen({onNavigate,onStartWorkout}){
   const[feedCount,setFeedCount]=useState(5);
   const[showDeload,setShowDeload]=useState(false);
   const[showReport,setShowReport]=useState(false);
+  const[showDeloadReport,setShowDeloadReport]=useState(false);
+  const[deloadState,setDeloadState]=useState(()=>loadDeload());
+  const activeDeload=deloadState?.active?deloadState:null;
+
+  async function handleEndDeload(){
+    const ended=await endDeload();
+    setDeloadState(ended);
+    if((ended?.sessionsInDeload||[]).length>0||(getAllSessions().some(s=>s.date>=ended.startDate&&s.date<=ended.endedAt))){
+      setShowDeloadReport(true);
+    }
+  }
 
   const chartModes=[{k:"vol",l:"Volume",unit:"t",color:C.blueXL},{k:"dur",l:"Duração",unit:"min",color:C.mint},{k:"reps",l:"Repetições",unit:"",color:C.amber},{k:"sets",l:"Séries",unit:"",color:C.coral}];
   const activeMode=chartModes.find(m=>m.k===chartMode)||chartModes[0];
@@ -925,13 +1088,32 @@ function HomeScreen({onNavigate,onStartWorkout}){
 
   const visibleFeed=FEED.slice(0,feedCount);
 
-  if(showDeload) return <DeloadWeekScreen onBack={()=>setShowDeload(false)}/>;
+  if(showDeload) return <DeloadWeekScreen onBack={()=>setShowDeload(false)} onDeloadStarted={()=>setDeloadState(loadDeload())}/>;
   if(showReport) return <MonthlyReportScreen onBack={()=>setShowReport(false)}/>;
+  if(showDeloadReport&&deloadState) return <DeloadReportScreen deload={deloadState} onClose={()=>{setShowDeloadReport(false);setDeloadState(loadDeload());}}/>;
   if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)}/>;
   if(selRoutine) return <RoutineScreen plan={selRoutine} onClose={()=>setSelRoutine(null)} onStart={()=>{if(nextPlan){const exs=buildSets(nextPlan);onStartWorkout(nextPlan,exs);onNavigate("treino");}setSelRoutine(null);}} onNavigate={onNavigate} onSaved={()=>{}} onDeleted={()=>setSelRoutine(null)}/>;
 
   return(
     <div style={{background:"#080A0E",minHeight:"100dvh",paddingTop:52}}>
+
+      {/* ── Banner Deload Ativo ── */}
+      {activeDeload&&(
+        <div style={{margin:"12px 16px 0",background:"linear-gradient(135deg,rgba(139,92,246,0.15),rgba(59,130,246,0.1))",border:"1px solid rgba(139,92,246,0.4)",borderRadius:16,padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
+          <div style={{fontSize:24}}>🔋</div>
+          <div style={{flex:1}}>
+            <div style={{fontSize:13,fontWeight:800,color:"#C4B5FD"}}>Semana de Deload ativa</div>
+            <div style={{fontSize:11,color:"rgba(196,181,253,0.6)",marginTop:2}}>
+              {activeDeload.method==="volume"&&`Séries em ${activeDeload.intensity}% do normal`}
+              {activeDeload.method==="intensity"&&`Peso em ${activeDeload.intensity}% do normal`}
+              {activeDeload.method==="frequency"&&"Frequência reduzida esta semana"}
+              {activeDeload.method==="technique"&&`Foco em técnica · ${activeDeload.intensity}% do peso`}
+              {" · até "}{new Date(activeDeload.endDate+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})}
+            </div>
+          </div>
+          <button onClick={handleEndDeload} style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.5)",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,padding:"6px 10px",cursor:"pointer",whiteSpace:"nowrap"}}>Encerrar</button>
+        </div>
+      )}
 
       {/* ── Greeting ── */}
       <div style={{padding:"14px 20px 0",display:"flex",alignItems:"flex-start",justifyContent:"space-between"}}>
@@ -2392,7 +2574,7 @@ function HistoricoScreen({onNavigate}){
   const totalVol=FEED.reduce((a,s)=>a+s.totalVol,0);
   const totalPRs=FEED.reduce((a,s)=>a+s.prs,0);
 
-  if(showDeload) return <DeloadWeekScreen onBack={()=>setShowDeload(false)}/>;
+  if(showDeload) return <DeloadWeekScreen onBack={()=>setShowDeload(false)} onDeloadStarted={()=>setShowDeload(false)}/>;
   if(showReport) return <MonthlyReportScreen onBack={()=>setShowReport(false)}/>;
   if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)}/>;
 
