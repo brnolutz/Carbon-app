@@ -870,7 +870,7 @@ function DeloadReportScreen({deload,onClose}){
   const totalSets=sessions.reduce((a,s)=>a+(s.totalSets||0),0);
   const methodLabels={volume:"Redução de Volume",intensity:"Redução de Intensidade",frequency:"Redução de Frequência",technique:"Foco em Técnica"};
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh",overflowY:"auto",paddingBottom:100}}>
+    <div data-screen-container="1" style={{background:"#080A0E",minHeight:"100dvh",overflowY:"auto",paddingBottom:100}}>
       <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
         <div style={{padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onClose} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
@@ -957,7 +957,7 @@ function MonthlyReportScreen({onBack}){
   const nextM=()=>{let m=selMonth.m+1,y=selMonth.y;if(m>11){m=0;y++;}if(y>now.getFullYear()||(y===now.getFullYear()&&m>now.getMonth()))return;setSelMonth({y,m});};
   const canNext=selMonth.m<now.getMonth()||selMonth.y<now.getFullYear();
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh",overflowY:"auto",paddingBottom:100}}>
+    <div data-screen-container="1" style={{background:"#080A0E",minHeight:"100dvh",overflowY:"auto",paddingBottom:100}}>
       <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
         <div style={{padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onBack} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
@@ -1031,7 +1031,7 @@ function VolumeDetailScreen({onBack}){
   const px2=(i)=>n>1?PL+i*cw/(n-1):PL+cw/2;
   const py2=(v)=>PT+ch-(v/maxVal)*ch;
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh",paddingBottom:100,overflowY:"auto"}}>
+    <div data-screen-container="1" style={{background:"#080A0E",minHeight:"100dvh",paddingBottom:100,overflowY:"auto"}}>
       <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
         <div style={{padding:"12px 16px"}}>
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
@@ -2856,7 +2856,7 @@ function ProgressDetailScreen({onBack,onNavigate}){
   const sortedRecs=Object.entries(repRecords).sort((a,b)=>+a[0]-+b[0]);
 
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh",paddingTop:52,paddingBottom:120,overflowY:"auto"}}>
+    <div data-screen-container="1" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:52,paddingBottom:120,overflowY:"auto"}}>
       {/* Header */}
       <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
         <div style={{padding:"10px 16px"}}>
@@ -3399,7 +3399,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   const rangeDelta=Math.round((rangeTotal-rangePrev)/rangePrev*100);
 
   return(
-    <div ref={scrollRef} style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingTop:52,paddingBottom:120,overflowY:"auto"}}>
+    <div ref={scrollRef} data-screen-container="1" style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingTop:52,paddingBottom:120,overflowY:"auto"}}>
       {calendarEl}
       <style>{`.prog-bar{transition:height 0.4s ease;}`}</style>
       <div style={{padding:"10px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -3676,7 +3676,7 @@ function MedicoesScreen({onNavigate}){
   const gc=C.blueXL;
 
   return(
-    <div ref={scrollRef} style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0,overflowY:"auto",paddingBottom:120}}>
+    <div ref={scrollRef} data-screen-container="1" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0,overflowY:"auto",paddingBottom:120}}>
       {/* Header */}
       <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
         <div style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -3957,7 +3957,7 @@ function CalendarioFullScreen({onNavigate}){
   };
 
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0,overflowY:"auto"}}>
+    <div data-screen-container="1" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0,overflowY:"auto"}}>
       {/* Header */}
       <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
         <div style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -4559,7 +4559,17 @@ function GlobalWorkoutBar({workout,onOpen,onEnd}){
 function ForgeAppInner(){
   const[screen,setScreen]=useState("home");
   const[exName,setExName]=useState(null);
-  const[savedCount,setSavedCount]=useState(0); // increments on each save to trigger re-render
+  const[savedCount,setSavedCount]=useState(0);
+
+  // Scroll to top em toda troca de tela
+  useEffect(()=>{
+    window.scrollTo(0,0);
+    document.documentElement.scrollTop=0;
+    document.body.scrollTop=0;
+    // Também reseta qualquer container com overflow
+    const containers=document.querySelectorAll("[data-screen-container]");
+    containers.forEach(el=>{el.scrollTop=0;});
+  },[screen]);
 
   // ── Global workout state lifted here ──
   const[activeWorkout,setActiveWorkout]=useState(null); // null = no active workout
@@ -4597,6 +4607,9 @@ function ForgeAppInner(){
 
   function navigate(dest,params){
     if(dest==="exercicio"&&params?.name) setExName(params.name);
+    window.scrollTo(0,0);
+    document.documentElement.scrollTop=0;
+    document.body.scrollTop=0;
     setScreen(dest);
   }
 
