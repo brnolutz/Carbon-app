@@ -1910,6 +1910,7 @@ function ExercicioScreen({name,onNavigate,onBack}){
   const[chartMode,setChartMode]=useState("carga");
   const[chartRange,setChartRange]=useState("3m");
   const[gifUrl,setGifUrl]=useState(null);
+  const[gifLoading,setGifLoading]=useState(true);
   const exName=name||"Supino (Barra)";
   const info=EXERCISES_INFO[exName]||{group:"",secondary:[],type:"",equipment:"",muscles:[],instructions:[],tips:""};
   const gc=GC[info.group]||C.blueL;
@@ -1919,8 +1920,10 @@ function ExercicioScreen({name,onNavigate,onBack}){
   const bestORM=allSets.reduce((a,s)=>s.w>0&&s.r>0?Math.max(a,orm(s.w,s.r)):a,0);
 
   useEffect(()=>{
+    setGifUrl(null);
+    setGifLoading(true);
     supabase.from('exercise_gifs').select('gif_url').eq('exercise_name',exName).maybeSingle()
-      .then(({data})=>{if(data?.gif_url)setGifUrl(data.gif_url);});
+      .then(({data})=>{if(data?.gif_url)setGifUrl(data.gif_url);setGifLoading(false);});
   },[exName]);
 
   const nPoints={all:hist.length,"1a":12,"3m":6,"1m":4}[chartRange]||6;
@@ -1962,10 +1965,29 @@ function ExercicioScreen({name,onNavigate,onBack}){
       </div>
       <div style={{flex:1,overflowY:"auto",padding:"0 16px 20px"}}>
         {tab==="resumo"&&<div>
-          <div style={{background:C.surface,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",margin:"16px 0",borderRadius:16,border:"1px solid "+C.border,overflow:"hidden",minHeight:200}}>
+          <div style={{background:"#000",borderRadius:16,overflow:"hidden",margin:"16px 0",border:"1px solid "+C.border,minHeight:220,display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
+            {gifLoading&&(
+              <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <div style={{width:32,height:32,borderRadius:"50%",border:"3px solid "+C.border,borderTopColor:gc,animation:"spin 0.8s linear infinite"}}/>
+                <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+              </div>
+            )}
             {gifUrl
-              ? <img src={gifUrl} alt={exName} style={{width:"100%",maxHeight:260,objectFit:"contain",borderRadius:16}}/>
-              : <><div style={{width:52,height:52,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10}}><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 3l14 9-14 9V3z" fill={C.sub}/></svg></div><div style={{fontSize:12,color:C.muted}}>GIF em breve</div></>
+              ? <img
+                  src={gifUrl}
+                  alt={exName}
+                  onLoad={()=>setGifLoading(false)}
+                  onError={()=>{setGifLoading(false);setGifUrl(null);}}
+                  style={{width:"100%",maxHeight:280,objectFit:"contain",display:gifLoading?"none":"block"}}
+                />
+              : !gifLoading&&(
+                <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,padding:32}}>
+                  <div style={{width:48,height:48,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 3l14 9-14 9V3z" fill={C.sub}/></svg>
+                  </div>
+                  <div style={{fontSize:12,color:C.muted}}>GIF em breve</div>
+                </div>
+              )
             }
           </div>
           <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:12}}>
