@@ -936,30 +936,118 @@ function DeloadReportScreen({deload,onClose}){
 function MonthlyReportScreen({onBack}){
   const now=new Date();
   const[selMonth,setSelMonth]=useState({y:now.getFullYear(),m:now.getMonth()});
+  const[chartKey,setChartKey]=useState("treinos");
+  const[showAllEx,setShowAllEx]=useState(false);
+  const scrollRef=useRef(null);
+  useLayoutEffect(()=>{if(scrollRef.current)scrollRef.current.scrollTop=0;},[]);
   useEffect(()=>{document.body.classList.add("hide-carbon-header");return()=>document.body.classList.remove("hide-carbon-header");},[]);
+
   const allSessions=getAllSessions();
-  const monthSessions=allSessions.filter(s=>{if(!s.date)return false;const d=new Date(s.date+"T12:00:00");return d.getFullYear()===selMonth.y&&d.getMonth()===selMonth.m;});
+
+  // Gera dados dos últimos 6 meses para o gráfico comparativo
+  const last6=Array.from({length:6},(_,i)=>{
+    let m=selMonth.m-5+i,y=selMonth.y;
+    while(m<0){m+=12;y--;}
+    while(m>11){m-=12;y++;}
+    const sessions=allSessions.filter(s=>{
+      if(!s.date)return false;
+      const d=new Date(s.date+"T12:00:00");
+      return d.getFullYear()===y&&d.getMonth()===m;
+    });
+    return{
+      label:new Date(y,m,1).toLocaleDateString("pt-BR",{month:"short"}).replace(".",""),
+      y,m,
+      treinos:sessions.length,
+      vol:Math.round(sessions.reduce((a,s)=>a+(s.totalVol||0),0)*10)/10,
+      dur:Math.round(sessions.reduce((a,s)=>a+(s.duration||0),0)/60*10)/10,
+      series:sessions.reduce((a,s)=>a+(s.totalSets||0),0),
+    };
+  });
+  const curBar=last6[5];
+  const prevBar=last6[4];
+
+  const monthSessions=allSessions.filter(s=>{
+    if(!s.date)return false;
+    const d=new Date(s.date+"T12:00:00");
+    return d.getFullYear()===selMonth.y&&d.getMonth()===selMonth.m;
+  });
   const totalVol=monthSessions.reduce((a,s)=>a+(s.totalVol||0),0);
   const totalSets=monthSessions.reduce((a,s)=>a+(s.totalSets||0),0);
   const totalDur=monthSessions.reduce((a,s)=>a+(s.duration||0),0);
   const totalReps=monthSessions.reduce((a,s)=>a+(s.exercises?.reduce((b,e)=>b+(e.setData?.reduce((c,st)=>c+(st.r||0),0)||0),0)||0),0);
   const prsThisMonth=monthSessions.reduce((a,s)=>a+(s.prs||0),0);
-  const exCount={};monthSessions.forEach(s=>s.exercises?.forEach(e=>{exCount[e.name]=(exCount[e.name]||0)+1;}));
-  const topEx=Object.entries(exCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const muscleVol={};monthSessions.forEach(s=>s.exercises?.forEach(e=>{const m=getExMuscle(e.name||"");if(m)muscleVol[m]=(muscleVol[m]||0)+(e.setData?.length||e.sets||0);}));
-  const totalMVol=Object.values(muscleVol).reduce((a,v)=>a+v,0)||1;
+
+  // Calendário do mês
   const daysInMonth=new Date(selMonth.y,selMonth.m+1,0).getDate();
-  const weeks=Math.ceil(daysInMonth/7);
-  const weekSessions=Array.from({length:weeks},(_,wi)=>{const wS=new Date(selMonth.y,selMonth.m,wi*7+1).toISOString().slice(0,10);const wE=new Date(selMonth.y,selMonth.m,Math.min((wi+1)*7,daysInMonth)).toISOString().slice(0,10);return monthSessions.filter(s=>s.date&&s.date>=wS&&s.date<=wE).length;});
-  const maxW=Math.max(...weekSessions,1);
+  const firstDayOfMonth=new Date(selMonth.y,selMonth.m,1).getDay();
+  const workoutDaysSet=new Set(monthSessions.map(s=>s.date));
+  const todayStr=new Date().toISOString().slice(0,10);
+
+  // Sequência de semanas consecutivas com treino
+  const weekStreak=(()=>{
+    let streak=0;
+    const d=new Date();
+    while(true){
+      const sun=new Date(d);sun.setDate(d.getDate()-d.getDay());sun.setHours(0,0,0,0);
+      const sat=new Date(sun);sat.setDate(sun.getDate()+6);
+      const wStr=sun.toISOString().slice(0,10);
+      const wEnd=sat.toISOString().slice(0,10);
+      const hasW=allSessions.some(s=>s.date&&s.date>=wStr&&s.date<=wEnd);
+      if(hasW){streak++;d.setDate(d.getDate()-7);}
+      else if(streak===0){d.setDate(d.getDate()-7);const wStr2=new Date(d);wStr2.setDate(d.getDate()-d.getDay());const wEnd2=new Date(wStr2);wEnd2.setDate(wStr2.getDate()+6);if(!allSessions.some(s=>s.date&&s.date>=wStr2.toISOString().slice(0,10)&&s.date<=wEnd2.toISOString().slice(0,10)))break;}
+      else break;
+      if(streak>52)break;
+    }
+    return streak;
+  })();
+
+  // Distribuição muscular
+  const muscleVol={};
+  monthSessions.forEach(s=>s.exercises?.forEach(e=>{
+    const m=getExMuscle(e.name||"");
+    if(m)muscleVol[m]=(muscleVol[m]||0)+(e.setData?.length||e.sets||0);
+  }));
+  const maxMuscleVol=Math.max(...Object.values(muscleVol),1);
+
+  // Top exercícios
+  const exCount={};
+  monthSessions.forEach(s=>s.exercises?.forEach(e=>{exCount[e.name]=(exCount[e.name]||0)+1;}));
+  const topEx=Object.entries(exCount).sort((a,b)=>b[1]-a[1]);
+  const topExVisible=showAllEx?topEx:topEx.slice(0,5);
+
   const monthName=new Date(selMonth.y,selMonth.m,1).toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
-  const prevM=()=>{let m=selMonth.m-1,y=selMonth.y;if(m<0){m=11;y--;}setSelMonth({y,m});};
-  const nextM=()=>{let m=selMonth.m+1,y=selMonth.y;if(m>11){m=0;y++;}if(y>now.getFullYear()||(y===now.getFullYear()&&m>now.getMonth()))return;setSelMonth({y,m});};
-  const scrollRef=useRef(null);
-  useLayoutEffect(()=>{if(scrollRef.current)scrollRef.current.scrollTop=0;},[]);
+  const prevM=()=>{let m=selMonth.m-1,y=selMonth.y;if(m<0){m=11;y--;}setSelMonth({y,m});setShowAllEx(false);};
+  const nextM=()=>{let m=selMonth.m+1,y=selMonth.y;if(m>11){m=0;y++;}if(y>now.getFullYear()||(y===now.getFullYear()&&m>now.getMonth()))return;setSelMonth({y,m});setShowAllEx(false);};
   const canNext=selMonth.m<now.getMonth()||selMonth.y<now.getFullYear();
+
+  const CHART_KEYS=[
+    {k:"treinos",l:"Treinos",c:"#3B82F6"},
+    {k:"dur",l:"Duração (h)",c:"#10B981"},
+    {k:"vol",l:"Volume (t)",c:"#8B5CF6"},
+    {k:"series",l:"Séries",c:"#F59E0B"},
+  ];
+  const activeChart=CHART_KEYS.find(c=>c.k===chartKey)||CHART_KEYS[0];
+  const barMax=Math.max(...last6.map(d=>d[chartKey]),0.01);
+
+  // Delta vs mês anterior
+  const delta=(field)=>{
+    const cur=curBar[field]||0,prev=prevBar[field]||0;
+    if(prev===0)return null;
+    return Math.round((cur-prev)/prev*100);
+  };
+
+  const KPIS=[
+    {l:"Treinos",v:monthSessions.length,c:"#3B82F6",icon:"🏋️",field:"treinos",fmt:v=>v},
+    {l:"Volume",v:totalVol.toFixed(1)+"t",c:"#10B981",icon:"📦",field:"vol",fmt:v=>v.toFixed(1)+"t"},
+    {l:"Séries",v:totalSets,c:"#8B5CF6",icon:"🔢",field:"series",fmt:v=>v},
+    {l:"Tempo",v:totalDur>=60?Math.floor(totalDur/60)+"h"+(totalDur%60?""+totalDur%60+"m":""):totalDur+"min",c:"#06B6D4",icon:"⏱️",field:"dur",fmt:v=>v.toFixed(1)+"h"},
+    {l:"Reps",v:totalReps,c:"#F97316",icon:"🔄",field:null,fmt:null},
+    {l:"PRs",v:prsThisMonth,c:"#F59E0B",icon:"🏆",field:null,fmt:null},
+  ];
+
   return(
     <div ref={scrollRef} data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",overflowY:"auto",paddingBottom:100}}>
+      {/* Header */}
       <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
         <div style={{padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onBack} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
@@ -971,41 +1059,146 @@ function MonthlyReportScreen({onBack}){
           <button onClick={nextM} style={{width:32,height:32,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:canNext?"#fff":"rgba(255,255,255,0.2)",fontSize:16,cursor:canNext?"pointer":"default",display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
         </div>
       </div>
+
       <div style={{padding:"16px 16px 0"}}>
         {monthSessions.length===0
           ?<div style={{textAlign:"center",padding:"60px 20px",color:"rgba(255,255,255,0.3)"}}><div style={{fontSize:40,marginBottom:12}}>📋</div><div style={{fontSize:16,fontWeight:600}}>Sem treinos em {monthName}</div></div>
           :<>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
-              {[{l:"Treinos",v:monthSessions.length,c:"#3B82F6",icon:"🏋️"},{l:"Volume",v:totalVol.toFixed(1)+"t",c:"#10B981",icon:"📦"},{l:"Séries",v:totalSets,c:"#8B5CF6",icon:"🔢"},{l:"Reps",v:totalReps,c:"#F59E0B",icon:"🔄"},{l:"Tempo",v:(totalDur/60).toFixed(1)+"h",c:"#06B6D4",icon:"⏱️"},{l:"PRs",v:prsThisMonth,c:"#F97316",icon:"🏆"}].map(k=>(
-                <div key={k.l} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"14px 16px"}}>
-                  <div style={{fontSize:18,marginBottom:6}}>{k.icon}</div>
-                  <div style={{fontSize:24,fontWeight:900,color:k.c,letterSpacing:"-1px"}}>{k.v}</div>
-                  <div style={{fontSize:10,color:"rgba(255,255,255,0.4)",marginTop:3,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>{k.l}</div>
-                </div>
-              ))}
+            {/* KPIs 2x3 */}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:16}}>
+              {KPIS.map(k=>{
+                const d=k.field?delta(k.field):null;
+                return(
+                  <div key={k.l} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"12px 14px"}}>
+                    <div style={{fontSize:16,marginBottom:4}}>{k.icon}</div>
+                    <div style={{fontSize:20,fontWeight:900,color:k.c,letterSpacing:"-0.5px",lineHeight:1}}>{k.v}</div>
+                    <div style={{fontSize:9,color:"rgba(255,255,255,0.4)",marginTop:3,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.06em"}}>{k.l}</div>
+                    {d!==null&&<div style={{fontSize:9,fontWeight:700,color:d>=0?"#10B981":"#EF4444",marginTop:2}}>{d>=0?"+":""}{d}% vs anterior</div>}
+                  </div>
+                );
+              })}
             </div>
-            <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"16px",marginBottom:12}}>
-              <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>Frequência Semanal</div>
-              <div style={{display:"flex",gap:6,alignItems:"flex-end",height:60}}>
-                {weekSessions.map((n,i)=>(<div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4}}><div style={{width:"100%",height:Math.max(n/maxW*50,n>0?4:0),background:n>0?"linear-gradient(180deg,#3B82F6,#1E40AF)":"rgba(255,255,255,0.05)",borderRadius:"4px 4px 0 0"}}/><div style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>S{i+1}</div></div>))}
+
+            {/* Gráfico comparativo 6 meses */}
+            <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"14px",marginBottom:14}}>
+              <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>Comparativo — últimos 6 meses</div>
+              <div style={{display:"flex",gap:6,marginBottom:12,overflowX:"auto"}}>
+                {CHART_KEYS.map(ck=>(
+                  <button key={ck.k} onClick={()=>setChartKey(ck.k)} style={{padding:"4px 10px",borderRadius:99,flexShrink:0,fontSize:10,fontWeight:700,cursor:"pointer",background:chartKey===ck.k?ck.c+"33":"transparent",border:"1px solid "+(chartKey===ck.k?ck.c:"rgba(255,255,255,0.1)"),color:chartKey===ck.k?ck.c:"rgba(255,255,255,0.4)"}}>{ck.l}</button>
+                ))}
+              </div>
+              <div style={{display:"flex",alignItems:"flex-end",gap:6,height:80}}>
+                {last6.map((d,i)=>{
+                  const val=d[chartKey]||0;
+                  const h=Math.max(val/barMax*68,val>0?4:0);
+                  const isCur=i===5;
+                  return(
+                    <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
+                      {val>0&&<div style={{fontSize:8,color:isCur?activeChart.c:"rgba(255,255,255,0.3)",fontWeight:isCur?700:400,lineHeight:1}}>{val}</div>}
+                      <div style={{width:"100%",height:h,background:isCur?activeChart.c:activeChart.c+"44",borderRadius:"3px 3px 0 0",minHeight:val>0?4:0}}/>
+                      <div style={{fontSize:9,color:isCur?"#fff":"rgba(255,255,255,0.3)",fontWeight:isCur?700:400}}>{d.label}</div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            {totalMVol>1&&<div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"16px",marginBottom:12}}>
-              <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>Distribuição Muscular</div>
-              {Object.entries(muscleVol).sort((a,b)=>b[1]-a[1]).map(([m,v])=>{const col=MUSCLE_COLORS[m]||"#3B82F6";const pct=v/totalMVol;return(<div key={m} style={{marginBottom:8}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:12,color:"#fff",fontWeight:600}}>{m}</span><span style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>{v} séries</span></div><div style={{height:6,background:"rgba(255,255,255,0.05)",borderRadius:99}}><div style={{height:"100%",width:(pct*100)+"%",background:col,borderRadius:99}}/></div></div>);})}
+
+            {/* Calendário do mês */}
+            <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"14px",marginBottom:14}}>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+                <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em"}}>Dias de treino</div>
+                {weekStreak>0&&<div style={{display:"flex",alignItems:"center",gap:4,background:"rgba(239,68,68,0.12)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:99,padding:"3px 8px"}}>
+                  <span style={{fontSize:12}}>🔥</span>
+                  <span style={{fontSize:10,fontWeight:700,color:"#EF4444"}}>{weekStreak} sem. seguidas</span>
+                </div>}
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1,marginBottom:4}}>
+                {["D","S","T","Q","Q","S","S"].map((d,i)=><div key={i} style={{textAlign:"center",fontSize:9,color:"rgba(255,255,255,0.3)",padding:"2px 0"}}>{d}</div>)}
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2}}>
+                {Array.from({length:firstDayOfMonth}).map((_,i)=><div key={"e"+i}/>)}
+                {Array.from({length:daysInMonth},(_,i)=>{
+                  const day=i+1;
+                  const ds=`${selMonth.y}-${String(selMonth.m+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+                  const hasW=workoutDaysSet.has(ds);
+                  const isToday=ds===todayStr;
+                  return(
+                    <div key={day} style={{aspectRatio:"1",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:6,background:hasW?"#3B82F6":isToday?"rgba(59,130,246,0.15)":"transparent",border:isToday&&!hasW?"1px solid rgba(59,130,246,0.4)":"none"}}>
+                      <span style={{fontSize:10,fontWeight:hasW?700:400,color:hasW?"#fff":isToday?"#3B82F6":"rgba(255,255,255,0.3)"}}>{day}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Distribuição muscular */}
+            {Object.keys(muscleVol).length>0&&<div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"14px",marginBottom:14}}>
+              <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>Distribuição muscular</div>
+              {Object.entries(muscleVol).sort((a,b)=>b[1]-a[1]).map(([m,v])=>{
+                const col=MUSCLE_COLORS[m]||"#3B82F6";
+                return(
+                  <div key={m} style={{marginBottom:8}}>
+                    <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
+                      <span style={{fontSize:12,color:"#fff",fontWeight:600}}>{m}</span>
+                      <span style={{fontSize:12,color:"rgba(255,255,255,0.4)"}}>{v} séries</span>
+                    </div>
+                    <div style={{height:6,background:"rgba(255,255,255,0.05)",borderRadius:99}}>
+                      <div style={{height:"100%",width:(v/maxMuscleVol*100)+"%",background:col,borderRadius:99}}/>
+                    </div>
+                  </div>
+                );
+              })}
             </div>}
-            {topEx.length>0&&<div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"16px",marginBottom:12}}>
-              <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>Top Exercícios</div>
-              {topEx.map(([ex,count],i)=>{const col=GC[EX_GROUP[ex]]||"#3B82F6";return(<div key={ex} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 0",borderBottom:i<topEx.length-1?"1px solid rgba(255,255,255,0.05)":"none"}}><div style={{width:28,height:28,borderRadius:8,background:col+"22",border:"1px solid "+col+"44",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><span style={{fontSize:11,fontWeight:900,color:col}}>{i+1}</span></div><div style={{flex:1,fontSize:13,fontWeight:600,color:"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ex}</div><div style={{fontSize:14,fontWeight:700,color:col,flexShrink:0}}>{count}×</div></div>);})}
+
+            {/* Top exercícios */}
+            {topEx.length>0&&<div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"14px",marginBottom:14}}>
+              <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:12}}>Principais exercícios</div>
+              {topExVisible.map(([ex,count],i)=>{
+                const col=GC[EX_GROUP[ex]]||"#3B82F6";
+                const maxCount=topEx[0][1];
+                return(
+                  <div key={ex} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:i<topExVisible.length-1?"1px solid rgba(255,255,255,0.05)":"none"}}>
+                    <div style={{width:24,height:24,borderRadius:6,background:col+"22",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                      <span style={{fontSize:10,fontWeight:900,color:col}}>{i+1}</span>
+                    </div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontSize:12,fontWeight:600,color:"#fff",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginBottom:3}}>{ex}</div>
+                      <div style={{height:3,background:"rgba(255,255,255,0.05)",borderRadius:99}}>
+                        <div style={{height:"100%",width:(count/maxCount*100)+"%",background:col,borderRadius:99}}/>
+                      </div>
+                    </div>
+                    <div style={{fontSize:13,fontWeight:700,color:col,flexShrink:0}}>{count}×</div>
+                  </div>
+                );
+              })}
+              {topEx.length>5&&<button onClick={()=>setShowAllEx(v=>!v)} style={{width:"100%",marginTop:10,padding:"8px",background:"none",border:"none",color:"rgba(255,255,255,0.4)",fontSize:12,cursor:"pointer",textAlign:"center"}}>
+                {showAllEx?"Mostrar menos ▲":`Ver mais ${topEx.length-5} ▼`}
+              </button>}
             </div>}
-            <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>Sessões</div>
-            {monthSessions.map((s,i)=>(<div key={i} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"12px 14px",marginBottom:8}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}><div style={{fontSize:13,fontWeight:700,color:"#fff"}}>{s.name||"Treino"}</div><div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>{new Date(s.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</div></div><div style={{display:"flex",gap:14}}><span style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>{s.duration}min</span><span style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>{(s.totalVol||0).toFixed(1)}t</span><span style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>{s.totalSets} séries</span>{s.prs>0&&<span style={{fontSize:11,color:"#F59E0B",fontWeight:700}}>{s.prs} PR{s.prs>1?"s":""}</span>}</div></div>))}
+
+            {/* Sessões do mês */}
+            <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>Sessões do mês</div>
+            {monthSessions.map((s,i)=>(
+              <div key={i} style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:12,padding:"12px 14px",marginBottom:8}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                  <div style={{fontSize:13,fontWeight:700,color:"#fff"}}>{s.name||"Treino"}</div>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>{new Date(s.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"})}</div>
+                </div>
+                <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+                  <span style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>{s.duration}min</span>
+                  <span style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>{(s.totalVol||0).toFixed(1)}t</span>
+                  <span style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>{s.totalSets} séries</span>
+                  {s.prs>0&&<span style={{fontSize:11,color:"#F59E0B",fontWeight:700}}>🏆 {s.prs} PR{s.prs>1?"s":""}</span>}
+                </div>
+              </div>
+            ))}
           </>
         }
       </div>
     </div>
   );
 }
+
 
 // ══════════════════════════════════════════════════════════════
 // VOLUME DETAIL SCREEN
