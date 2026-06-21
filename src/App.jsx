@@ -22,10 +22,17 @@ const GC = {
 };
 
 // Carbon geometric logo — wireframe stone SVG
-function CarbonLogo({size=32,color="#3B82F6",strokeWidth=1.2}){
+function CarbonLogo({size=32,color="#ffffff",strokeWidth=1.5}){
+  // SVG da logo Carbon — pedra geométrica (replicada do splash enviado pelo usuário)
   return(
-    <img src="/carbon-logo.png" alt="Carbon" width={size} height={size}
-      style={{objectFit:"contain",display:"block"}}/>
+    <svg width={size} height={size} viewBox="0 0 200 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polyline points="100,8 170,52 170,148 100,192 30,148 30,52 100,8" stroke={color} strokeWidth={strokeWidth*3} strokeLinejoin="round" fill="none"/>
+      <line x1="100" y1="8" x2="100" y2="192" stroke={color} strokeWidth={strokeWidth*2} opacity="0.6"/>
+      <line x1="30" y1="52" x2="170" y2="148" stroke={color} strokeWidth={strokeWidth*2} opacity="0.6"/>
+      <line x1="170" y1="52" x2="30" y2="148" stroke={color} strokeWidth={strokeWidth*2} opacity="0.6"/>
+      <line x1="30" y1="52" x2="170" y2="52" stroke={color} strokeWidth={strokeWidth*1.5} opacity="0.4"/>
+      <line x1="30" y1="148" x2="170" y2="148" stroke={color} strokeWidth={strokeWidth*1.5} opacity="0.4"/>
+    </svg>
   );
 }
 const EX_GROUP = {
@@ -5078,41 +5085,57 @@ function LoginScreen(){
   return(
     <div style={{
       position:"fixed",inset:0,
-      backgroundImage:"url('/carbon-bg.png')",
-      backgroundSize:"cover",
-      backgroundPosition:"center center",
+      background:"#000000",
       display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-      padding:32,
+      padding:"0 40px",
     }}>
-      {/* Dark overlay — heavier at bottom so form reads clearly */}
-      <div style={{position:"absolute",inset:0,background:"linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.72) 50%, rgba(0,0,0,0.85) 100%)"}}/>
-
-      {/* Content */}
-      <div style={{position:"relative",zIndex:1,width:"100%",maxWidth:340,display:"flex",flexDirection:"column",alignItems:"center"}}>
+      <div style={{width:"100%",maxWidth:340,display:"flex",flexDirection:"column",alignItems:"center"}}>
         {/* Logo */}
-        <div style={{textAlign:"center",marginBottom:44}}>
-          <div style={{display:"flex",justifyContent:"center",marginBottom:18}}>
-            <CarbonLogo size={84} color="rgba(255,255,255,0.9)" strokeWidth={1.3}/>
-          </div>
-          <div style={{fontSize:30,fontWeight:300,color:"#FFFFFF",letterSpacing:"0.42em",textTransform:"uppercase",textShadow:"0 2px 20px rgba(0,0,0,0.8)"}}>Carbon</div>
-          <div style={{fontSize:9,fontWeight:400,color:C.blueXL,letterSpacing:"0.3em",textTransform:"uppercase",marginTop:6,textShadow:"0 2px 12px rgba(0,0,0,0.9)"}}>Você no Shape</div>
+        <div style={{marginBottom:48,display:"flex",flexDirection:"column",alignItems:"center",gap:20}}>
+          <CarbonLogo size={72} color="#ffffff" strokeWidth={1.2}/>
+          <div style={{fontSize:28,fontWeight:300,color:"#FFFFFF",letterSpacing:"0.5em",textTransform:"uppercase"}}>CARBON</div>
         </div>
 
         {/* Form */}
         <form onSubmit={handleLogin} style={{width:"100%"}}>
-          <div style={{marginBottom:12}}>
-            <div style={{fontSize:10,fontWeight:600,color:"rgba(255,255,255,0.45)",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>Email</div>
-            <input type="email" autoCapitalize="none" autoCorrect="off" placeholder="seu@email.com" value={email} onChange={e=>setEmail(e.target.value)} required style={{width:"100%",boxSizing:"border-box",background:"rgba(15,21,32,0.7)",backdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"14px 16px",fontSize:15,color:C.text,outline:"none"}}/>
-          </div>
-          <div style={{marginBottom:24}}>
-            <div style={{fontSize:10,fontWeight:600,color:"rgba(255,255,255,0.45)",letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:8}}>Senha</div>
-            <input type="password" placeholder="••••••••" value={password} onChange={e=>setPassword(e.target.value)} required style={{width:"100%",boxSizing:"border-box",background:"rgba(15,21,32,0.7)",backdropFilter:"blur(12px)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:12,padding:"14px 16px",fontSize:15,color:C.text,outline:"none"}}/>
-          </div>
-          {err&&<div style={{color:C.coral,fontSize:13,marginBottom:16,textAlign:"center"}}>{err}</div>}
-          <button type="submit" disabled={loading} style={{width:"100%",padding:"15px",background:C.grad,border:"none",borderRadius:12,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",opacity:loading?0.6:1,letterSpacing:"0.1em",textTransform:"uppercase"}}>{loading?"Entrando...":"Entrar"}</button>
+          <input
+            type="email" autoCapitalize="none" autoCorrect="off"
+            placeholder="Email"
+            value={email} onChange={e=>setEmail(e.target.value)} required
+            style={{
+              width:"100%",boxSizing:"border-box",
+              background:"transparent",
+              border:"none",borderBottom:"1px solid rgba(255,255,255,0.2)",
+              borderRadius:0,padding:"14px 0",
+              fontSize:15,color:"#fff",outline:"none",marginBottom:20,
+              letterSpacing:"0.02em",
+            }}
+          />
+          <input
+            type="password" placeholder="Senha"
+            value={password} onChange={e=>setPassword(e.target.value)} required
+            style={{
+              width:"100%",boxSizing:"border-box",
+              background:"transparent",
+              border:"none",borderBottom:"1px solid rgba(255,255,255,0.2)",
+              borderRadius:0,padding:"14px 0",
+              fontSize:15,color:"#fff",outline:"none",marginBottom:36,
+              letterSpacing:"0.1em",
+            }}
+          />
+          {err&&<div style={{color:"#EF4444",fontSize:12,marginBottom:16,textAlign:"center",letterSpacing:"0.05em"}}>{err}</div>}
+          <button type="submit" disabled={loading} style={{
+            width:"100%",padding:"16px",
+            background:"transparent",
+            border:"1px solid rgba(255,255,255,0.25)",
+            borderRadius:2,color:"#fff",
+            fontSize:11,fontWeight:500,cursor:"pointer",
+            opacity:loading?0.5:1,
+            letterSpacing:"0.3em",textTransform:"uppercase",
+          }}>{loading?"ENTRANDO...":"ENTRAR"}</button>
         </form>
 
-        <div style={{marginTop:48,fontSize:10,color:"rgba(255,255,255,0.18)",letterSpacing:"0.15em",textTransform:"uppercase"}}>Train. Recover. Evolve.</div>
+        <div style={{marginTop:60,fontSize:9,color:"rgba(255,255,255,0.15)",letterSpacing:"0.3em",textTransform:"uppercase"}}>Train · Recover · Evolve</div>
       </div>
     </div>
   );
@@ -5125,46 +5148,33 @@ function CarbonIntro({onDone}){
 
   useEffect(()=>{
     document.body.classList.add("hide-carbon-header");
-    const t1=setTimeout(()=>setVisible(true),100);
-    const t2=setTimeout(()=>setFading(true),2800);
-    const t3=setTimeout(()=>{document.body.classList.remove("hide-carbon-header");onDone();},3400);
+    const t1=setTimeout(()=>setVisible(true),150);
+    const t2=setTimeout(()=>setFading(true),2600);
+    const t3=setTimeout(()=>{document.body.classList.remove("hide-carbon-header");onDone();},3200);
     return()=>{clearTimeout(t1);clearTimeout(t2);clearTimeout(t3);document.body.classList.remove("hide-carbon-header");};
   },[]);
 
   return(
     <div
-      onClick={()=>{setFading(true);document.body.classList.remove("hide-carbon-header");setTimeout(onDone,600);}}
+      onClick={()=>{setFading(true);document.body.classList.remove("hide-carbon-header");setTimeout(onDone,500);}}
       style={{
         position:"fixed",inset:0,zIndex:9999,
-        backgroundImage:"url('/carbon-bg.png')",
-        backgroundSize:"cover",backgroundPosition:"center top",
+        background:"#000000",
         display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
         cursor:"pointer",
         opacity:fading?0:visible?1:0,
-        transition:fading?"opacity 0.6s ease":"opacity 1.2s ease",
+        transition:fading?"opacity 0.5s ease":"opacity 1s ease",
       }}>
-      {/* Dark overlay so text reads clearly */}
-      <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.38)"}}/>
-      {/* Brand content */}
       <div style={{
-        position:"relative",zIndex:1,
-        display:"flex",flexDirection:"column",alignItems:"center",gap:16,
-        transform:visible?"translateY(0)":"translateY(12px)",
-        transition:"transform 1.4s ease",
+        display:"flex",flexDirection:"column",alignItems:"center",gap:22,
+        transform:visible?"translateY(0)":"translateY(16px)",
+        transition:"transform 1.2s ease",
       }}>
-        <CarbonLogo size={96} color="#ffffff" strokeWidth={1.2}/>
+        <CarbonLogo size={80} color="#ffffff" strokeWidth={1.2}/>
         <div style={{
-          fontSize:34,fontWeight:300,color:"#FFFFFF",
-          letterSpacing:"0.42em",textTransform:"uppercase",
-          textShadow:"0 2px 24px rgba(0,0,0,0.8)",
-          marginTop:4,
-        }}>Carbon</div>
-        <div style={{
-          fontSize:10,fontWeight:400,color:"#3B82F6",
-          letterSpacing:"0.3em",textTransform:"uppercase",
-          textShadow:"0 2px 12px rgba(0,0,0,0.9)",
-          marginTop:-8,
-        }}>Você no Shape</div>
+          fontSize:26,fontWeight:300,color:"#FFFFFF",
+          letterSpacing:"0.5em",textTransform:"uppercase",
+        }}>CARBON</div>
       </div>
     </div>
   );
