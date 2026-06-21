@@ -2896,38 +2896,43 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
           </div>
         </GlassCard>
 
-        {/* Compact muscle map + chart side by side */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
-          <GlassCard style={{padding:"10px",display:"flex",flexDirection:"column",alignItems:"center"}}>
-            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:4,width:"100%"}}>Mapa Muscular</div>
-            <BodyDiagram muscleHeat={muscleHeatProgresso} width={Math.min(130,(window.innerWidth-80)/2)}/>
-          </GlassCard>
-          <GlassCard style={{padding:"10px"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
-              <div>
-                <div style={{fontSize:22,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{mc.fmt(rangeTotal)}<span style={{fontSize:11,color:C.sub,marginLeft:2}}>{mc.unit}</span></div>
-                {rangeDelta!==0&&<div style={{fontSize:10,fontWeight:700,color:rangeDelta>0?C.mint:C.coral}}>{rangeDelta>0?"↑":"↓"}{Math.abs(rangeDelta)}%</div>}
-              </div>
-              <div style={{display:"flex",flexDirection:"column",gap:2}}>
-                {[{k:"1s",l:"1S"},{k:"1m",l:"1M"},{k:"3m",l:"3M"},{k:"all",l:"∞"}].map(r=>(
-                  <button key={r.k} onClick={()=>setChartRange(r.k)} style={{padding:"1px 5px",borderRadius:4,fontSize:8,fontWeight:700,cursor:"pointer",background:chartRange===r.k?mc.color+"33":"transparent",border:"1px solid "+(chartRange===r.k?mc.color+"66":"transparent"),color:chartRange===r.k?mc.color:C.muted}}>{r.l}</button>
-                ))}
-              </div>
+        {/* Muscle map */}
+        <GlassCard style={{padding:"12px",marginBottom:8,display:"flex",flexDirection:"column",alignItems:"center"}}>
+          <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6,width:"100%"}}>Mapa Muscular</div>
+          <BodyDiagram muscleHeat={muscleHeatProgresso} width={Math.min(300,window.innerWidth-64)}/>
+        </GlassCard>
+
+        {/* Chart */}
+        <GlassCard style={{padding:"14px",marginBottom:8}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+            <div>
+              <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{mc.fmt(rangeTotal)}<span style={{fontSize:14,color:C.sub,marginLeft:4}}>{mc.unit}</span></div>
+              {rangeDelta!==0&&<div style={{fontSize:11,fontWeight:700,color:rangeDelta>0?C.mint:C.coral,marginTop:2}}>{rangeDelta>0?"↑":"↓"} {Math.abs(rangeDelta)}% vs anterior</div>}
             </div>
-            <div style={{display:"flex",gap:2,height:70,alignItems:"flex-end",marginBottom:4}}>
-              {rangeData.map((d,i)=>{
-                const pct=d.y/rangeMaxY;
-                const isLast=i===rangeData.length-1;
-                return(<div key={i} style={{flex:1,display:"flex",alignItems:"flex-end",height:"100%"}}><div style={{width:"100%",height:Math.max(pct*66,d.y>0?2:0),background:isLast?mc.color:mc.color+"44",borderRadius:"2px 2px 0 0"}}/></div>);
-              })}
-            </div>
-            <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
-              {Object.entries(modesCfg).map(([k,m])=>(
-                <button key={k} onClick={()=>setChartMode(k)} style={{padding:"3px 6px",borderRadius:99,cursor:"pointer",background:chartMode===k?m.color+"22":"transparent",border:"1px solid "+(chartMode===k?m.color+"55":"transparent"),color:chartMode===k?m.color:C.muted,fontSize:8,fontWeight:chartMode===k?700:500}}>{m.l}</button>
+            <div style={{display:"flex",gap:4}}>
+              {[{k:"1s",l:"1S"},{k:"1m",l:"1M"},{k:"3m",l:"3M"},{k:"all",l:"Tudo"}].map(r=>(
+                <button key={r.k} onClick={()=>setChartRange(r.k)} style={{padding:"4px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:chartRange===r.k?mc.color+"33":"transparent",border:"1px solid "+(chartRange===r.k?mc.color+"66":"rgba(255,255,255,0.08)"),color:chartRange===r.k?mc.color:C.muted}}>{r.l}</button>
               ))}
             </div>
-          </GlassCard>
-        </div>
+          </div>
+          <div style={{display:"flex",gap:3,height:110,alignItems:"flex-end",marginBottom:6}}>
+            {rangeData.map((d,i)=>{
+              const pct=d.y/rangeMaxY;
+              const isLast=i===rangeData.length-1;
+              return(<div key={i} style={{flex:1,display:"flex",alignItems:"flex-end",height:"100%"}}><div style={{width:"100%",height:Math.max(pct*106,d.y>0?3:0),background:isLast?mc.color:mc.color+"44",borderRadius:"3px 3px 0 0",boxShadow:isLast?"0 0 10px "+mc.color+"66":"none"}}/></div>);
+            })}
+          </div>
+          <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
+            {[rangeData[0],rangeData[Math.floor(rangeData.length/2)],rangeData[rangeData.length-1]].map((d,i)=>(
+              <div key={i} style={{fontSize:9,color:C.muted}}>{d?.label}</div>
+            ))}
+          </div>
+          <div style={{display:"flex",gap:6}}>
+            {Object.entries(modesCfg).map(([k,m])=>(
+              <button key={k} onClick={()=>setChartMode(k)} style={{padding:"5px 12px",borderRadius:99,flexShrink:0,cursor:"pointer",background:chartMode===k?m.color+"22":"transparent",border:"1px solid "+(chartMode===k?m.color+"55":"rgba(255,255,255,0.07)"),color:chartMode===k?m.color:C.muted,fontSize:11,fontWeight:chartMode===k?700:500}}>{m.l}</button>
+            ))}
+          </div>
+        </GlassCard>
       </div>
 
       {/* Muscle recovery */}
