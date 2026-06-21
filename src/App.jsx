@@ -3851,23 +3851,6 @@ function CalendarioFullScreen({onNavigate}){
         }}
         style={{flex:1,overflowY:"auto",padding:"0 16px 100px"}}
       >
-        {/* Streak info */}
-        <div style={{display:"flex",gap:8,marginBottom:16,paddingTop:8}}>
-          <div style={{flex:1,background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"10px 14px",display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontSize:18}}>🔥</span>
-            <div>
-              <div style={{fontSize:16,fontWeight:900,color:C.text}}>{(()=>{let s=0;const d=new Date();while(true){const ds=d.toISOString().slice(0,10);if(!workoutDates.has(ds)&&ds!==todayStr)break;if(workoutDates.has(ds))s++;d.setDate(d.getDate()-1);if(s>365)break;}return s;})()}</div>
-              <div style={{fontSize:9,color:C.sub}}>dias seguidos</div>
-            </div>
-          </div>
-          <div style={{flex:1,background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"10px 14px",display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontSize:18}}>🌙</span>
-            <div>
-              <div style={{fontSize:16,fontWeight:900,color:C.text}}>{(()=>{let rest=0;const sorted=[...workoutDates].sort();if(!sorted.length)return 0;const last=new Date(sorted[sorted.length-1]+"T12:00:00");return Math.max(0,Math.round((new Date()-last)/86400000)-1);})()}</div>
-              <div style={{fontSize:9,color:C.sub}}>dias de descanso</div>
-            </div>
-          </div>
-        </div>
         {months.map((monthStart,mi)=>{
           const y=monthStart.getFullYear(),m=monthStart.getMonth();
           const daysInMonth=new Date(y,m+1,0).getDate();
@@ -3996,13 +3979,29 @@ function CalendarioFullScreen({onNavigate}){
             <button onClick={()=>onNavigate("home")} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
             <div style={{fontSize:16,fontWeight:700,color:C.text}}>Calendário</div>
           </div>
-          {/* View selector */}
           <div style={{display:"flex",background:C.card,borderRadius:10,padding:2,border:"1px solid "+C.border}}>
             {[{k:"mes",l:"Mês"},{k:"ano",l:"Ano"},{k:"plurianual",l:"Plurianual"}].map(v=>(
               <button key={v.k} onClick={()=>setView(v.k)} style={{padding:"5px 10px",borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:700,background:view===v.k?"rgba(255,255,255,0.12)":"transparent",color:view===v.k?C.text:C.muted}}>{v.l}</button>
             ))}
           </div>
         </div>
+        {/* Cards de streak — fixos abaixo do header */}
+        {view==="mes"&&<div style={{display:"flex",gap:8,padding:"0 16px 12px"}}>
+          <div style={{flex:1,background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"10px 14px",display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:18}}>🔥</span>
+            <div>
+              <div style={{fontSize:16,fontWeight:900,color:C.text}}>{(()=>{let s=0;const d=new Date();while(true){const ds=d.toISOString().slice(0,10);if(!workoutDates.has(ds)&&ds!==todayStr)break;if(workoutDates.has(ds))s++;d.setDate(d.getDate()-1);if(s>365)break;}return s;})()}</div>
+              <div style={{fontSize:9,color:C.sub}}>dias seguidos</div>
+            </div>
+          </div>
+          <div style={{flex:1,background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"10px 14px",display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:18}}>🌙</span>
+            <div>
+              <div style={{fontSize:16,fontWeight:900,color:C.text}}>{(()=>{const sorted=[...workoutDates].sort();if(!sorted.length)return 0;const last=new Date(sorted[sorted.length-1]+"T12:00:00");return Math.max(0,Math.round((new Date()-last)/86400000)-1);})()}</div>
+              <div style={{fontSize:9,color:C.sub}}>dias de descanso</div>
+            </div>
+          </div>
+        </div>}
       </div>
       {/* Conteúdo scrollável */}
       <div style={{flex:1,overflowY:"auto"}}>
