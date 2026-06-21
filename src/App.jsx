@@ -1458,54 +1458,54 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
   return(
     <div style={{position:"fixed",inset:0,zIndex:700,background:"#080A0E",overflowY:"auto",paddingTop:52}}>
       {/* Header */}
-      <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"14px 16px"}}>
+      <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"10px 16px"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <button onClick={onClose} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
-            <div style={{fontSize:13,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.06em"}}>Rotina</div>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <button onClick={onClose} style={{width:32,height:32,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
+            <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.06em"}}>Rotina</div>
           </div>
-          <button onClick={()=>setShowMenu(true)} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>⋯</button>
+          <button onClick={()=>setShowMenu(true)} style={{width:32,height:32,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>⋯</button>
         </div>
       </div>
 
-      <div style={{padding:"20px 16px 120px"}}>
-        <div style={{fontSize:22,fontWeight:900,color:C.text,letterSpacing:"-0.5px",marginBottom:2}}>{plan.name?plan.name+" — ":""}{(plan.label||"").toUpperCase()}</div>
-        <button onClick={onStart} style={{width:"100%",padding:"14px",background:C.grad,border:"none",borderRadius:14,color:"#fff",fontSize:15,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginTop:16,marginBottom:20}}>
-          <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      <div style={{padding:"12px 16px 100px"}}>
+        <div style={{fontSize:18,fontWeight:900,color:C.text,letterSpacing:"-0.5px",marginBottom:10}}>{plan.name?plan.name+" — ":""}{(plan.label||"").toUpperCase()}</div>
+        <button onClick={onStart} style={{width:"100%",padding:"12px",background:C.grad,border:"none",borderRadius:12,color:"#fff",fontSize:14,fontWeight:800,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,marginBottom:12}}>
+          <svg width="12" height="12" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
           Iniciar Rotina
         </button>
 
-        {chartData.length>0&&<div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:20}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-            <div>
-              <div style={{fontSize:22,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{chartData[chartData.length-1]?.y.toFixed(chartMode==="vol"?1:0)}{chartMode==="vol"?"t":chartMode==="sets"?" séries":" min"}</div>
-              {lastSession&&<div style={{fontSize:10,color:C.blueXL,marginTop:2}}>{new Date(lastSession.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"numeric",month:"short"})}</div>}
+        {chartData.length>0&&<div style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"12px 14px",marginBottom:12}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+            <div style={{display:"flex",alignItems:"baseline",gap:6}}>
+              <div style={{fontSize:18,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{chartData[chartData.length-1]?.y.toFixed(chartMode==="vol"?1:0)}{chartMode==="vol"?"t":chartMode==="sets"?" séries":" min"}</div>
+              {lastSession&&<div style={{fontSize:10,color:C.blueXL}}>{new Date(lastSession.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"numeric",month:"short"})}</div>}
             </div>
-            <div style={{display:"flex",gap:4}}>
+            <div style={{display:"flex",gap:3}}>
               {["1m","3m","1a","all"].map(r=>(
-                <button key={r} onClick={()=>setChartRange(r)} style={{padding:"4px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:chartRange===r?C.blueXL:"none",border:"1px solid "+(chartRange===r?C.blueXL:C.border),color:chartRange===r?"#fff":C.sub}}>{r==="all"?"Tudo":r==="1a"?"Ano":r==="3m"?"3M":"1M"}</button>
+                <button key={r} onClick={()=>setChartRange(r)} style={{padding:"3px 7px",borderRadius:99,fontSize:9,fontWeight:700,cursor:"pointer",background:chartRange===r?C.blueXL:"none",border:"1px solid "+(chartRange===r?C.blueXL:C.border),color:chartRange===r?"#fff":C.sub}}>{r==="all"?"Tudo":r==="1a"?"Ano":r==="3m"?"3M":"1M"}</button>
               ))}
             </div>
           </div>
-          <div style={{display:"flex",gap:5,marginBottom:10}}>
+          <div style={{display:"flex",gap:4,marginBottom:8}}>
             {[{k:"vol",l:"Volume"},{k:"sets",l:"Repetições"},{k:"dur",l:"Duração"}].map(m=>(
-              <button key={m.k} onClick={()=>setChartMode(m.k)} style={{padding:"4px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:chartMode===m.k?C.blueXL:"none",border:"1px solid "+(chartMode===m.k?C.blueXL:C.border),color:chartMode===m.k?"#fff":C.sub}}>{m.l}</button>
+              <button key={m.k} onClick={()=>setChartMode(m.k)} style={{padding:"3px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:chartMode===m.k?C.blueXL:"none",border:"1px solid "+(chartMode===m.k?C.blueXL:C.border),color:chartMode===m.k?"#fff":C.sub}}>{m.l}</button>
             ))}
           </div>
           <div style={{position:"relative"}}>
-            <div style={{position:"absolute",left:0,top:0,bottom:20,width:36,display:"flex",flexDirection:"column",justifyContent:"space-between",pointerEvents:"none"}}>
+            <div style={{position:"absolute",left:0,top:0,bottom:16,width:36,display:"flex",flexDirection:"column",justifyContent:"space-between",pointerEvents:"none"}}>
               {[maxY,Math.round((maxY+minY)/2),minY].map((v,i)=><span key={i} style={{fontSize:8,color:C.muted,lineHeight:1}}>{chartMode==="vol"?v.toFixed(1)+"t":v}{chartMode==="sets"?" s":chartMode==="dur"?"m":""}</span>)}
             </div>
             <div style={{marginLeft:40}}>
-              <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{overflow:"visible"}}>
+              <svg width="100%" height={110} viewBox={`0 0 ${W} 110`} preserveAspectRatio="none" style={{overflow:"visible"}}>
                 <defs><linearGradient id="rg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={C.blueXL} stopOpacity="0.3"/><stop offset="100%" stopColor={C.blueXL} stopOpacity="0"/></linearGradient></defs>
-                {[0,0.5,1].map((f,i)=><line key={i} x1={PAD} y1={PAD+(H-PAD*2)*f} x2={W-PAD} y2={PAD+(H-PAD*2)*f} stroke={C.border} strokeWidth="1" strokeDasharray="4,4"/>)}
-                {chartData.length>1&&<polygon points={[...chartData.map((d,i)=>`${px2(i)},${py2(d.y)}`),`${px2(chartData.length-1)},${H-PAD}`,`${px2(0)},${H-PAD}`].join(" ")} fill="url(#rg2)"/>}
+                {[0,0.5,1].map((f,i)=><line key={i} x1={PAD} y1={PAD+(110-PAD*2)*f} x2={W-PAD} y2={PAD+(110-PAD*2)*f} stroke={C.border} strokeWidth="1" strokeDasharray="4,4"/>)}
+                {chartData.length>1&&<polygon points={[...chartData.map((d,i)=>`${px2(i)},${py2(d.y)}`),`${px2(chartData.length-1)},${110-PAD}`,`${px2(0)},${110-PAD}`].join(" ")} fill="url(#rg2)"/>}
                 <polyline points={chartData.map((d,i)=>`${px2(i)},${py2(d.y)}`).join(" ")} fill="none" stroke={C.blueXL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 {chartData.map((d,i)=>(
                   <g key={i}>
-                    <circle cx={px2(i)} cy={py2(d.y)} r="4" fill={C.blueXL} stroke={C.bg} strokeWidth="2"/>
-                    <text x={px2(i)} y={py2(d.y)-8} textAnchor="middle" fontSize="9" fill={C.sub}>{chartMode==="vol"?d.y.toFixed(1)+"t":d.y}</text>
+                    <circle cx={px2(i)} cy={py2(d.y)} r="3.5" fill={C.blueXL} stroke={C.bg} strokeWidth="2"/>
+                    <text x={px2(i)} y={py2(d.y)-7} textAnchor="middle" fontSize="9" fill={C.sub}>{chartMode==="vol"?d.y.toFixed(1)+"t":d.y}</text>
                   </g>
                 ))}
               </svg>
@@ -1517,7 +1517,7 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
           </div>
         </div>}
 
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
           <div style={{fontSize:13,fontWeight:700,color:C.text}}>Exercícios</div>
           {plan.id&&<button onClick={()=>setEditing(true)} style={{fontSize:12,fontWeight:700,color:C.blueXL,background:"none",border:"none",cursor:"pointer"}}>Editar Rotina</button>}
         </div>
@@ -1526,28 +1526,24 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
           const gc=GC[ex.group]||C.blueL;
           const restMin=ex.rest>=60?Math.floor(ex.rest/60)+"min"+(ex.rest%60>0?" "+ex.rest%60+"s":""):ex.rest+"s";
           return(
-            <div key={i} style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,marginBottom:10,overflow:"hidden"}}>
-              <button onClick={()=>setSelEx(ex.name)} style={{width:"100%",padding:"12px 16px",background:"none",border:"none",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:12}}>
-                <div style={{width:36,height:36,borderRadius:10,background:gc+"18",border:"1px solid "+gc+"33",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                  <div style={{width:8,height:8,borderRadius:"50%",background:gc}}/>
+            <div key={i} style={{background:C.card,border:"1px solid "+C.border,borderRadius:12,marginBottom:8,overflow:"hidden"}}>
+              <button onClick={()=>setSelEx(ex.name)} style={{width:"100%",padding:"10px 14px",background:"none",border:"none",cursor:"pointer",textAlign:"left",display:"flex",alignItems:"center",gap:10}}>
+                <div style={{width:30,height:30,borderRadius:8,background:gc+"18",border:"1px solid "+gc+"33",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                  <div style={{width:7,height:7,borderRadius:"50%",background:gc}}/>
                 </div>
-                <div style={{flex:1}}><div style={{fontSize:14,fontWeight:700,color:gc,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ex.name}</div></div>
-                <svg width="14" height="14" fill="none" stroke={C.muted} strokeWidth="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+                <div style={{flex:1}}><div style={{fontSize:13,fontWeight:700,color:gc,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{ex.name}</div></div>
+                <div style={{fontSize:10,color:C.muted,marginRight:4}}>{ex.rest?restMin:""}</div>
+                <svg width="12" height="12" fill="none" stroke={C.muted} strokeWidth="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
-              <div style={{padding:"0 16px 8px",display:"flex",alignItems:"center",gap:6}}>
-                <svg width="12" height="12" fill="none" stroke={C.blueXL} strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span style={{fontSize:11,color:C.blueXL}}>Descanso: {restMin}</span>
-              </div>
               <div style={{borderTop:"1px solid "+C.border}}>
-                <div style={{display:"grid",gridTemplateColumns:"40px 1fr 1fr 1fr",padding:"6px 16px",borderBottom:"1px solid "+C.border}}>
-                  {["SÉRIE","KG","REPS",""].map((h,i)=><div key={i} style={{fontSize:9,fontWeight:700,color:C.muted,letterSpacing:"0.06em"}}>{h}</div>)}
+                <div style={{display:"grid",gridTemplateColumns:"36px 1fr 1fr",padding:"5px 14px",borderBottom:"1px solid "+C.border}}>
+                  {["SÉRIE","KG","REPS"].map((h,i)=><div key={i} style={{fontSize:9,fontWeight:700,color:C.muted,letterSpacing:"0.06em"}}>{h}</div>)}
                 </div>
                 {(ex.sets||[]).map((s,si)=>(
-                  <div key={si} style={{display:"grid",gridTemplateColumns:"40px 1fr 1fr 1fr",padding:"8px 16px",borderBottom:si<ex.sets.length-1?"1px solid "+C.border+"44":"none",alignItems:"center"}}>
-                    <div style={{fontSize:13,fontWeight:700,color:C.sub}}>{si+1}</div>
-                    <div style={{fontSize:13,color:C.text,fontWeight:600}}>{s.w>0?s.w:"—"}</div>
-                    <div style={{fontSize:13,color:C.text,fontWeight:600}}>{s.r}</div>
-                    <div/>
+                  <div key={si} style={{display:"grid",gridTemplateColumns:"36px 1fr 1fr",padding:"6px 14px",borderBottom:si<ex.sets.length-1?"1px solid "+C.border+"44":"none",alignItems:"center"}}>
+                    <div style={{fontSize:12,fontWeight:700,color:C.sub}}>{si+1}</div>
+                    <div style={{fontSize:12,color:C.text,fontWeight:600}}>{s.w>0?s.w:"—"}</div>
+                    <div style={{fontSize:12,color:C.text,fontWeight:600}}>{s.r}</div>
                   </div>
                 ))}
               </div>
