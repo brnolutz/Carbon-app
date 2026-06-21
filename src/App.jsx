@@ -23,16 +23,9 @@ const GC = {
 
 // Carbon geometric logo — wireframe stone SVG
 function CarbonLogo({size=32,color="#ffffff",strokeWidth=1.5}){
-  // SVG da logo Carbon — pedra geométrica (replicada do splash enviado pelo usuário)
   return(
-    <svg width={size} height={size} viewBox="0 0 200 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <polyline points="100,8 170,52 170,148 100,192 30,148 30,52 100,8" stroke={color} strokeWidth={strokeWidth*3} strokeLinejoin="round" fill="none"/>
-      <line x1="100" y1="8" x2="100" y2="192" stroke={color} strokeWidth={strokeWidth*2} opacity="0.6"/>
-      <line x1="30" y1="52" x2="170" y2="148" stroke={color} strokeWidth={strokeWidth*2} opacity="0.6"/>
-      <line x1="170" y1="52" x2="30" y2="148" stroke={color} strokeWidth={strokeWidth*2} opacity="0.6"/>
-      <line x1="30" y1="52" x2="170" y2="52" stroke={color} strokeWidth={strokeWidth*1.5} opacity="0.4"/>
-      <line x1="30" y1="148" x2="170" y2="148" stroke={color} strokeWidth={strokeWidth*1.5} opacity="0.4"/>
-    </svg>
+    <img src="/carbon-logo-new.png" alt="Carbon" width={size} height={size}
+      style={{objectFit:"contain",display:"block"}}/>
   );
 }
 const EX_GROUP = {
@@ -5091,9 +5084,8 @@ function LoginScreen(){
     }}>
       <div style={{width:"100%",maxWidth:340,display:"flex",flexDirection:"column",alignItems:"center"}}>
         {/* Logo */}
-        <div style={{marginBottom:48,display:"flex",flexDirection:"column",alignItems:"center",gap:20}}>
-          <CarbonLogo size={72} color="#ffffff" strokeWidth={1.2}/>
-          <div style={{fontSize:28,fontWeight:300,color:"#FFFFFF",letterSpacing:"0.5em",textTransform:"uppercase"}}>CARBON</div>
+        <div style={{marginBottom:52,display:"flex",flexDirection:"column",alignItems:"center"}}>
+          <img src="/carbon-splash.png" alt="Carbon" style={{width:200,objectFit:"contain"}}/>
         </div>
 
         {/* Form */}
@@ -5170,11 +5162,11 @@ function CarbonIntro({onDone}){
         transform:visible?"translateY(0)":"translateY(16px)",
         transition:"transform 1.2s ease",
       }}>
-        <CarbonLogo size={80} color="#ffffff" strokeWidth={1.2}/>
-        <div style={{
-          fontSize:26,fontWeight:300,color:"#FFFFFF",
-          letterSpacing:"0.5em",textTransform:"uppercase",
-        }}>CARBON</div>
+        <img
+          src="/carbon-splash.png"
+          alt="Carbon"
+          style={{width:220,objectFit:"contain"}}
+        />
       </div>
     </div>
   );
