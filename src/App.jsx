@@ -3131,13 +3131,370 @@ function BodyDiagram({muscleHeat,width=320}){
 }
 
 
-function CorpoScreen({onNavigate,autoMeasure=false}){
+// ══════════════════════════════════════════════════════════════
+// MEDIÇÕES SCREEN — track body measurements over time
+// ══════════════════════════════════════════════════════════════
+function MedicoesScreen({onNavigate}){
+  const ALL_FIELDS=["Peso","Braço D","Braço E","Peito","Cintura","Coxa D","Panturrilha D"];
+  const[sel,setSel]=useState("Peso");
+  const[range,setRange]=useState("3m");
+  const[showAdd,setShowAdd]=useState(false);
+  const[draft,setDraft]=useState({});
+  const[history,setHistory]=useState(loadMeasureHistory);
+
+  useEffect(()=>{
+    document.body.classList.add("hide-carbon-header");
+    return()=>document.body.classList.remove("hide-carbon-header");
+  },[]);
+
+  // Build chart data for selected field
+  const fieldData=history
+    .filter(h=>h[sel]!=null)
+    .map(h=>({date:h.date,v:parseFloat(h[sel])}))
+    .sort((a,b)=>a.date.localeCompare(b.date));
+
+  const nPts={all:fieldData.length,"1a":24,"3m":12,"1m":6}[range]||12;
+  const chartPts=fieldData.slice(-nPts);
+  const maxY=Math.max(...chartPts.map(d=>d.v),0.01);
+  const minY=Math.min(...chartPts.map(d=>d.v),0);
+  const W=400,H=160,PAD=10;
+  const px=(i)=>chartPts.length>1?i*(W-PAD*2)/(chartPts.length-1)+PAD:W/2;
+  const py=(v)=>H-PAD-((v-minY)/(maxY-minY||1))*(H-PAD*2);
+  const last=chartPts[chartPts.length-1];
+  const prev=chartPts[chartPts.length-2];
+  const delta=prev&&prev.v>0?+(last?.v-prev.v).toFixed(2):null;
+
+  async function saveEntry(){
+    const today=new Date().toISOString().slice(0,10);
+    const newFields={};
+    ALL_FIELDS.forEach(f=>{if(draft[f]&&!isNaN(parseFloat(draft[f])))newFields[f]=parseFloat(draft[f]);});
+    if(!Object.keys(newFields).length)return;
+    const existing=history.findIndex(h=>h.date===today);
+    let newH=[...history];
+    if(existing>=0) newH[existing]={...newH[existing],...newFields,date:today};
+    else newH=[...newH,{date:today,...newFields}];
+    newH=newH.sort((a,b)=>a.date.localeCompare(b.date));
+    setHistory(newH);
+    await saveMeasureHistory(newH);
+    setDraft({});
+    setShowAdd(false);
+  }
+
+  const gc=C.blueXL;
+
+  return(
+    <div style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0,overflowY:"auto",paddingBottom:120}}>
+      {/* Header */}
+      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
+        <div style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <button onClick={()=>onNavigate("home")} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+            <div style={{fontSize:20,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Medições</div>
+          </div>
+          <button onClick={()=>setShowAdd(true)} style={{width:34,height:34,borderRadius:"50%",background:C.blueXL,border:"none",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>+</button>
+        </div>
+      </div>
+
+      <div style={{padding:"16px 16px 0"}}>
+        {/* Last value + date */}
+        {last&&<div style={{marginBottom:12}}>
+          <div style={{fontSize:32,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{last.v}<span style={{fontSize:14,color:C.sub,marginLeft:4}}>{sel==="Peso"?"kg":"cm"}</span></div>
+          <div style={{display:"flex",alignItems:"center",gap:8,marginTop:2}}>
+            <div style={{fontSize:11,color:C.blueXL}}>{new Date(last.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"numeric",month:"short"})}</div>
+            {delta!==null&&<div style={{fontSize:11,fontWeight:700,color:delta<=0?C.mint:C.coral}}>{delta>0?"+":""}{delta}{sel==="Peso"?"kg":"cm"}</div>}
+            <div style={{marginLeft:"auto",display:"flex",gap:4}}>
+              {["1m","3m","1a","all"].map(r=>(
+                <button key={r} onClick={()=>setRange(r)} style={{padding:"3px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:range===r?C.blueXL:"transparent",border:"1px solid "+(range===r?C.blueXL:C.border),color:range===r?"#fff":C.sub}}>{r==="all"?"Tudo":r==="1a"?"1 ano":r==="3m"?"3 meses":"1 mês"}</button>
+              ))}
+            </div>
+          </div>
+        </div>}
+
+        {/* Chart */}
+        {chartPts.length>1&&<div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:16}}>
+          <div style={{position:"relative"}}>
+            <div style={{position:"absolute",left:0,top:0,bottom:20,width:40,display:"flex",flexDirection:"column",justifyContent:"space-between",pointerEvents:"none"}}>
+              {[maxY,Math.round((maxY+minY)/2*10)/10,minY].map((v,i)=><span key={i} style={{fontSize:8,color:C.muted}}>{v}{sel==="Peso"?"kg":"cm"}</span>)}
+            </div>
+            <div style={{marginLeft:44}}>
+              <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{overflow:"visible"}}>
+                <defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={gc} stopOpacity="0.3"/><stop offset="100%" stopColor={gc} stopOpacity="0"/></linearGradient></defs>
+                {[0,0.5,1].map((f,i)=><line key={i} x1={PAD} y1={PAD+(H-PAD*2)*f} x2={W-PAD} y2={PAD+(H-PAD*2)*f} stroke={C.border} strokeWidth="1" strokeDasharray="4,4"/>)}
+                {<polygon points={[...chartPts.map((d,i)=>`${px(i)},${py(d.v)}`),`${px(chartPts.length-1)},${H-PAD}`,`${px(0)},${H-PAD}`].join(" ")} fill="url(#mg)"/>}
+                <polyline points={chartPts.map((d,i)=>`${px(i)},${py(d.v)}`).join(" ")} fill="none" stroke={gc} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                {chartPts.map((d,i)=><circle key={i} cx={px(i)} cy={py(d.v)} r="3.5" fill={gc} stroke={C.bg} strokeWidth="2"/>)}
+              </svg>
+              <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
+                <span style={{fontSize:9,color:C.muted}}>{new Date(chartPts[0].date+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})}</span>
+                <span style={{fontSize:9,color:C.muted}}>{new Date(chartPts[chartPts.length-1].date+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})}</span>
+              </div>
+            </div>
+          </div>
+        </div>}
+
+        {/* Field selector */}
+        <div style={{display:"flex",gap:6,overflowX:"auto",marginBottom:16,paddingBottom:4}}>
+          {ALL_FIELDS.map(f=>(
+            <button key={f} onClick={()=>setSel(f)} style={{padding:"6px 14px",borderRadius:99,flexShrink:0,cursor:"pointer",background:sel===f?C.blueXL+"33":"transparent",border:"1px solid "+(sel===f?C.blueXL:C.border),color:sel===f?C.blueXL:C.sub,fontSize:12,fontWeight:sel===f?700:500,whiteSpace:"nowrap"}}>{f}</button>
+          ))}
+        </div>
+
+        {/* History list */}
+        <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Histórico de {sel}</div>
+        {[...fieldData].reverse().map((d,i)=>(
+          <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 0",borderBottom:"1px solid "+C.border+"44"}}>
+            <div style={{fontSize:14,color:C.sub}}>{new Date(d.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"numeric",month:"short"})}</div>
+            <div style={{fontSize:16,fontWeight:700,color:C.text}}>{d.v}{sel==="Peso"?"kg":"cm"}</div>
+          </div>
+        ))}
+        {fieldData.length===0&&<div style={{textAlign:"center",padding:32,color:C.muted,fontSize:13}}>Nenhum dado para {sel}</div>}
+      </div>
+
+      {/* Add modal */}
+      {showAdd&&(
+        <div style={{position:"fixed",inset:0,zIndex:900,background:"rgba(0,0,0,0.75)",backdropFilter:"blur(8px)",display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:"20px 20px 0 0",padding:"24px 20px calc(40px + env(safe-area-inset-bottom,0px))",width:"100%",maxWidth:500}}>
+            <div style={{fontSize:16,fontWeight:800,color:C.text,marginBottom:4}}>Atualizar Medições</div>
+            <div style={{fontSize:11,color:C.sub,marginBottom:16}}>Deixe em branco para não alterar</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
+              {ALL_FIELDS.map(f=>(
+                <div key={f}>
+                  <div style={{fontSize:10,color:C.sub,fontWeight:600,marginBottom:4}}>{f.toUpperCase()} ({f==="Peso"?"kg":"cm"})</div>
+                  <input value={draft[f]||""} onChange={e=>setDraft(d=>({...d,[f]:e.target.value}))} type="number" step="0.1" placeholder="—" style={{width:"100%",boxSizing:"border-box",background:C.surface,border:"1px solid "+C.border,borderRadius:10,padding:"10px 12px",fontSize:16,fontWeight:700,color:C.text,outline:"none"}}/>
+                </div>
+              ))}
+            </div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>{setShowAdd(false);setDraft({});}} style={{flex:1,padding:"13px",borderRadius:12,background:C.surface,border:"1px solid "+C.border,color:C.sub,fontWeight:700,cursor:"pointer",fontSize:13}}>Cancelar</button>
+              <button onClick={saveEntry} style={{flex:1,padding:"13px",borderRadius:12,background:C.grad,border:"none",color:"#fff",fontWeight:800,cursor:"pointer",fontSize:13}}>Salvar</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+// CALENDÁRIO FULL SCREEN — 3 views: Mês, Ano, Plurianual
+// ══════════════════════════════════════════════════════════════
+function CalendarioFullScreen({onNavigate}){
+  const[view,setView]=useState("mes");
+  const[selDetail,setSelDetail]=useState(null);
+  const workoutDates=useMemo(()=>{const s=new Set();getAllSessions().forEach(f=>{if(f.date)s.add(f.date);});return s;},[]);
+  const todayStr=new Date().toISOString().slice(0,10);
+  const allSessions=getAllSessions();
+
+  useEffect(()=>{
+    document.body.classList.add("hide-carbon-header");
+    return()=>document.body.classList.remove("hide-carbon-header");
+  },[]);
+
+  // Session detail overlay
+  if(selDetail){
+    const daySessions=allSessions.filter(s=>s.date===selDetail);
+    return(
+      <div style={{position:"fixed",inset:0,zIndex:900,background:"#080A0E",overflowY:"auto",paddingTop:52}}>
+        <div style={{padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
+          <button onClick={()=>setSelDetail(null)} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+          <div style={{fontSize:16,fontWeight:700,color:C.text}}>{new Date(selDetail+"T12:00:00").toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"})}</div>
+        </div>
+        <div style={{padding:"0 16px 80px"}}>
+          {daySessions.length===0?<div style={{textAlign:"center",padding:40,color:C.muted}}>Sem treino neste dia</div>:
+          daySessions.map((s,i)=>(
+            <div key={i} style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"14px 16px",marginBottom:10}}>
+              <div style={{fontSize:15,fontWeight:800,color:C.text,marginBottom:6}}>{s.name||"Treino"}</div>
+              <div style={{display:"flex",gap:12,marginBottom:8}}>
+                <span style={{fontSize:12,color:C.sub}}>{s.duration?s.duration+"min":"—"}</span>
+                <span style={{fontSize:12,color:C.sub}}>{s.totalVol?.toFixed(1)}t</span>
+                <span style={{fontSize:12,color:C.sub}}>{s.totalSets} séries</span>
+              </div>
+              {s.exercises?.map((ex,j)=><div key={j} style={{fontSize:12,color:C.muted,paddingVertical:2}}>{ex.name} · {ex.sets} séries</div>)}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // MÊS view — scrollable months
+  const renderMes=()=>{
+    const months=[];
+    const now=new Date();
+    for(let m=0;m<12;m++){
+      const d=new Date(now.getFullYear(),now.getMonth()-11+m,1);
+      months.push(d);
+    }
+    return(
+      <div style={{padding:"0 16px 100px"}}>
+        {/* Streak info */}
+        <div style={{display:"flex",gap:8,marginBottom:16}}>
+          <div style={{flex:1,background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"10px 14px",display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:18}}>🔥</span>
+            <div>
+              <div style={{fontSize:16,fontWeight:900,color:C.text}}>{(()=>{let s=0;const d=new Date();while(true){const ds=d.toISOString().slice(0,10);if(!workoutDates.has(ds)&&ds!==todayStr)break;if(workoutDates.has(ds))s++;d.setDate(d.getDate()-1);if(s>365)break;}return s;})()}</div>
+              <div style={{fontSize:9,color:C.sub}}>dias seguidos</div>
+            </div>
+          </div>
+          <div style={{flex:1,background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"10px 14px",display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:18}}>🌙</span>
+            <div>
+              <div style={{fontSize:16,fontWeight:900,color:C.text}}>{(()=>{let rest=0;const sorted=[...workoutDates].sort();if(!sorted.length)return 0;const last=new Date(sorted[sorted.length-1]+"T12:00:00");return Math.max(0,Math.round((new Date()-last)/86400000)-1);})()}</div>
+              <div style={{fontSize:9,color:C.sub}}>dias de descanso</div>
+            </div>
+          </div>
+        </div>
+        {months.map((monthStart,mi)=>{
+          const y=monthStart.getFullYear(),m=monthStart.getMonth();
+          const daysInMonth=new Date(y,m+1,0).getDate();
+          const firstDay=monthStart.getDay();
+          const cells=[];
+          for(let i=0;i<firstDay;i++) cells.push(null);
+          for(let d=1;d<=daysInMonth;d++) cells.push(d);
+          const monthLabel=monthStart.toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
+          const monthSessions=allSessions.filter(s=>{
+            if(!s.date) return false;
+            const sd=new Date(s.date+"T12:00:00");
+            return sd.getFullYear()===y&&sd.getMonth()===m;
+          });
+          return(
+            <div key={mi} style={{marginBottom:24}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                <div style={{fontSize:16,fontWeight:800,color:C.text,textTransform:"capitalize"}}>{monthLabel}</div>
+                <div style={{fontSize:11,color:C.sub}}>{monthSessions.length} treinos</div>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1,marginBottom:4}}>
+                {["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"].map(d=><div key={d} style={{textAlign:"center",fontSize:9,color:C.muted,padding:"3px 0"}}>{d}</div>)}
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2}}>
+                {cells.map((d,i)=>{
+                  if(!d) return <div key={i}/>;
+                  const ds=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+                  const isToday=ds===todayStr;
+                  const hasW=workoutDates.has(ds);
+                  const daySess=allSessions.filter(s=>s.date===ds);
+                  return(
+                    <div key={i} onClick={()=>hasW&&setSelDetail(ds)} style={{aspectRatio:"1",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",borderRadius:8,background:hasW?"rgba(59,130,246,0.2)":isToday?"rgba(59,130,246,0.1)":"rgba(255,255,255,0.02)",border:"1px solid "+(hasW?"rgba(59,130,246,0.5)":isToday?"rgba(59,130,246,0.3)":"transparent"),cursor:hasW?"pointer":"default"}}>
+                      <span style={{fontSize:11,fontWeight:hasW||isToday?700:400,color:hasW?C.blueXL:isToday?C.blueXL:C.muted}}>{d}</span>
+                      {hasW&&daySess[0]&&<span style={{fontSize:7,color:C.blueXL,lineHeight:1,textAlign:"center",overflow:"hidden",maxWidth:"100%",padding:"0 1px"}}>{daySess[0].name?.split("—")[1]?.trim().slice(0,4)||""}</span>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // ANO view — mini month grids
+  const renderAno=()=>{
+    const now=new Date();
+    const y=now.getFullYear();
+    const months=Array.from({length:12},(_,m)=>m);
+    return(
+      <div style={{padding:"0 16px 100px"}}>
+        <div style={{fontSize:22,fontWeight:900,color:C.text,marginBottom:16}}>{y}</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+          {months.map(m=>{
+            const daysInMonth=new Date(y,m+1,0).getDate();
+            const firstDay=new Date(y,m,1).getDay();
+            const cells=[];
+            for(let i=0;i<firstDay;i++) cells.push(null);
+            for(let d=1;d<=daysInMonth;d++) cells.push(d);
+            const mLabel=new Date(y,m,1).toLocaleDateString("pt-BR",{month:"short"});
+            return(
+              <div key={m}>
+                <div style={{fontSize:11,fontWeight:700,color:C.sub,marginBottom:4,textTransform:"capitalize"}}>{mLabel}</div>
+                <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1}}>
+                  {cells.map((d,i)=>{
+                    if(!d) return <div key={i} style={{aspectRatio:"1"}}/>;
+                    const ds=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+                    const hasW=workoutDates.has(ds);
+                    const isToday=ds===todayStr;
+                    return <div key={i} style={{aspectRatio:"1",borderRadius:2,background:hasW?"#3B82F6":isToday?"#1E40AF":"rgba(255,255,255,0.06)"}}/>;
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  // PLURIANUAL view — GitHub-style heatmap
+  const renderPlurianual=()=>{
+    const now=new Date();
+    const years=[now.getFullYear()-1,now.getFullYear()];
+    return(
+      <div style={{padding:"0 16px 100px"}}>
+        {years.map(y=>{
+          const months=Array.from({length:12},(_,m)=>m);
+          return(
+            <div key={y} style={{marginBottom:24}}>
+              <div style={{fontSize:16,fontWeight:800,color:C.text,marginBottom:8}}>{y}</div>
+              <div style={{display:"flex",gap:2,alignItems:"flex-start"}}>
+                <div style={{display:"flex",flexDirection:"column",gap:1,marginRight:4}}>
+                  {["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"].map((m,i)=>(
+                    <div key={i} style={{fontSize:8,color:C.muted,height:10,display:"flex",alignItems:"center"}}>{m}</div>
+                  ))}
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1}}>
+                    {months.map(m=>{
+                      const daysInMonth=new Date(y,m+1,0).getDate();
+                      return Array.from({length:daysInMonth},(_,di)=>{
+                        const d=di+1;
+                        const ds=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+                        const hasW=workoutDates.has(ds);
+                        const isToday=ds===todayStr;
+                        return <div key={ds} style={{aspectRatio:"1",borderRadius:1,background:hasW?"#3B82F6":isToday?"#1E3A8A":"rgba(255,255,255,0.05)"}}/>;
+                      });
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  return(
+    <div style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0,overflowY:"auto"}}>
+      {/* Header */}
+      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
+        <div style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{display:"flex",alignItems:"center",gap:12}}>
+            <button onClick={()=>onNavigate("home")} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+            <div style={{fontSize:16,fontWeight:700,color:C.text}}>Calendário</div>
+          </div>
+          {/* View selector */}
+          <div style={{display:"flex",background:C.card,borderRadius:10,padding:2,border:"1px solid "+C.border}}>
+            {[{k:"mes",l:"Mês"},{k:"ano",l:"Ano"},{k:"plurianual",l:"Plurianual"}].map(v=>(
+              <button key={v.k} onClick={()=>setView(v.k)} style={{padding:"5px 10px",borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:700,background:view===v.k?"rgba(255,255,255,0.12)":"transparent",color:view===v.k?C.text:C.muted}}>{v.l}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+      {view==="mes"&&renderMes()}
+      {view==="ano"&&renderAno()}
+      {view==="plurianual"&&renderPlurianual()}
+    </div>
+  );
+}
+
+
   const MEASURE_FIELDS=["Braço D","Braço E","Peito","Cintura","Coxa D","Panturrilha D"];
   const MUSCLE_GROUPS_ALL=["Peito","Costas","Pernas","Ombros","Braços","Core","Glúteos","Panturrilha"];
   const EX_MAP_VOL={"Peito":["Supino","Crucifixo","Peitoral","Inclinado","Declinado"],"Costas":["Terra","Remada","Puxada","Barra Fixa","Pull"],"Pernas":["Agachamento","Leg Press","Cadeira","Mesa Flexora","Afundo"],"Ombros":["Desenvolvimento","Elevação Lateral","Aberturas","Arnold","Ombro"],"Braços":["Rosca","Tríceps","Coice","Martelo","Scott","Concentrada","Extensão"],"Core":["Abdominal","Core","Prancha","Elevação De Pernas"],"Glúteos":["Agachamento","Afundo","Romeno","Leg Press","Hip Thrust","Glúteo"],"Panturrilha":["Panturrilha","Elevação de Panturrilha","Calf"]};
 
   // ── states (all hooks before any return) ──
   const[period,setPeriod]=useState("Semana");
+  const[distPeriod,setDistPeriod]=useState("1m");
   const[weightGoal,setWeightGoal]=useState(loadWeightGoal);
   const[editingGoal,setEditingGoal]=useState(false);
   const[goalDraft,setGoalDraft]=useState("");
@@ -3249,19 +3606,13 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
         {/* ── DISTRIBUIÇÃO MUSCULAR + STATS ── */}
         {(()=>{
           const periods=[{k:"1m",l:"Este mês",days:30},{k:"3m",l:"3 meses",days:90},{k:"1a",l:"Ano",days:365},{k:"all",l:"Tudo",days:9999}];
-          const[distPeriod,setDistPeriod]=useState("1m");
           const cfg=periods.find(p=>p.k===distPeriod)||periods[0];
           const cutoff=cfg.days<9999?new Date(Date.now()-cfg.days*86400000).toISOString().slice(0,10):"2000-01-01";
           const prevCutoff=cfg.days<9999?new Date(Date.now()-cfg.days*2*86400000).toISOString().slice(0,10):"2000-01-01";
           const allS=getAllSessions();
           const curS=allS.filter(s=>s.date>=cutoff);
           const prevS=cfg.days<9999?allS.filter(s=>s.date>=prevCutoff&&s.date<cutoff):[];
-          const stat=(sessions)=>({
-            count:sessions.length,
-            dur:sessions.reduce((a,s)=>a+(s.duration||0),0),
-            vol:sessions.reduce((a,s)=>a+(s.totalVol||0),0),
-            sets:sessions.reduce((a,s)=>a+(s.totalSets||0),0),
-          });
+          const stat=(sessions)=>({count:sessions.length,dur:sessions.reduce((a,s)=>a+(s.duration||0),0),vol:sessions.reduce((a,s)=>a+(s.totalVol||0),0),sets:sessions.reduce((a,s)=>a+(s.totalSets||0),0)});
           const cur=stat(curS),prev=stat(prevS);
           const diff=(a,b)=>b>0?Math.round((a-b)/b*100):null;
           const vbg={};
@@ -3278,12 +3629,7 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
               </div>
               <VolumeSpiderChart volumeByGroup={vbg} size={Math.min(240,window.innerWidth-80)}/>
               <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginTop:10}}>
-                {[
-                  {l:"Treinos",v:cur.count,d:diff(cur.count,prev.count)},
-                  {l:"Duração",v:cur.dur>=60?Math.floor(cur.dur/60)+"h"+(cur.dur%60>0?" "+cur.dur%60+"min":""):cur.dur+"min",d:diff(cur.dur,prev.dur)},
-                  {l:"Volume",v:cur.vol.toFixed(1)+"t",d:diff(cur.vol,prev.vol)},
-                  {l:"Séries",v:cur.sets,d:diff(cur.sets,prev.sets)},
-                ].map(s=>(
+                {[{l:"Treinos",v:cur.count,d:diff(cur.count,prev.count)},{l:"Duração",v:cur.dur>=60?Math.floor(cur.dur/60)+"h"+(cur.dur%60>0?" "+cur.dur%60+"min":""):cur.dur+"min",d:diff(cur.dur,prev.dur)},{l:"Volume",v:cur.vol.toFixed(1)+"t",d:diff(cur.vol,prev.vol)},{l:"Séries",v:cur.sets,d:diff(cur.sets,prev.sets)}].map(s=>(
                   <div key={s.l} style={{background:C.surface,borderRadius:10,padding:"8px 10px",border:"1px solid "+C.border}}>
                     <div style={{fontSize:9,color:C.sub,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:2}}>{s.l}</div>
                     <div style={{fontSize:16,fontWeight:900,color:C.text}}>{s.v}</div>
@@ -3787,10 +4133,10 @@ function ForgeAppInner(){
       {screen==="exercicio"&&<ExercicioScreen name={exName} onNavigate={navigate}/>}
       {screen==="exercicios_browser"&&<ExerciciosBrowserScreen onNavigate={navigate}/>}
       {screen==="historico"&&<HistoricoScreen onNavigate={navigate}/>}
-      {screen==="calendario"&&<ProgressoScreen onNavigate={navigate} savedCount={savedCount} defaultCalendar={true}/>}
+      {screen==="calendario"&&<CalendarioFullScreen onNavigate={navigate}/>}
       {screen==="progresso"&&<ProgressoScreen onNavigate={navigate} savedCount={savedCount}/>}
       {screen==="corpo"&&<CorpoScreen onNavigate={navigate}/>}
-      {screen==="medicoes"&&<CorpoScreen onNavigate={navigate} autoMeasure={true}/>}
+      {screen==="medicoes"&&<MedicoesScreen onNavigate={navigate}/>}
       {screen==="coach"&&<CoachScreen onNavigate={navigate}/>}
       {!["home","treino","exercicio","exercicios_browser","historico","calendario","progresso","corpo","medicoes","coach"].includes(screen)&&<HomeScreen onNavigate={navigate} onStartWorkout={startWorkout}/>}
       {showMiniBar&&<GlobalWorkoutBar workout={activeWorkout} onOpen={openActiveWorkout} onEnd={endWorkout}/>}
