@@ -2754,43 +2754,47 @@ async function fetchExerciseImage(exName){
 }
 
 function ExerciseSlideshow({exName,color}){
-  const[imgUrl,setImgUrl]=useState(null);
-  const[loading,setLoading]=useState(true);
+  const id = EXERCISE_IDS[exName];
   const[paused,setPaused]=useState(false);
-  const[pausedUrl,setPausedUrl]=useState(null);
+  const[loaded,setLoaded]=useState(false);
+  const[error,setError]=useState(false);
 
-  useEffect(()=>{
-    setImgUrl(null);setPausedUrl(null);setLoading(true);setPaused(false);
-    fetchExerciseImage(exName).then(url=>{
-      setImgUrl(url);
-      setLoading(false);
-    });
-  },[exName]);
+  useEffect(()=>{setLoaded(false);setError(false);setPaused(false);},[exName]);
+
+  // URL direta — o GIF é servido com CORS aberto, basta passar os headers como query params
+  // Mas como headers não podem ir em img src, usamos um proxy simples via URL do RapidAPI
+  const gifUrl = id
+    ? `https://exercisedb.p.rapidapi.com/image?exerciseId=${id}&resolution=180&rapidapi-key=${RAPIDAPI_KEY}`
+    : null;
 
   return(
     <div style={{position:"relative",margin:"16px 0",borderRadius:16,overflow:"hidden",background:"#fff",minHeight:220}}>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      {loading&&(
-        <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:220,background:"#fff"}}>
+      {!loaded&&!error&&gifUrl&&(
+        <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"#fff"}}>
           <div style={{width:32,height:32,borderRadius:"50%",border:"3px solid #eee",borderTopColor:color,animation:"spin 0.8s linear infinite"}}/>
         </div>
       )}
-      {!loading&&imgUrl&&(
+      {gifUrl&&!error&&(
         <img
-          key={paused?'paused':'playing'}
-          src={paused?(pausedUrl||imgUrl):imgUrl}
+          src={gifUrl}
           alt={exName}
-          style={{width:"100%",maxHeight:300,objectFit:"contain",display:"block"}}
+          onLoad={()=>setLoaded(true)}
+          onError={()=>{setLoaded(false);setError(true);}}
+          style={{
+            width:"100%",maxHeight:300,objectFit:"contain",display:"block",
+            opacity:loaded?1:0,
+            filter:paused?"blur(1px)":"none",
+          }}
         />
       )}
-      {!loading&&!imgUrl&&(
-        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,padding:40,background:"#f8f8f8"}}>
+      {error&&(
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,padding:40,background:"#f8f8f8",minHeight:220,justifyContent:"center"}}>
           <div style={{fontSize:36}}>🏋️</div>
-          <div style={{fontSize:12,color:"#999"}}>Animação em breve</div>
+          <div style={{fontSize:12,color:"#999"}}>Animação não disponível</div>
         </div>
       )}
-      {/* Botão pause/play */}
-      {!loading&&imgUrl&&(
+      {loaded&&!error&&(
         <button onClick={()=>setPaused(p=>!p)} style={{
           position:"absolute",top:10,right:10,
           width:36,height:36,borderRadius:"50%",
