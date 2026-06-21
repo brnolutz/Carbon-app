@@ -119,6 +119,12 @@ function buildWeekly(sessions){
     weekly[wk].sessions++;
     s.exercises?.forEach(e=>e.setData?.forEach(st=>{weekly[wk].reps+=(st.r||0);}));
   });
+  // Sempre inclui a semana atual mesmo sem treinos
+  const now=new Date();
+  const curDay=now.getDay();
+  const curWkStart=new Date(now);curWkStart.setDate(now.getDate()-curDay);
+  const curWk=curWkStart.toISOString().slice(0,10);
+  if(!weekly[curWk])weekly[curWk]={vol:0,dur:0,reps:0,sets:0,sessions:0};
   Object.keys(weekly).forEach(k=>{
     weekly[k].vol=Math.round((weekly[k].vol||0)*100)/100;
     weekly[k].label=new Date(k+'T12:00:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
