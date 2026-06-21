@@ -471,6 +471,7 @@ function LineChart({data,color,height,showAllPoints,unit,onSelect}){
 
 // ─── WORKOUT DETAIL (shared by Home + Histórico) ─────────────
 function WorkoutDetail({session,onClose}){
+  const[selEx,setSelEx]=useState(null);
   const muscleSets={};
   session.exercises.forEach(ex=>{
     const g=EX_GROUP[ex.name]||"";
@@ -481,7 +482,70 @@ function WorkoutDetail({session,onClose}){
   const muscles=Object.entries(muscleSets).sort((a,b)=>b[1]-a[1]);
   const mColors={"Peito":"#2B4C8C","Costas":"#10B981","Ombros":"#A78BFA","Pernas":"#F59E0B","Braços":"#F472B6","Core":"#22D3EE"};
   const weekday=new Date(session.date+"T12:00:00").toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+
+  if(selEx) return <ExercicioScreen name={selEx} onBack={()=>setSelEx(null)} onNavigate={()=>setSelEx(null)}/>;
+
   return(
+    <div style={{position:"fixed",inset:0,zIndex:600,background:C.bg,overflowY:"auto",paddingTop:52}}>
+      <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"14px 16px 14px"}}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <button onClick={onClose} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+          <div style={{fontSize:16,fontWeight:700,color:C.text}}>Detalhe do Treino</div>
+        </div>
+      </div>
+      <div style={{padding:"12px 16px 80px"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+          <div style={{width:36,height:36,borderRadius:"50%",background:C.grad,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900,color:"#fff",flexShrink:0}}>B</div>
+          <div><div style={{fontSize:13,fontWeight:700,color:C.text}}>Bruno</div><div style={{fontSize:10,color:C.sub}}>{weekday}</div></div>
+        </div>
+        <div style={{fontSize:19,fontWeight:900,color:C.text,marginBottom:10,letterSpacing:"-0.5px"}}>{cleanName(session.name)}</div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:6}}>
+          {[{l:"Tempo",v:session.duration?fmtDur(session.duration):fmtDur(Math.round(session.totalSets*3))},{l:"Volume",v:session.totalVol+"t"},{l:"Séries",v:session.totalSets}].map(s=>(
+            <div key={s.l} style={{background:C.card,border:"1px solid "+C.border,borderRadius:10,padding:"8px 10px"}}>
+              <div style={{fontSize:9,color:C.sub,fontWeight:600,marginBottom:2}}>{s.l}</div>
+              <div style={{fontSize:16,fontWeight:800,color:C.text}}>{s.v}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:14}}>
+          <div style={{background:C.card,border:"1px solid "+C.amber+"33",borderRadius:10,padding:"8px 10px",display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:16}}>🥇</span>
+            <div><div style={{fontSize:9,color:C.sub,fontWeight:600}}>Recordes</div><div style={{fontSize:16,fontWeight:800,color:C.amber}}>{session.prs||0}</div></div>
+          </div>
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:10,padding:"8px 10px",display:"flex",alignItems:"center",gap:8}}>
+            <span style={{fontSize:16}}>🔥</span>
+            <div><div style={{fontSize:9,color:C.sub,fontWeight:600}}>Cal. est.</div><div style={{fontSize:16,fontWeight:800,color:"#60A5FA"}}>~{session.calories!=null?session.calories:Math.round(session.totalSets*18)}</div></div>
+          </div>
+        </div>
+        {muscles.length>0&&<div style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"12px",marginBottom:14}}>
+          <div style={{fontSize:10,fontWeight:700,color:C.sub,marginBottom:10,letterSpacing:"0.06em",textTransform:"uppercase"}}>Divisão Muscular</div>
+          {muscles.map(([label,sets])=>{const pct=Math.round(sets/totalMS*100);const col=mColors[label]||C.blueL;return(<div key={label} style={{marginBottom:8}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:13,fontWeight:600,color:C.text}}>{label}</span><span style={{fontSize:11,fontWeight:700,color:C.sub}}>{pct}%</span></div>
+            <div style={{height:6,background:C.border,borderRadius:3}}><div style={{height:"100%",width:pct+"%",background:col,borderRadius:3}}/></div>
+          </div>);})}
+        </div>}
+        <div style={{fontSize:10,fontWeight:700,color:C.sub,marginBottom:10,letterSpacing:"0.06em",textTransform:"uppercase"}}>Treinamento</div>
+        {session.exercises.map((ex,i)=>{
+          const gc=GC[EX_GROUP[ex.name]]||C.blueL;
+          return(<div key={i} style={{marginBottom:14}}>
+            <button onClick={()=>setSelEx(ex.name)} style={{display:"flex",alignItems:"center",gap:8,marginBottom:6,background:"none",border:"none",cursor:"pointer",padding:0,width:"100%",textAlign:"left"}}>
+              <div style={{width:28,height:28,borderRadius:"50%",background:gc+"22",border:"1px solid "+gc+"44",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><div style={{width:7,height:7,borderRadius:"50%",background:gc}}/></div>
+              <div style={{fontSize:14,fontWeight:800,color:"#93C5FD",flex:1}}>{ex.name}</div>
+              <svg width="12" height="12" fill="none" stroke={C.muted} strokeWidth="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            {ex.setData.map((set,si)=>{
+              const rc=set.rpe?(set.rpe<=7?"#6EE7B7":set.rpe<=8.5?"#93C5FD":"#94A3B8"):null;
+              return(<div key={si} style={{display:"grid",gridTemplateColumns:"30px 1fr",gap:6,padding:"7px 0 7px 36px",borderBottom:"1px solid "+C.border+"22",alignItems:"center"}}>
+                <div style={{fontSize:12,fontWeight:700,color:C.sub}}>{si+1}</div>
+                <div style={{fontSize:13,color:"#CBD5E1"}}>{set.w>0?set.w+"kg":"—"} × {set.r}{set.rpe&&<span style={{color:rc,fontWeight:700}}> @ {set.rpe} rpe</span>}</div>
+              </div>);
+            })}
+          </div>);
+        })}
+      </div>
+    </div>
+  );
+}
     <div style={{position:"fixed",inset:0,zIndex:600,background:C.bg,overflowY:"auto",paddingTop:52}}>
       <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"14px 16px 14px"}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
@@ -645,9 +709,11 @@ function ExerciciosBrowserScreen({onNavigate}){
 // ══════════════════════════════════════════════════════════════
 function HomeScreen({onNavigate,onStartWorkout}){
   const[detail,setDetail]=useState(null);
+  const[selRoutine,setSelRoutine]=useState(null);
   const[chartMode,setChartMode]=useState("vol");
   const[chartRange,setChartRange]=useState("3m");
   const[weightPeriod,setWeightPeriod]=useState("1M");
+  const[feedCount,setFeedCount]=useState(5);
 
   const chartModes=[{k:"vol",l:"Volume",unit:"t",color:C.blueXL},{k:"dur",l:"Duração",unit:"min",color:C.mint},{k:"reps",l:"Repetições",unit:"",color:C.amber},{k:"sets",l:"Séries",unit:"",color:C.coral}];
   const activeMode=chartModes.find(m=>m.k===chartMode)||chartModes[0];
@@ -673,7 +739,16 @@ function HomeScreen({onNavigate,onStartWorkout}){
   const {count:weekWorkouts,vol:weekVolDyn}=getWeekStats();
   const weekProgress=Math.min(weekWorkouts/USER.weekGoal,1);
 
+  // Smart next session: find first routine not done today
+  const todayStr=new Date().toISOString().slice(0,10);
+  const allPlans=loadRoutines().length>0?loadRoutines():PLANS;
+  const todaySessions=getAllSessions().filter(s=>s.date===todayStr);
+  const nextPlan=allPlans.find(p=>!todaySessions.some(s=>s.name&&s.name.toLowerCase().includes((p.label||"").toLowerCase())))||allPlans[0];
+
+  const visibleFeed=FEED.slice(0,feedCount);
+
   if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)}/>;
+  if(selRoutine) return <RoutineScreen plan={selRoutine} onClose={()=>setSelRoutine(null)} onStart={()=>{if(nextPlan){const exs=buildSets(nextPlan);onStartWorkout(nextPlan,exs);onNavigate("treino");}setSelRoutine(null);}} onNavigate={onNavigate} onSaved={()=>{}} onDeleted={()=>setSelRoutine(null)}/>;
 
   return(
     <div style={{background:"#080A0E",minHeight:"100dvh",paddingTop:52}}>
@@ -687,27 +762,22 @@ function HomeScreen({onNavigate,onStartWorkout}){
       <div style={{padding:"14px 16px 120px"}}>
 
         {/* ── Next Session card ── */}
-        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,overflow:"hidden",marginBottom:10}}>
+        {nextPlan&&<div onClick={()=>setSelRoutine(nextPlan)} style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,overflow:"hidden",marginBottom:10,cursor:"pointer"}}>
           <div style={{padding:"14px 20px 12px",borderBottom:"1px solid "+C.border}}>
             <div style={{fontSize:9,fontWeight:700,color:C.blueXL,letterSpacing:"0.16em",textTransform:"uppercase",marginBottom:8}}>Next Session</div>
-            <div style={{fontSize:20,fontWeight:800,color:C.text,letterSpacing:"-0.5px",marginBottom:4,textTransform:"uppercase"}}>{USER.nextWorkout.name} — {USER.nextWorkout.label}</div>
-            <div style={{fontSize:11,color:C.sub}}>Estimated duration: {Math.round(USER.nextWorkout.exercises.length*10)} min</div>
+            <div style={{fontSize:20,fontWeight:800,color:C.text,letterSpacing:"-0.5px",marginBottom:4,textTransform:"uppercase"}}>{nextPlan.name} — {nextPlan.label}</div>
+            <div style={{fontSize:11,color:C.sub}}>Estimated duration: ~{Math.round(nextPlan.exercises.reduce((t,e)=>t+(e.sets?.length||3)*(1.5+(e.rest||90)/60),0))} min</div>
           </div>
           <div style={{padding:"12px 20px 16px"}}>
             <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:14}}>
-              {USER.nextWorkout.exercises.map(ex=><span key={ex} style={{padding:"3px 10px",borderRadius:99,background:C.blueL+"15",border:"1px solid "+C.blueL+"30",color:C.blueXL,fontSize:11,fontWeight:600}}>{ex}</span>)}
+              {nextPlan.exercises.slice(0,6).map(ex=><span key={ex.name||ex} style={{padding:"3px 10px",borderRadius:99,background:C.blueL+"15",border:"1px solid "+C.blueL+"30",color:C.blueXL,fontSize:11,fontWeight:600}}>{ex.name||ex}</span>)}
             </div>
-            <button onClick={()=>{
-              const nextPlan=PLANS.find(p=>p.id===USER.nextWorkout.id)||PLANS[0];
-              const exs=buildSets(nextPlan);
-              onStartWorkout(nextPlan,exs);
-              onNavigate("treino");
-            }} style={{width:"100%",padding:"13px",background:C.grad,border:"none",borderRadius:13,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            <button onClick={e=>{e.stopPropagation();const exs=buildSets(nextPlan);onStartWorkout(nextPlan,exs);onNavigate("treino");}} style={{width:"100%",padding:"13px",background:C.grad,border:"none",borderRadius:13,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
               <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
               Iniciar Treino
             </button>
           </div>
-        </div>
+        </div>}
 
         {/* ── Stats 2×2 grid ── */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
@@ -827,7 +897,12 @@ function HomeScreen({onNavigate,onStartWorkout}){
           <div style={{fontSize:9,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.12em"}}>Treinos Recentes</div>
           <div style={{fontSize:10,color:C.sub}}>{FEED.length} no total</div>
         </div>
-        {FEED.map((session,i)=><FeedCard key={i} session={session} onOpen={setDetail}/>)}
+        {visibleFeed.map((session,i)=><FeedCard key={i} session={session} onOpen={setDetail}/>)}
+        {feedCount<FEED.length&&(
+          <button onClick={()=>setFeedCount(n=>n+5)} style={{width:"100%",padding:"12px",background:"none",border:"1px solid "+C.border,borderRadius:12,color:C.sub,fontSize:13,fontWeight:600,cursor:"pointer",marginTop:8}}>
+            Ver mais ({FEED.length-feedCount} restantes)
+          </button>
+        )}
       </div>
       <BottomNav active="home" onNavigate={onNavigate}/>
     </div>
@@ -1893,13 +1968,19 @@ function ExercicioScreen({name,onNavigate,onBack}){
   const[tab,setTab]=useState("resumo");
   const[chartMode,setChartMode]=useState("carga");
   const[chartRange,setChartRange]=useState("3m");
+  const[gifUrl,setGifUrl]=useState(null);
   const exName=name||"Supino (Barra)";
-  const info=EXERCISES_INFO[exName]||EXERCISES_INFO["Supino (Barra)"];
+  const info=EXERCISES_INFO[exName]||{group:"",secondary:[],type:"",equipment:"",muscles:[],instructions:[],tips:""};
   const gc=GC[info.group]||C.blueL;
   const hist=HIST[exName]||[];
   const allSets=hist.flatMap(s=>s.sets);
   const bestW=allSets.reduce((a,s)=>Math.max(a,s.w||0),0);
   const bestORM=allSets.reduce((a,s)=>s.w>0&&s.r>0?Math.max(a,orm(s.w,s.r)):a,0);
+
+  useEffect(()=>{
+    supabase.from('exercise_gifs').select('gif_url').eq('exercise_name',exName).maybeSingle()
+      .then(({data})=>{if(data?.gif_url)setGifUrl(data.gif_url);});
+  },[exName]);
 
   const nPoints={all:hist.length,"1a":12,"3m":6,"1m":4}[chartRange]||6;
   const filteredHist=hist.slice(-nPoints);
@@ -1940,11 +2021,11 @@ function ExercicioScreen({name,onNavigate,onBack}){
       </div>
       <div style={{flex:1,overflowY:"auto",padding:"0 16px 20px"}}>
         {tab==="resumo"&&<div>
-          <div style={{height:200,background:C.surface,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",margin:"16px 0",borderRadius:16,border:"1px solid "+C.border}}>
-            <div style={{width:52,height:52,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10}}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 3l14 9-14 9V3z" fill={C.sub}/></svg>
-            </div>
-            <div style={{fontSize:12,color:C.muted}}>Vídeo demonstrativo em breve</div>
+          <div style={{background:C.surface,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",margin:"16px 0",borderRadius:16,border:"1px solid "+C.border,overflow:"hidden",minHeight:200}}>
+            {gifUrl
+              ? <img src={gifUrl} alt={exName} style={{width:"100%",maxHeight:260,objectFit:"contain",borderRadius:16}}/>
+              : <><div style={{width:52,height:52,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:10}}><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 3l14 9-14 9V3z" fill={C.sub}/></svg></div><div style={{fontSize:12,color:C.muted}}>GIF em breve</div></>
+            }
           </div>
           <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:12}}>
             <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:8}}>
