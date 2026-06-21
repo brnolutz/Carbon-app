@@ -695,9 +695,15 @@ function HomeScreen({onNavigate,onStartWorkout}){
     <div style={{background:"#080A0E",minHeight:"100dvh",paddingTop:52}}>
 
       {/* ── Greeting ── */}
-      <div style={{padding:"14px 20px 0"}}>
-        <div style={{fontSize:11,fontWeight:600,color:C.sub,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:2}}>{getGreeting()},</div>
-        <div style={{fontSize:34,fontWeight:900,color:C.text,letterSpacing:"-1.5px",lineHeight:1}}>{USER.name}<span style={{color:C.blueXL}}>.</span></div>
+      <div style={{padding:"14px 20px 0",display:"flex",alignItems:"flex-start",justifyContent:"space-between"}}>
+        <div>
+          <div style={{fontSize:11,fontWeight:600,color:C.sub,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:2}}>{getGreeting()},</div>
+          <div style={{fontSize:34,fontWeight:900,color:C.text,letterSpacing:"-1.5px",lineHeight:1}}>{USER.name}<span style={{color:C.blueXL}}>.</span></div>
+        </div>
+        <div style={{textAlign:"right",paddingTop:4}}>
+          <div style={{fontSize:22,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{FEED.length}</div>
+          <div style={{fontSize:9,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em"}}>treinos</div>
+        </div>
       </div>
 
       <div style={{padding:"14px 16px 120px"}}>
@@ -2837,114 +2843,91 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   const rangeDelta=Math.round((rangeTotal-rangePrev)/rangePrev*100);
 
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingTop:52,paddingBottom:120}}>
+    <div style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingTop:52,paddingBottom:120}} ref={el=>{if(el)el.scrollTop=0;}}>
       {calendarEl}
       <style>{`.prog-bar{transition:height 0.4s ease;}`}</style>
-      <div style={{padding:"14px 20px 8px",display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:4}}>
+      <div style={{padding:"10px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>Meu Progresso</div>
         <button onClick={()=>setShowCalendar(true)} style={{width:32,height:32,borderRadius:10,background:C.card,border:"1px solid "+C.border,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="3" stroke={C.sub} strokeWidth="1.8"/><path d="M3 9h18M8 2v4M16 2v4" stroke={C.sub} strokeWidth="1.8" strokeLinecap="round"/></svg>
         </button>
       </div>
-      <div style={{padding:"0 20px"}}>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
-          <GlassCard style={{padding:"10px 14px",display:"flex",alignItems:"center",gap:10}}>
-            <div style={{fontSize:22}}>🔥</div>
+      <div style={{padding:"0 16px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:8}}>
+          <GlassCard style={{padding:"8px 12px",display:"flex",alignItems:"center",gap:8}}>
+            <div style={{fontSize:18}}>🔥</div>
             <div>
-              <div style={{fontSize:18,fontWeight:900,color:C.text}}>{thisWeekCount}</div>
-              <div style={{fontSize:10,color:C.sub}}>Ofensiva Semanal</div>
+              <div style={{fontSize:16,fontWeight:900,color:C.text}}>{thisWeekCount}</div>
+              <div style={{fontSize:9,color:C.sub}}>Ofensiva Semanal</div>
             </div>
           </GlassCard>
-          <GlassCard style={{padding:"10px 14px",display:"flex",alignItems:"center",gap:10}}>
-            <div style={{fontSize:22}}>🎯</div>
+          <GlassCard style={{padding:"8px 12px",display:"flex",alignItems:"center",gap:8}}>
+            <div style={{fontSize:18}}>🎯</div>
             <div>
-              <div style={{fontSize:18,fontWeight:900,color:C.text}}>{weeklyStreak}</div>
-              <div style={{fontSize:10,color:C.sub}}>Sequência Semanal</div>
+              <div style={{fontSize:16,fontWeight:900,color:C.text}}>{weeklyStreak}</div>
+              <div style={{fontSize:9,color:C.sub}}>Sequência Semanal</div>
             </div>
           </GlassCard>
         </div>
 
-        {/* Weekly calendar */}
-        <GlassCard style={{padding:"12px",marginBottom:12}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-            <div>
-              <div style={{fontSize:13,fontWeight:800,color:C.text}}>Progresso semanal</div>
-              <div style={{fontSize:10,color:C.sub}}>{weekLabel}</div>
-            </div>
-            <div style={{display:"flex",gap:6}}>
-              <button onClick={()=>setWeekOffset(w=>w-1)} style={{width:26,height:26,borderRadius:99,background:C.card,border:"1px solid "+C.border,color:C.sub,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-              <button onClick={()=>setWeekOffset(w=>Math.min(0,w+1))} style={{width:26,height:26,borderRadius:99,background:C.card,border:"1px solid "+C.border,color:weekOffset===0?C.muted:C.sub,cursor:weekOffset===0?"default":"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
+        {/* Weekly calendar compact */}
+        <GlassCard style={{padding:"10px",marginBottom:8}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+            <div style={{fontSize:11,fontWeight:800,color:C.text}}>Progresso semanal <span style={{fontSize:9,color:C.sub,fontWeight:400}}>{weekLabel}</span></div>
+            <div style={{display:"flex",gap:4}}>
+              <button onClick={()=>setWeekOffset(w=>w-1)} style={{width:22,height:22,borderRadius:99,background:C.card,border:"1px solid "+C.border,color:C.sub,cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+              <button onClick={()=>setWeekOffset(w=>Math.min(0,w+1))} style={{width:22,height:22,borderRadius:99,background:C.card,border:"1px solid "+C.border,color:weekOffset===0?C.muted:C.sub,cursor:weekOffset===0?"default":"pointer",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
             </div>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:3}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2}}>
             {weekDays.map((d,i)=>{
               const ds=d.toISOString().slice(0,10);
               const isToday=ds===todayStr;
               const hasW=workoutDates.has(ds);
-              const showGreen=hasW;
-              const showBlue=isToday&&!hasW;
               return(
-                <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
-                  <div style={{fontSize:9,fontWeight:600,color:showGreen?C.mint:isToday?C.blueXL:C.muted}}>{dayNames[i]}</div>
-                  <div style={{width:30,height:30,borderRadius:9,display:"flex",alignItems:"center",justifyContent:"center",background:showGreen?"linear-gradient(135deg,"+C.mint+"44,"+C.mint+"22)":showBlue?"linear-gradient(135deg,"+C.blueM+","+C.blueL+")":"rgba(255,255,255,0.03)",border:"1px solid "+(showGreen?C.mint+"88":showBlue?C.blueXL+"66":"rgba(255,255,255,0.05)"),boxShadow:showGreen?"0 0 8px "+C.mint+"55":showBlue?"0 0 8px "+C.blueXL+"44":"none"}}>
-                    <span style={{fontSize:11,fontWeight:showGreen||showBlue?800:400,color:showGreen?C.mint:showBlue?"#fff":C.muted}}>{d.getDate()}</span>
+                <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
+                  <div style={{fontSize:8,fontWeight:600,color:hasW?C.mint:isToday?C.blueXL:C.muted}}>{dayNames[i]}</div>
+                  <div style={{width:26,height:26,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",background:hasW?"linear-gradient(135deg,"+C.mint+"44,"+C.mint+"22)":isToday?"linear-gradient(135deg,"+C.blueM+","+C.blueL+")":"rgba(255,255,255,0.03)",border:"1px solid "+(hasW?C.mint+"88":isToday?C.blueXL+"66":"rgba(255,255,255,0.05)")}}>
+                    <span style={{fontSize:10,fontWeight:hasW||isToday?800:400,color:hasW?C.mint:isToday?"#fff":C.muted}}>{d.getDate()}</span>
                   </div>
-                  <div style={{width:4,height:4,borderRadius:"50%",background:showGreen?C.mint:showBlue?C.blueXL:"transparent"}}/>
                 </div>
               );
             })}
           </div>
         </GlassCard>
 
-        {/* Compact muscle map */}
-        <GlassCard style={{padding:"12px",marginBottom:12,display:"flex",flexDirection:"column",alignItems:"center"}}>
-          <div style={{fontSize:11,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6,width:"100%"}}>Mapa Muscular</div>
-          <BodyDiagram muscleHeat={muscleHeatProgresso} width={Math.min(280,window.innerWidth-80)}/>
-        </GlassCard>
-      </div>
-
-      {/* Chart section — BeFit style with period selector */}
-      <div style={{padding:"0 20px 12px"}}>
-        <GlassCard style={{padding:"14px"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{fontSize:11,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:C.sub}}>Esta semana</div>
-              
+        {/* Compact muscle map + chart side by side */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+          <GlassCard style={{padding:"10px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:4,width:"100%"}}>Mapa Muscular</div>
+            <BodyDiagram muscleHeat={muscleHeatProgresso} width={Math.min(130,(window.innerWidth-80)/2)}/>
+          </GlassCard>
+          <GlassCard style={{padding:"10px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
+              <div>
+                <div style={{fontSize:22,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{mc.fmt(rangeTotal)}<span style={{fontSize:11,color:C.sub,marginLeft:2}}>{mc.unit}</span></div>
+                {rangeDelta!==0&&<div style={{fontSize:10,fontWeight:700,color:rangeDelta>0?C.mint:C.coral}}>{rangeDelta>0?"↑":"↓"}{Math.abs(rangeDelta)}%</div>}
+              </div>
+              <div style={{display:"flex",flexDirection:"column",gap:2}}>
+                {[{k:"1s",l:"1S"},{k:"1m",l:"1M"},{k:"3m",l:"3M"},{k:"all",l:"∞"}].map(r=>(
+                  <button key={r.k} onClick={()=>setChartRange(r.k)} style={{padding:"1px 5px",borderRadius:4,fontSize:8,fontWeight:700,cursor:"pointer",background:chartRange===r.k?mc.color+"33":"transparent",border:"1px solid "+(chartRange===r.k?mc.color+"66":"transparent"),color:chartRange===r.k?mc.color:C.muted}}>{r.l}</button>
+                ))}
+              </div>
             </div>
-            <div style={{display:"flex",gap:4}}>
-              {[{k:"1s",l:"1S"},{k:"1m",l:"1M"},{k:"3m",l:"3M"},{k:"all",l:"Tudo"}].map(r=>(
-                <button key={r.k} onClick={()=>setChartRange(r.k)} style={{padding:"3px 9px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:chartRange===r.k?mc.color+"33":"transparent",border:"1px solid "+(chartRange===r.k?mc.color+"66":"rgba(255,255,255,0.08)"),color:chartRange===r.k?mc.color:C.muted}}>{r.l}</button>
+            <div style={{display:"flex",gap:2,height:70,alignItems:"flex-end",marginBottom:4}}>
+              {rangeData.map((d,i)=>{
+                const pct=d.y/rangeMaxY;
+                const isLast=i===rangeData.length-1;
+                return(<div key={i} style={{flex:1,display:"flex",alignItems:"flex-end",height:"100%"}}><div style={{width:"100%",height:Math.max(pct*66,d.y>0?2:0),background:isLast?mc.color:mc.color+"44",borderRadius:"2px 2px 0 0"}}/></div>);
+              })}
+            </div>
+            <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
+              {Object.entries(modesCfg).map(([k,m])=>(
+                <button key={k} onClick={()=>setChartMode(k)} style={{padding:"3px 6px",borderRadius:99,cursor:"pointer",background:chartMode===k?m.color+"22":"transparent",border:"1px solid "+(chartMode===k?m.color+"55":"transparent"),color:chartMode===k?m.color:C.muted,fontSize:8,fontWeight:chartMode===k?700:500}}>{m.l}</button>
               ))}
             </div>
-          </div>
-          <div style={{fontSize:34,fontWeight:900,color:C.text,letterSpacing:"-1px",marginBottom:2}}>
-            {mc.fmt(rangeTotal)}<span style={{fontSize:16,color:C.sub,marginLeft:4}}>{mc.unit}</span>
-          </div>
-          {rangeDelta!==0&&<div style={{fontSize:12,fontWeight:700,color:rangeDelta>0?C.mint:C.coral,marginBottom:14}}>
-            {rangeDelta>0?"↑":"↓"} {Math.abs(rangeDelta)}% vs anterior
-          </div>}
-          <div style={{display:"flex",gap:4,height:100,alignItems:"flex-end",marginBottom:6}}>
-            {rangeData.map((d,i)=>{
-              const pct=d.y/rangeMaxY;
-              const isLast=i===rangeData.length-1;
-              return(
-                <div key={i} style={{flex:1,display:"flex",alignItems:"flex-end",height:"100%"}}>
-                  <div style={{width:"100%",height:Math.max(pct*96,d.y>0?3:0),background:isLast?mc.color:mc.color+"44",borderRadius:"3px 3px 0 0",boxShadow:isLast?"0 0 10px "+mc.color+"66":"none"}}/>
-                </div>
-              );
-            })}
-          </div>
-          <div style={{display:"flex",justifyContent:"space-between",marginBottom:14}}>
-            {[rangeData[0],rangeData[Math.floor(rangeData.length/2)],rangeData[rangeData.length-1]].map((d,i)=>(
-              <div key={i} style={{fontSize:9,color:C.muted}}>{d?.label}</div>
-            ))}
-          </div>
-          <div style={{display:"flex",gap:6,overflowX:"auto"}}>
-            {Object.entries(modesCfg).map(([k,m])=>(
-              <button key={k} onClick={()=>setChartMode(k)} style={{padding:"6px 14px",borderRadius:99,flexShrink:0,cursor:"pointer",background:chartMode===k?m.color+"22":"transparent",border:"1px solid "+(chartMode===k?m.color+"55":"rgba(255,255,255,0.07)"),color:chartMode===k?m.color:C.muted,fontSize:11,fontWeight:chartMode===k?700:500}}>{m.l}</button>
-            ))}
-          </div>
-        </GlassCard>
+          </GlassCard>
+        </div>
       </div>
 
       {/* Muscle recovery */}
@@ -3220,6 +3203,55 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
         <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>Meu Corpo</div>
       </div>
       <div style={{padding:"12px 16px 0"}}>
+
+        {/* ── DISTRIBUIÇÃO MUSCULAR + STATS ── */}
+        {(()=>{
+          const periods=[{k:"1m",l:"Este mês",days:30},{k:"3m",l:"3 meses",days:90},{k:"1a",l:"Ano",days:365},{k:"all",l:"Tudo",days:9999}];
+          const[distPeriod,setDistPeriod]=useState("1m");
+          const cfg=periods.find(p=>p.k===distPeriod)||periods[0];
+          const cutoff=cfg.days<9999?new Date(Date.now()-cfg.days*86400000).toISOString().slice(0,10):"2000-01-01";
+          const prevCutoff=cfg.days<9999?new Date(Date.now()-cfg.days*2*86400000).toISOString().slice(0,10):"2000-01-01";
+          const allS=getAllSessions();
+          const curS=allS.filter(s=>s.date>=cutoff);
+          const prevS=cfg.days<9999?allS.filter(s=>s.date>=prevCutoff&&s.date<cutoff):[];
+          const stat=(sessions)=>({
+            count:sessions.length,
+            dur:sessions.reduce((a,s)=>a+(s.duration||0),0),
+            vol:sessions.reduce((a,s)=>a+(s.totalVol||0),0),
+            sets:sessions.reduce((a,s)=>a+(s.totalSets||0),0),
+          });
+          const cur=stat(curS),prev=stat(prevS);
+          const diff=(a,b)=>b>0?Math.round((a-b)/b*100):null;
+          const vbg={};
+          curS.forEach(s=>(s.exercises||[]).forEach(e=>{Object.entries(EX_MAP_VOL).forEach(([g,kws])=>{if(kws.some(kw=>(e.name||"").toLowerCase().includes(kw.toLowerCase())))vbg[g]=(vbg[g]||0)+(e.vol||0);});}));
+          return(
+            <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:14,marginBottom:10}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em"}}>Distribuição Muscular</div>
+                <div style={{display:"flex",gap:4}}>
+                  {periods.map(p=>(
+                    <button key={p.k} onClick={()=>setDistPeriod(p.k)} style={{padding:"3px 7px",borderRadius:99,fontSize:9,fontWeight:700,cursor:"pointer",background:distPeriod===p.k?C.blueXL:"transparent",border:"1px solid "+(distPeriod===p.k?C.blueXL:C.border),color:distPeriod===p.k?"#fff":C.sub}}>{p.l}</button>
+                  ))}
+                </div>
+              </div>
+              <VolumeSpiderChart volumeByGroup={vbg} size={Math.min(240,window.innerWidth-80)}/>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginTop:10}}>
+                {[
+                  {l:"Treinos",v:cur.count,d:diff(cur.count,prev.count)},
+                  {l:"Duração",v:cur.dur>=60?Math.floor(cur.dur/60)+"h"+(cur.dur%60>0?" "+cur.dur%60+"min":""):cur.dur+"min",d:diff(cur.dur,prev.dur)},
+                  {l:"Volume",v:cur.vol.toFixed(1)+"t",d:diff(cur.vol,prev.vol)},
+                  {l:"Séries",v:cur.sets,d:diff(cur.sets,prev.sets)},
+                ].map(s=>(
+                  <div key={s.l} style={{background:C.surface,borderRadius:10,padding:"8px 10px",border:"1px solid "+C.border}}>
+                    <div style={{fontSize:9,color:C.sub,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:2}}>{s.l}</div>
+                    <div style={{fontSize:16,fontWeight:900,color:C.text}}>{s.v}</div>
+                    {s.d!==null&&cfg.days<9999&&<div style={{fontSize:9,fontWeight:700,color:s.d>=0?C.mint:C.coral,marginTop:1}}>{s.d>=0?"↑":"↓"}{Math.abs(s.d)}% vs anterior</div>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ── RECOVERY STATS ROW ── */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:10}}>
