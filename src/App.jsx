@@ -3398,28 +3398,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
 
   // Streaks
   const streak=useMemo(()=>{let s=0;const d=new Date(today);while(true){const ds=d.toISOString().slice(0,10);if(!workoutDates.has(ds)&&ds!==todayStr)break;if(workoutDates.has(ds))s++;d.setDate(d.getDate()-1);if(s>365)break;}return s;},[workoutDates]);
-  const weeklyStreak=useMemo(()=>{
-    const allSessions=getAllSessions();
-    if(!allSessions.length)return 0;
-    // Use Mon as week start; check each week going backwards
-    const getMonday=(d)=>{const r=new Date(d);const day=r.getDay();const diff=day===0?-6:1-day;r.setDate(r.getDate()+diff);r.setHours(0,0,0,0);return r;};
-    let streak=0;
-    let weekStart=getMonday(new Date(today));
-    // Check up to 200 weeks back
-    for(let i=0;i<200;i++){
-      const ws=weekStart.toISOString().slice(0,10);
-      const we=new Date(weekStart.getTime()+6*86400000).toISOString().slice(0,10);
-      const hasWorkout=allSessions.some(f=>f.date&&f.date>=ws&&f.date<=we);
-      if(!hasWorkout){
-        // If it's the current week and no workout yet, don't break (week not over)
-        if(i===0){weekStart.setDate(weekStart.getDate()-7);continue;}
-        break;
-      }
-      streak++;
-      weekStart.setDate(weekStart.getDate()-7);
-    }
-    return streak;
-  },[savedCount]);
+  const weeklyStreak=useMemo(()=>{const allSessions=getAllSessions();let s=0;const d=new Date(today);d.setDate(d.getDate()-d.getDay());while(s<52){const ds=d.toISOString().slice(0,10);const weekEnd=new Date(d.getTime()+6*86400000).toISOString().slice(0,10);const wk=allSessions.some(f=>f.date>=ds&&f.date<=weekEnd);if(!wk)break;s++;d.setDate(d.getDate()-7);}return s;},[savedCount]);
 
   const thisWeekCount=useMemo(()=>{const allSessions=getAllSessions();const d=new Date(today);const start=new Date(d);start.setDate(d.getDate()-d.getDay());start.setHours(0,0,0,0);const startStr=start.toISOString().slice(0,10);const end=new Date(start.getTime()+6*86400000).toISOString().slice(0,10);return allSessions.filter(f=>f.date>=startStr&&f.date<=end).length;},[savedCount]);
 
@@ -3498,9 +3477,9 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
               const isToday=ds===todayStr;
               const hasW=workoutDates.has(ds);
               return(
-                <div key={i} style={{aspectRatio:"1",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,background:hasW?"linear-gradient(135deg,"+C.blueM+","+C.blueL+")":isToday?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.03)",border:"1px solid "+(hasW?C.blueXL+"88":isToday?"rgba(255,255,255,0.15)":"rgba(255,255,255,0.05)"),position:"relative"}}>
-                  <span style={{fontSize:13,fontWeight:hasW||isToday?700:400,color:hasW?"#fff":isToday?C.sub:C.muted}}>{d}</span>
-                  {hasW&&<div style={{position:"absolute",bottom:3,width:4,height:4,borderRadius:"50%",background:C.blueXL}}/>}
+                <div key={i} style={{aspectRatio:"1",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,background:hasW?C.mint+"22":isToday?"linear-gradient(135deg,"+C.blueM+","+C.blueL+")":"rgba(255,255,255,0.03)",border:"1px solid "+(hasW?C.mint+"66":isToday?C.blueXL+"66":"rgba(255,255,255,0.05)"),position:"relative"}}>
+                  <span style={{fontSize:13,fontWeight:hasW||isToday?700:400,color:hasW?C.mint:isToday?"#fff":C.muted}}>{d}</span>
+                  {hasW&&<div style={{position:"absolute",bottom:3,width:4,height:4,borderRadius:"50%",background:C.mint}}/>}
                 </div>
               );
             })}
@@ -3539,19 +3518,15 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
       </div>
       <div style={{padding:"0 16px"}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:8}}>
-          <GlassCard style={{padding:"8px 12px",display:"flex",alignItems:"center",gap:10}}>
-            <div style={{width:34,height:34,borderRadius:10,background:"linear-gradient(135deg,rgba(249,115,22,0.25),rgba(249,115,22,0.1))",border:"1px solid rgba(249,115,22,0.3)",backdropFilter:"blur(8px)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.5 5.5 6 9 6 13a6 6 0 0012 0c0-2.5-.8-4.5-2-6.5C15 8 14 9.5 13 11c-1-2-1-5-1-9z" fill="#F97316"/></svg>
-            </div>
+          <GlassCard style={{padding:"8px 12px",display:"flex",alignItems:"center",gap:8}}>
+            <div style={{fontSize:18}}>🔥</div>
             <div>
               <div style={{fontSize:16,fontWeight:900,color:C.text}}>{thisWeekCount}</div>
               <div style={{fontSize:9,color:C.sub}}>Ofensiva Semanal</div>
             </div>
           </GlassCard>
-          <GlassCard style={{padding:"8px 12px",display:"flex",alignItems:"center",gap:10}}>
-            <div style={{width:34,height:34,borderRadius:10,background:"linear-gradient(135deg,rgba(59,130,246,0.25),rgba(59,130,246,0.1))",border:"1px solid rgba(59,130,246,0.3)",backdropFilter:"blur(8px)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#3B82F6" strokeWidth="1.8"/><circle cx="12" cy="12" r="5" stroke="#3B82F6" strokeWidth="1.8"/><circle cx="12" cy="12" r="1.5" fill="#3B82F6"/><line x1="12" y1="3" x2="12" y2="6.5" stroke="#60A5FA" strokeWidth="1.5" strokeLinecap="round"/><line x1="16" y1="7" x2="18.2" y2="5.2" stroke="#60A5FA" strokeWidth="1.5" strokeLinecap="round"/></svg>
-            </div>
+          <GlassCard style={{padding:"8px 12px",display:"flex",alignItems:"center",gap:8}}>
+            <div style={{fontSize:18}}>🎯</div>
             <div>
               <div style={{fontSize:16,fontWeight:900,color:C.text}}>{weeklyStreak}</div>
               <div style={{fontSize:9,color:C.sub}}>Sequência Semanal</div>
@@ -3575,9 +3550,9 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
               const hasW=workoutDates.has(ds);
               return(
                 <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
-                  <div style={{fontSize:8,fontWeight:600,color:hasW?C.blueXL:isToday?"rgba(255,255,255,0.5)":C.muted}}>{dayNames[i]}</div>
-                  <div style={{width:26,height:26,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",background:hasW?"linear-gradient(135deg,"+C.blueM+","+C.blueL+")":isToday?"rgba(255,255,255,0.06)":"rgba(255,255,255,0.03)",border:"1px solid "+(hasW?C.blueXL+"88":isToday?"rgba(255,255,255,0.15)":"rgba(255,255,255,0.05)")}}>
-                    <span style={{fontSize:10,fontWeight:hasW||isToday?800:400,color:hasW?"#fff":isToday?C.sub:C.muted}}>{d.getDate()}</span>
+                  <div style={{fontSize:8,fontWeight:600,color:hasW?C.mint:isToday?C.blueXL:C.muted}}>{dayNames[i]}</div>
+                  <div style={{width:26,height:26,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",background:hasW?"linear-gradient(135deg,"+C.mint+"44,"+C.mint+"22)":isToday?"linear-gradient(135deg,"+C.blueM+","+C.blueL+")":"rgba(255,255,255,0.03)",border:"1px solid "+(hasW?C.mint+"88":isToday?C.blueXL+"66":"rgba(255,255,255,0.05)")}}>
+                    <span style={{fontSize:10,fontWeight:hasW||isToday?800:400,color:hasW?C.mint:isToday?"#fff":C.muted}}>{d.getDate()}</span>
                   </div>
                 </div>
               );
@@ -3915,7 +3890,6 @@ function CalendarioFullScreen({onNavigate}){
     return()=>document.body.classList.remove("hide-carbon-header");
   },[]);
 
-  // Scroll to penultimate month when calendar mounts in "mes" view
   useEffect(()=>{
     if(view!=="mes") return;
     const timer=setTimeout(()=>{
@@ -4068,68 +4042,35 @@ function CalendarioFullScreen({onNavigate}){
   // PLURIANUAL view — GitHub-style heatmap
   const renderPlurianual=()=>{
     const now=new Date();
-    // Show last 14-week sequences across years
     const years=[now.getFullYear()-1,now.getFullYear()];
-    const seqLen=14; // user's 14-week sequences
-    // Build all week start dates for the range
-    const allWeeks=[];
-    years.forEach(y=>{
-      for(let m=0;m<12;m++){
-        const d=new Date(y,m,1);
-        // Get monday of that week
-        const day=d.getDay();
-        const mon=new Date(d);mon.setDate(d.getDate()-(day===0?6:day-1));
-        const wk=mon.toISOString().slice(0,10);
-        if(!allWeeks.includes(wk)) allWeeks.push(wk);
-      }
-    });
-    allWeeks.sort();
-    // For each week, check if had workout
-    const weekHasWorkout=(wkStart)=>{
-      const wkEnd=new Date(new Date(wkStart+"T12:00:00").getTime()+6*86400000).toISOString().slice(0,10);
-      return allSessions.some(s=>s.date&&s.date>=wkStart&&s.date<=wkEnd);
-    };
-    // Group into sequences of 14 weeks
-    const sequences=[];
-    let i=0;
-    while(i<allWeeks.length){
-      const seq=allWeeks.slice(i,i+seqLen);
-      sequences.push(seq);
-      i+=seqLen;
-    }
     return(
       <div style={{padding:"0 16px 100px"}}>
-        <div style={{fontSize:11,color:"rgba(255,255,255,0.3)",marginBottom:16,lineHeight:1.5}}>
-          Cada bloco = {seqLen} semanas · Azul = semana com treino
-        </div>
         {years.map(y=>{
-          const yearSeqs=sequences.filter(seq=>seq[0]?.startsWith(y.toString())||seq[seq.length-1]?.startsWith(y.toString()));
-          if(!yearSeqs.length) return null;
+          const months=Array.from({length:12},(_,m)=>m);
           return(
-            <div key={y} style={{marginBottom:28}}>
-              <div style={{fontSize:16,fontWeight:800,color:"#fff",marginBottom:12}}>{y}</div>
-              {yearSeqs.map((seq,si)=>{
-                const startLabel=new Date(seq[0]+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"});
-                const endLabel=new Date(seq[seq.length-1]+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"});
-                const doneCount=seq.filter(w=>weekHasWorkout(w)).length;
-                return(
-                  <div key={si} style={{marginBottom:14}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                      <div style={{fontSize:10,color:"rgba(255,255,255,0.4)"}}>Bloco {si+1} · {startLabel} – {endLabel}</div>
-                      <div style={{fontSize:10,fontWeight:700,color:doneCount>=seqLen*0.7?"#3B82F6":"rgba(255,255,255,0.3)"}}>{doneCount}/{seqLen} sem.</div>
-                    </div>
-                    <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
-                      {seq.map((wk,wi)=>{
-                        const hasW=weekHasWorkout(wk);
-                        const isCurrentWeek=wk<=now.toISOString().slice(0,10)&&new Date(wk+"T12:00:00").getTime()+7*86400000>now.getTime();
-                        return(
-                          <div key={wi} style={{width:18,height:18,borderRadius:4,background:hasW?"linear-gradient(135deg,#1E40AF,#3B82F6)":isCurrentWeek?"rgba(255,255,255,0.1)":"rgba(255,255,255,0.05)",border:"1px solid "+(hasW?"rgba(59,130,246,0.6)":isCurrentWeek?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.05)"),boxShadow:hasW?"0 0 6px rgba(59,130,246,0.4)":"none"}}/>
-                        );
-                      })}
-                    </div>
+            <div key={y} style={{marginBottom:24}}>
+              <div style={{fontSize:16,fontWeight:800,color:C.text,marginBottom:8}}>{y}</div>
+              <div style={{display:"flex",gap:2,alignItems:"flex-start"}}>
+                <div style={{display:"flex",flexDirection:"column",gap:1,marginRight:4}}>
+                  {["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"].map((m,i)=>(
+                    <div key={i} style={{fontSize:8,color:C.muted,height:10,display:"flex",alignItems:"center"}}>{m}</div>
+                  ))}
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1}}>
+                    {months.map(m=>{
+                      const daysInMonth=new Date(y,m+1,0).getDate();
+                      return Array.from({length:daysInMonth},(_,di)=>{
+                        const d=di+1;
+                        const ds=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+                        const hasW=workoutDates.has(ds);
+                        const isToday=ds===todayStr;
+                        return <div key={ds} style={{aspectRatio:"1",borderRadius:1,background:hasW?"#3B82F6":isToday?"#1E3A8A":"rgba(255,255,255,0.05)"}}/>;
+                      });
+                    })}
                   </div>
-                );
-              })}
+                </div>
+              </div>
             </div>
           );
         })}
