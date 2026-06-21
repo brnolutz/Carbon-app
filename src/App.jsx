@@ -360,7 +360,7 @@ const ALL_EXERCISES = {
 // Dynamic week stats — computed from FEED so they update as new sessions are saved
 function getWeekStats(){
   const now=new Date();
-  const day=now.getDay(); // 0=Sun
+  const day=now.getDay();
   const sunday=new Date(now);
   sunday.setDate(now.getDate()-day);
   sunday.setHours(0,0,0,0);
@@ -372,6 +372,45 @@ function getWeekStats(){
     count:weekSessions.length,
     vol:Math.round(weekSessions.reduce((t,s)=>t+(s.totalVol||0),0)*100)/100,
   };
+}
+
+function calcStreak(){
+  // Conta semanas consecutivas com pelo menos 1 treino, de trás pra frente
+  if(!FEED||FEED.length===0)return 0;
+  const today=new Date();
+  // Função para pegar o início da semana (domingo) de uma data
+  function weekStart(d){
+    const s=new Date(d);
+    s.setDate(d.getDate()-d.getDay());
+    s.setHours(0,0,0,0);
+    return s.toISOString().slice(0,10);
+  }
+  // Semanas com treino
+  const weeksWithWorkout=new Set(FEED.map(s=>weekStart(new Date(s.date+"T12:00:00"))));
+  // Começa na semana atual e vai voltando
+  let streak=0;
+  let checkDate=new Date(today);
+  while(true){
+    const ws=weekStart(checkDate);
+    if(weeksWithWorkout.has(ws)){
+      streak++;
+      // Vai para semana anterior
+      checkDate.setDate(checkDate.getDate()-7);
+    } else {
+      // Se a semana atual não tem treino ainda, pula para anterior e continua
+      if(ws===weekStart(today)&&streak===0){
+        checkDate.setDate(checkDate.getDate()-7);
+        const prevWs=weekStart(checkDate);
+        if(weeksWithWorkout.has(prevWs)){
+          streak++;
+          checkDate.setDate(checkDate.getDate()-7);
+          continue;
+        }
+      }
+      break;
+    }
+  }
+  return streak;
 }
 
 const USER = {
@@ -1079,6 +1118,13 @@ function HomeScreen({onNavigate,onStartWorkout}){
 
   const {count:weekWorkouts,vol:weekVolDyn}=getWeekStats();
   const weekProgress=Math.min(weekWorkouts/USER.weekGoal,1);
+  // Volume últimos 7 dias
+  const sevenDaysAgo=new Date(Date.now()-7*24*60*60*1000);
+  const vol7d=Math.round(FEED.filter(s=>new Date(s.date+"T12:00:00")>=sevenDaysAgo).reduce((a,s)=>a+(s.totalVol||0),0)*100)/100;
+  const vol7dPrev=Math.round(FEED.filter(s=>{const d=new Date(s.date+"T12:00:00");return d>=new Date(Date.now()-14*24*60*60*1000)&&d<sevenDaysAgo;}).reduce((a,s)=>a+(s.totalVol||0),0)*100)/100;
+  const vol7dDelta=vol7dPrev>0?Math.round((vol7d-vol7dPrev)/vol7dPrev*100):0;
+  // Streak dinâmico
+  const dynamicStreak=calcStreak();
 
   // Smart next session: find first routine not done today
   const todayStr=new Date().toISOString().slice(0,10);
@@ -1165,10 +1211,10 @@ function HomeScreen({onNavigate,onStartWorkout}){
           <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"10px 14px"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
               <svg width="14" height="14" fill="none" stroke={C.blueXL} strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-              {delta!==0&&<span style={{fontSize:9,fontWeight:700,color:delta>0?C.mint:C.coral,background:(delta>0?C.mint:C.coral)+"18",padding:"2px 6px",borderRadius:99}}>{delta>0?"+":""}{delta}%</span>}
+              {vol7dDelta!==0&&<span style={{fontSize:9,fontWeight:700,color:vol7dDelta>0?C.mint:C.coral,background:(vol7dDelta>0?C.mint:C.coral)+"18",padding:"2px 6px",borderRadius:99}}>{vol7dDelta>0?"+":""}{vol7dDelta}%</span>}
             </div>
-            <div style={{fontSize:24,fontWeight:900,color:C.text,letterSpacing:"-1px",lineHeight:1}}>{curr}<span style={{fontSize:12,color:C.sub,fontWeight:500,marginLeft:2}}>t</span></div>
-            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Volume</div>
+            <div style={{fontSize:24,fontWeight:900,color:C.text,letterSpacing:"-1px",lineHeight:1}}>{vol7d}<span style={{fontSize:12,color:C.sub,fontWeight:500,marginLeft:2}}>t</span></div>
+            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Últimos 7 dias</div>
           </div>
 
           {/* Streak */}
@@ -1176,8 +1222,8 @@ function HomeScreen({onNavigate,onStartWorkout}){
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
               <svg width="14" height="14" fill="none" stroke={C.amber} strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             </div>
-            <div style={{fontSize:24,fontWeight:900,color:C.text,letterSpacing:"-1px",lineHeight:1}}>{USER.streak}</div>
-            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Streak</div>
+            <div style={{fontSize:24,fontWeight:900,color:C.text,letterSpacing:"-1px",lineHeight:1}}>{dynamicStreak}</div>
+            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Semanas seguidas</div>
           </div>
 
           {/* Peso corporal */}
