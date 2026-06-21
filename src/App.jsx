@@ -1920,6 +1920,11 @@ function ExercicioScreen({name,onNavigate,onBack}){
   const bestORM=allSets.reduce((a,s)=>s.w>0&&s.r>0?Math.max(a,orm(s.w,s.r)):a,0);
 
   useEffect(()=>{
+    document.body.classList.add("hide-carbon-header");
+    return()=>document.body.classList.remove("hide-carbon-header");
+  },[]);
+
+  useEffect(()=>{
     setGifUrl(null);
     setGifLoading(true);
     supabase.from('exercise_gifs').select('gif_url').eq('exercise_name',exName).maybeSingle()
