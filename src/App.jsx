@@ -2333,109 +2333,169 @@ function MuscleDetailScreen({muscles,onBack,onNavigate}){
 // PROGRESS DETAIL SCREEN — gráfico detalhado de progresso
 // ══════════════════════════════════════════════════════════════
 function ProgressDetailScreen({onBack,onNavigate}){
+  const[selEx,setSelEx]=useState(()=>getAllHistExercises()[0]||"");
+  const[mode,setMode]=useState("carga");
   const[range,setRange]=useState("3m");
-  const[mode,setMode]=useState("vol");
 
   useEffect(()=>{
     document.body.classList.add("hide-carbon-header");
     return()=>document.body.classList.remove("hide-carbon-header");
   },[]);
 
-  const modesCfg={
-    vol:{l:"Volume",unit:"t",color:C.blueXL,fmt:(v)=>v.toFixed(1)},
-    dur:{l:"Duração",unit:"min",color:C.mint,fmt:(v)=>Math.round(v)+""},
-    sets:{l:"Séries",unit:"",color:C.amber,fmt:(v)=>Math.round(v)+""},
-    sessions:{l:"Treinos",unit:"",color:C.coral,fmt:(v)=>Math.round(v)+""},
-  };
-  const mc=modesCfg[mode];
-  const rangeWeeks={all:WEEKS.length,"3m":13,"1m":4,"1s":1};
-  const nWeeks=rangeWeeks[range]||13;
-  const weeks=WEEKS.slice(-nWeeks);
+  const allEx=getAllHistExercises();
+  const hist=HIST[selEx]||[];
+  const gc=GC[EX_GROUP[selEx]]||C.blueXL;
 
-  const weekData=weeks.map(wk=>{
-    const wd=WEEKLY[wk]||{};
-    const dt=new Date(wk+"T12:00:00");
-    return{wk,label:dt.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}),sessions:wd.sessions||0,vol:wd.vol||0,dur:wd.dur||0,sets:wd.sets||0};
-  });
+  const nPts={all:hist.length,"1a":12,"3m":6,"1m":4}[range]||6;
+  const filtered=[...hist].slice(0,nPts).reverse(); // chronological
 
-  const totals=weekData.reduce((acc,w)=>({sessions:acc.sessions+w.sessions,vol:acc.vol+w.vol,dur:acc.dur+w.dur,sets:acc.sets+w.sets}),{sessions:0,vol:0,dur:0,sets:0});
-  const maxY=Math.max(...weekData.map(w=>w[mode]||0),0.01);
-  const avgPerWeekVal=weekData.length>0?(totals[mode]/weekData.length):0;
+  const chartData=filtered.map(s=>({
+    x:s.d,
+    y:mode==="carga"
+      ?Math.max(...s.sets.filter(ss=>ss.w>0).map(ss=>ss.w),0)
+      :Math.max(...s.sets.filter(ss=>ss.w>0&&ss.r>0).map(ss=>orm(ss.w,ss.r)),0)
+  })).filter(d=>d.y>0);
+
+  const maxY=Math.max(...chartData.map(d=>d.y),0.01);
+  const minY=Math.min(...chartData.map(d=>d.y),0);
+  const W=400,H=160,PAD=12;
+  const px=(i)=>chartData.length>1?i*(W-PAD*2)/(chartData.length-1)+PAD:W/2;
+  const py=(v)=>H-PAD-((v-minY)/(maxY-minY||1))*(H-PAD*2);
+
+  const best=chartData.reduce((a,d)=>Math.max(a,d.y),0);
+  const last=chartData[chartData.length-1]?.y||0;
+  const prev=chartData[chartData.length-2]?.y||last;
+  const delta=prev>0?Math.round((last-prev)/prev*100):0;
+
+  // Records per rep
+  const repRecords={};
+  hist.forEach(s=>s.sets.forEach(set=>{if(set.w>0&&set.r>0){if(!repRecords[set.r]||set.w>repRecords[set.r])repRecords[set.r]=set.w;}}));
+  const sortedRecs=Object.entries(repRecords).sort((a,b)=>+a[0]-+b[0]);
+
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh",padding:"52px 20px 140px"}}>
+    <div style={{background:"#080A0E",minHeight:"100dvh",paddingTop:52,paddingBottom:120,overflowY:"auto"}}>
       {/* Header */}
-      <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
-        <button onClick={onBack} style={{width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:C.text,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-        <div>
-          
-          <div style={{fontSize:22,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Detalhes do Progresso</div>
+      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
+        <div style={{padding:"10px 16px"}}>
+          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
+            <button onClick={onBack} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
+            <div style={{fontSize:20,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Progressão por Exercício</div>
+          </div>
         </div>
       </div>
 
-      {/* Period selector */}
-      <div style={{display:"flex",background:C.card,borderRadius:12,padding:3,marginBottom:16,border:"1px solid "+C.border}}>
-        {[{k:"1s",l:"1 Sem."},{k:"1m",l:"1 Mês"},{k:"3m",l:"3 Meses"},{k:"all",l:"Tudo"}].map(r=>(
-          <button key={r.k} onClick={()=>setRange(r.k)} style={{flex:1,padding:"8px 4px",borderRadius:9,border:"none",cursor:"pointer",fontSize:11,fontWeight:700,background:range===r.k?"rgba(255,255,255,0.12)":"transparent",color:range===r.k?C.text:C.muted}}>{r.l}</button>
-        ))}
-      </div>
-
-      {/* Metric selector */}
-      <div style={{display:"flex",gap:6,overflowX:"auto",marginBottom:16}}>
-        {Object.entries(modesCfg).map(([k,m])=>(
-          <button key={k} onClick={()=>setMode(k)} style={{padding:"6px 14px",borderRadius:99,flexShrink:0,cursor:"pointer",background:mode===k?m.color+"22":"rgba(255,255,255,0.04)",border:"1px solid "+(mode===k?m.color+"55":"rgba(255,255,255,0.07)"),color:mode===k?m.color:C.muted,fontSize:12,fontWeight:mode===k?700:500}}>{m.l}</button>
-        ))}
-      </div>
-
-      {/* Totais */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
-        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:"16px"}}>
-          <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:C.sub,marginBottom:6}}>Total do período</div>
-          <div style={{fontSize:30,fontWeight:900,color:mc.color,letterSpacing:"-1px"}}>{mc.fmt(totals[mode])}<span style={{fontSize:13,color:C.sub,marginLeft:3}}>{mc.unit}</span></div>
-          <div style={{fontSize:11,color:C.muted,marginTop:4}}>{weekData.length} semana{weekData.length!==1?"s":""}</div>
+      <div style={{padding:"16px 16px 0"}}>
+        {/* Exercise selector */}
+        <div style={{overflowX:"auto",display:"flex",gap:6,marginBottom:14,paddingBottom:4}}>
+          {allEx.map(ex=>(
+            <button key={ex} onClick={()=>setSelEx(ex)} style={{padding:"6px 12px",borderRadius:99,flexShrink:0,cursor:"pointer",background:selEx===ex?(GC[EX_GROUP[ex]]||C.blueXL)+"33":"rgba(255,255,255,0.05)",border:"1px solid "+(selEx===ex?(GC[EX_GROUP[ex]]||C.blueXL)+"66":"rgba(255,255,255,0.07)"),color:selEx===ex?(GC[EX_GROUP[ex]]||C.blueXL):C.muted,fontSize:11,fontWeight:selEx===ex?700:500,whiteSpace:"nowrap"}}>{shortExName(ex)}</button>
+          ))}
         </div>
-        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:"16px"}}>
-          <div style={{fontSize:10,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:C.sub,marginBottom:6}}>Média semanal</div>
-          <div style={{fontSize:30,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{mc.fmt(avgPerWeek)}<span style={{fontSize:13,color:C.sub,marginLeft:3}}>{mc.unit}</span></div>
-          <div style={{fontSize:11,color:C.muted,marginTop:4}}>{totals.sessions} treinos total</div>
-        </div>
-      </div>
 
-      {/* Gráfico de barras */}
-      <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:"16px",marginBottom:16}}>
-        <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>{mc.l} por semana</div>
-        <div style={{display:"flex",alignItems:"flex-end",gap:2,height:120,marginBottom:6}}>
-          {weekData.map((w,i)=>(
-            <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",height:"100%",justifyContent:"flex-end"}}>
-              <div style={{width:"100%",height:Math.max((w[mode]||0)/maxY*108,w[mode]>0?2:0),background:i===weekData.length-1?mc.color:mc.color+"55",borderRadius:"3px 3px 0 0",boxShadow:i===weekData.length-1?"0 0 10px "+mc.color+"66":"none"}}/>
+        {/* Selected exercise name */}
+        <div style={{marginBottom:12}}>
+          <div style={{fontSize:11,fontWeight:700,color:gc,textTransform:"uppercase",letterSpacing:"0.08em"}}>{EX_GROUP[selEx]||"Exercício"}</div>
+          <div style={{fontSize:18,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>{selEx}</div>
+        </div>
+
+        {/* KPIs */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
+          {[{l:"Último",v:last>0?last+"kg":"—",c:gc},{l:"Recorde",v:best>0?best+"kg":"—",c:C.amber},{l:"Sessões",v:hist.length,c:C.mint}].map(s=>(
+            <div key={s.l} style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"12px 10px",textAlign:"center"}}>
+              <div style={{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:C.muted,marginBottom:4}}>{s.l}</div>
+              <div style={{fontSize:18,fontWeight:900,color:s.c}}>{s.v}</div>
             </div>
           ))}
         </div>
-        <div style={{display:"flex",gap:2}}>
-          {weekData.map((w,i)=>(
-            <div key={i} style={{flex:1,textAlign:"center",fontSize:7,color:C.muted,overflow:"hidden"}}>{(weekData.length<=8||i===0||i===weekData.length-1||i===Math.floor(weekData.length/2))?w.label:""}</div>
-          ))}
-        </div>
-      </div>
 
-      {/* Histórico semanal */}
-      <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Histórico semanal</div>
-      <div style={{display:"flex",flexDirection:"column",gap:8}}>
-        {[...weekData].reverse().map((w,i)=>(
-          <div key={i} style={{background:C.card,border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"12px 14px"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-              <div style={{fontSize:12,fontWeight:700,color:C.text}}>{w.label}</div>
-              <div style={{display:"flex",gap:12,alignItems:"center"}}>
-                <span style={{fontSize:10,color:C.muted}}>{w.sessions} treino{w.sessions!==1?"s":""}</span>
-                <span style={{fontSize:13,fontWeight:800,color:mc.color}}>{mc.fmt(w[mode])}{mc.unit&&<span style={{fontSize:9,fontWeight:500,color:C.muted,marginLeft:2}}>{mc.unit}</span>}</span>
+        {/* Chart controls */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+          <div style={{display:"flex",gap:5}}>
+            {[{k:"carga",l:"Maior Peso"},{k:"1rm",l:"1RM Est."}].map(m=>(
+              <button key={m.k} onClick={()=>setMode(m.k)} style={{padding:"5px 10px",borderRadius:99,fontSize:11,fontWeight:700,cursor:"pointer",background:mode===m.k?gc+"33":"transparent",border:"1px solid "+(mode===m.k?gc+"66":C.border),color:mode===m.k?gc:C.sub}}>{m.l}</button>
+            ))}
+          </div>
+          <div style={{display:"flex",gap:4}}>
+            {[{k:"1m",l:"1M"},{k:"3m",l:"3M"},{k:"1a",l:"Ano"},{k:"all",l:"Tudo"}].map(r=>(
+              <button key={r.k} onClick={()=>setRange(r.k)} style={{padding:"4px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:range===r.k?C.blueXL:"transparent",border:"1px solid "+(range===r.k?C.blueXL:C.border),color:range===r.k?"#fff":C.sub}}>{r.l}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* Line chart */}
+        {chartData.length>0?(
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:14}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+              <div>
+                <div style={{fontSize:22,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{last}kg</div>
+                {delta!==0&&<div style={{fontSize:11,fontWeight:700,color:delta>0?C.mint:C.coral}}>{delta>0?"↑":"↓"}{Math.abs(delta)}% vs anterior</div>}
+              </div>
+              <div style={{fontSize:10,color:C.blueXL}}>{fmtDate(chartData[chartData.length-1]?.x)}</div>
+            </div>
+            <div style={{position:"relative"}}>
+              <div style={{position:"absolute",left:0,top:0,bottom:20,width:36,display:"flex",flexDirection:"column",justifyContent:"space-between",pointerEvents:"none"}}>
+                {[maxY,Math.round((maxY+minY)/2),minY].map((v,i)=><span key={i} style={{fontSize:8,color:C.muted}}>{v}kg</span>)}
+              </div>
+              <div style={{marginLeft:40}}>
+                <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{overflow:"visible"}}>
+                  <defs><linearGradient id="pdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={gc} stopOpacity="0.3"/><stop offset="100%" stopColor={gc} stopOpacity="0"/></linearGradient></defs>
+                  {[0,0.5,1].map((f,i)=><line key={i} x1={PAD} y1={PAD+(H-PAD*2)*f} x2={W-PAD} y2={PAD+(H-PAD*2)*f} stroke={C.border} strokeWidth="1" strokeDasharray="4,4"/>)}
+                  {chartData.length>1&&<polygon points={[...chartData.map((d,i)=>`${px(i)},${py(d.y)}`),`${px(chartData.length-1)},${H-PAD}`,`${px(0)},${H-PAD}`].join(" ")} fill="url(#pdg)"/>}
+                  <polyline points={chartData.map((d,i)=>`${px(i)},${py(d.y)}`).join(" ")} fill="none" stroke={gc} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  {chartData.map((d,i)=>(
+                    <g key={i}>
+                      <circle cx={px(i)} cy={py(d.y)} r="4" fill={gc} stroke={C.bg} strokeWidth="2"/>
+                      <text x={px(i)} y={py(d.y)-8} textAnchor="middle" fontSize="9" fill={C.sub}>{d.y}kg</text>
+                    </g>
+                  ))}
+                </svg>
+                <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
+                  <span style={{fontSize:9,color:C.muted}}>{fmtDate(chartData[0]?.x)}</span>
+                  <span style={{fontSize:9,color:C.muted}}>{fmtDate(chartData[chartData.length-1]?.x)}</span>
+                </div>
               </div>
             </div>
-            <div style={{height:4,background:C.card,borderRadius:2,overflow:"hidden"}}>
-              <div style={{height:"100%",width:(maxY>0?(w[mode]||0)/maxY:0)*100+"%",background:mc.color,borderRadius:2}}/>
-            </div>
           </div>
-        ))}
+        ):<div style={{textAlign:"center",padding:32,color:C.muted}}>Nenhum dado para este exercício</div>}
+
+        {/* Records per rep */}
+        {sortedRecs.length>0&&(
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:14}}>
+            <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Recordes de Série</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",padding:"0 0 6px",marginBottom:4,borderBottom:"1px solid "+C.border}}>
+              <div style={{fontSize:10,fontWeight:700,color:C.muted}}>Repetições</div>
+              <div style={{fontSize:10,fontWeight:700,color:C.muted}}>Melhor Marca</div>
+            </div>
+            {sortedRecs.map(([r,w])=>(
+              <div key={r} style={{display:"grid",gridTemplateColumns:"1fr 1fr",padding:"8px 0",borderBottom:"1px solid "+C.border+"44"}}>
+                <div style={{fontSize:14,fontWeight:600,color:C.sub}}>{r} reps</div>
+                <div style={{fontSize:14,fontWeight:700,color:gc}}>{w}kg</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Session history */}
+        <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Histórico</div>
+        {hist.slice(0,10).map((s,i)=>{
+          const bestSet=s.sets.reduce((a,b)=>orm(b.w||0,b.r||0)>orm(a.w||0,a.r||0)?b:a,s.sets[0]||{w:0,r:0});
+          return(
+            <div key={i} style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"12px 16px",marginBottom:8}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                <div style={{fontSize:13,fontWeight:700,color:C.text}}>{fmtDate(s.d)}</div>
+                <div style={{fontSize:12,fontWeight:700,color:gc}}>{bestSet.w}kg × {bestSet.r}</div>
+              </div>
+              {s.sets.map((set,si)=>(
+                <div key={si} style={{display:"flex",gap:10,padding:"4px 0",borderTop:si>0?"1px solid "+C.border+"33":"none"}}>
+                  <div style={{width:20,fontSize:11,color:C.muted,fontWeight:700}}>{si+1}</div>
+                  <div style={{fontSize:13,color:C.text,fontWeight:600}}>{set.w>0?set.w+"kg":"BW"} × {set.r}</div>
+                  {set.rpe&&<div style={{fontSize:11,color:set.rpe<=7?C.mint:set.rpe<=8.5?C.amber:C.coral,fontWeight:700}}>@{set.rpe}</div>}
+                </div>
+              ))}
+            </div>
+          );
+        })}
       </div>
-      <BottomNav active="progresso" onNavigate={s=>{onBack();onNavigate(s);}}/>
     </div>
   );
 }
