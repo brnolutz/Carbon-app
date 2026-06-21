@@ -1936,11 +1936,11 @@ function ExercicioScreen({name,onNavigate,onBack}){
   },[exName]);
 
   const nPoints={all:hist.length,"1a":12,"3m":6,"1m":4}[chartRange]||6;
-  const filteredHist=hist.slice(-nPoints);
+  const filteredHist=hist.slice(0,nPoints);  // most recent first, already sorted desc
 
   const chartData=useMemo(()=>{
     if(!filteredHist.length)return[];
-    return filteredHist.map(s=>({x:s.d,y:chartMode==="carga"?Math.max(...s.sets.map(ss=>ss.w||0)):Math.max(...s.sets.map(ss=>ss.w>0&&ss.r>0?orm(ss.w,ss.r):0))}));
+    return [...filteredHist].reverse().map(s=>({x:s.d,y:chartMode==="carga"?Math.max(...s.sets.map(ss=>ss.w||0)):Math.max(...s.sets.map(ss=>ss.w>0&&ss.r>0?orm(ss.w,ss.r):0))}));
   },[filteredHist,chartMode]);
 
   const maxY=Math.max(...chartData.map(d=>d.y),0.01);
@@ -1958,9 +1958,13 @@ function ExercicioScreen({name,onNavigate,onBack}){
         <div style={{padding:"10px 16px 0"}}>
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
             <button onClick={goBack} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
-            <div>
+            <div style={{flex:1}}>
               <div style={{fontSize:11,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:gc}}>{info.group}</div>
               <div style={{fontSize:20,fontWeight:800,color:C.text,letterSpacing:"-0.5px"}}>{exName}</div>
+            </div>
+            <div style={{textAlign:"right",flexShrink:0}}>
+              <div style={{fontSize:18,fontWeight:900,color:C.mint}}>{hist.length}</div>
+              <div style={{fontSize:9,color:C.sub,textTransform:"uppercase",letterSpacing:"0.06em"}}>treinos</div>
             </div>
           </div>
           <div style={{display:"flex",borderBottom:"1px solid "+C.border}}>
@@ -2057,6 +2061,29 @@ function ExercicioScreen({name,onNavigate,onBack}){
               </div>
             </div>
           </div>}
+
+          {/* Records per rep count */}
+          {hist.length>0&&(()=>{
+            const repRecords={};
+            hist.forEach(s=>s.sets.forEach(set=>{if(set.w>0&&set.r>0){if(!repRecords[set.r]||set.w>repRecords[set.r])repRecords[set.r]=set.w;}}));
+            const sorted=Object.entries(repRecords).sort((a,b)=>parseInt(a[0])-parseInt(b[0]));
+            if(!sorted.length)return null;
+            return(
+              <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:12}}>
+                <div style={{fontSize:11,fontWeight:700,color:C.sub,letterSpacing:"0.08em",textTransform:"uppercase",marginBottom:10}}>Recordes de Série</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",padding:"0 0 6px",marginBottom:4,borderBottom:"1px solid "+C.border}}>
+                  <div style={{fontSize:10,fontWeight:700,color:C.muted}}>Repetições</div>
+                  <div style={{fontSize:10,fontWeight:700,color:C.muted}}>Melhor Marca</div>
+                </div>
+                {sorted.map(([r,w])=>(
+                  <div key={r} style={{display:"grid",gridTemplateColumns:"1fr 1fr",padding:"8px 0",borderBottom:"1px solid "+C.border+"44"}}>
+                    <div style={{fontSize:14,fontWeight:600,color:C.sub}}>{r}</div>
+                    <div style={{fontSize:14,fontWeight:700,color:C.blueXL}}>{w}kg</div>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
         </div>}
         {tab==="historico"&&<div style={{paddingTop:16}}>
           {!hist.length?<div style={{textAlign:"center",padding:40,color:C.muted}}>Nenhum histórico ainda</div>:
@@ -2683,7 +2710,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
 
   const modesCfg={
     vol:{l:"Volume",unit:"t",color:C.blueXL,fmt:(v)=>v.toFixed(1)},
-    dur:{l:"Tempo",unit:"min",color:C.mint,fmt:(v)=>Math.round(v)+""},
+    dur:{l:"Tempo",unit:"h",color:C.mint,fmt:(v)=>(v/60).toFixed(1)},
     reps:{l:"Reps",unit:"",color:C.amber,fmt:(v)=>Math.round(v)+""},
     sets:{l:"Séries",unit:"",color:C.coral,fmt:(v)=>Math.round(v)+""},
   };
@@ -2740,6 +2767,12 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   function cleanName(name=""){
     return name.replace(/â[^\s]*/g,"—").replace(/\s+—\s+/g," — ").trim();
   }
+
+  const muscleHeatProgresso=useMemo(()=>{
+    const heat={};
+    muscles.forEach(m=>{heat[m.g]=m.pct;});
+    return heat;
+  },[muscles]);
 
   const GlassCard=({children,style={},onClick})=>(
     <div onClick={onClick} style={{background:C.card,backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderRadius:20,border:"1px solid "+C.border,boxShadow:"0 4px 24px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.05)",cursor:onClick?"pointer":undefined,...style}}>{children}</div>
@@ -2861,6 +2894,12 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
               );
             })}
           </div>
+        </GlassCard>
+
+        {/* Compact muscle map */}
+        <GlassCard style={{padding:"12px",marginBottom:12,display:"flex",flexDirection:"column",alignItems:"center"}}>
+          <div style={{fontSize:11,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6,width:"100%"}}>Mapa Muscular</div>
+          <BodyDiagram muscleHeat={muscleHeatProgresso} width={Math.min(280,window.innerWidth-80)}/>
         </GlassCard>
       </div>
 
