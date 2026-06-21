@@ -887,7 +887,7 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
     setShowMenu(false);
   }
 
-  if(selEx) return <ExercicioScreen name={selEx} onBack={()=>setSelEx(null)} onNavigate={onNavigate}/>;
+  if(selEx) return <ExercicioScreen name={selEx} onBack={()=>setSelEx(null)} onNavigate={onNavigate} key={selEx}/>;
 
   // EDIT MODE
   if(editing){
@@ -1919,7 +1919,7 @@ function ExercicioScreen({name,onNavigate,onBack}){
   const goBack=()=>{if(onBack)onBack();else onNavigate("treino");};
 
   return(
-    <div style={{background:"#080A0E",minHeight:"100dvh",display:"flex",flexDirection:"column",paddingBottom:100,paddingTop:52}}>
+    <div style={{position:"fixed",inset:0,zIndex:800,background:"#080A0E",display:"flex",flexDirection:"column",paddingBottom:100,paddingTop:52,overflowY:"auto"}}>
       <div style={{position:"sticky",top:52,zIndex:50,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)"}}>
         <div style={{padding:"14px 16px 0"}}>
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
