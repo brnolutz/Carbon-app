@@ -1923,7 +1923,11 @@ function ExercicioScreen({name,onNavigate,onBack}){
     setGifUrl(null);
     setGifLoading(true);
     supabase.from('exercise_gifs').select('gif_url').eq('exercise_name',exName).maybeSingle()
-      .then(({data})=>{if(data?.gif_url)setGifUrl(data.gif_url);setGifLoading(false);});
+      .then(({data})=>{
+        if(data?.gif_url) setGifUrl(data.gif_url);
+        setGifLoading(false);
+      })
+      .catch(()=>setGifLoading(false));
   },[exName]);
 
   const nPoints={all:hist.length,"1a":12,"3m":6,"1m":4}[chartRange]||6;
@@ -1945,7 +1949,7 @@ function ExercicioScreen({name,onNavigate,onBack}){
 
   return(
     <div style={{position:"fixed",inset:0,zIndex:800,background:"#080A0E",display:"flex",flexDirection:"column",paddingBottom:100,overflowY:"auto"}}>
-      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",paddingTop:52}}>
+      <div style={{position:"sticky",top:0,zIndex:2147483646,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
         <div style={{padding:"10px 16px 0"}}>
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
             <button onClick={goBack} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
