@@ -955,9 +955,11 @@ function MonthlyReportScreen({onBack}){
   const monthName=new Date(selMonth.y,selMonth.m,1).toLocaleDateString("pt-BR",{month:"long",year:"numeric"});
   const prevM=()=>{let m=selMonth.m-1,y=selMonth.y;if(m<0){m=11;y--;}setSelMonth({y,m});};
   const nextM=()=>{let m=selMonth.m+1,y=selMonth.y;if(m>11){m=0;y++;}if(y>now.getFullYear()||(y===now.getFullYear()&&m>now.getMonth()))return;setSelMonth({y,m});};
+  const scrollRef=useRef(null);
+  useLayoutEffect(()=>{if(scrollRef.current)scrollRef.current.scrollTop=0;},[]);
   const canNext=selMonth.m<now.getMonth()||selMonth.y<now.getFullYear();
   return(
-    <div data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",overflowY:"auto",paddingBottom:100}}>
+    <div ref={scrollRef} data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",overflowY:"auto",paddingBottom:100}}>
       <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
         <div style={{padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onBack} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
