@@ -1042,6 +1042,7 @@ function MonthlyReportScreen({onBack}){
   const[showAllEx,setShowAllEx]=useState(false);
   const scrollRef=useRef(null);
   useLayoutEffect(()=>{if(scrollRef.current)scrollRef.current.scrollTop=0;},[]);
+  useLayoutEffect(()=>{window.scrollTo(0,0);if(scrollRef.current)scrollRef.current.scrollTop=0;},[selMonth]);
   useEffect(()=>{document.body.classList.add("hide-carbon-header");return()=>document.body.classList.remove("hide-carbon-header");},[]);
 
   const allSessions=getAllSessions();
