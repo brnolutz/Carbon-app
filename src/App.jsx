@@ -2676,112 +2676,115 @@ const EXERCISES_INFO = {
   "Abdominal Na Máquina":{group:"Core",secondary:[],type:"Isolado",equipment:"Máquina",muscles:["Reto abdominal"],instructions:["Sentado na máquina, mãos nas alças.","Flexione o tronco contra a resistência.","Contraia o abdômen no ponto mais baixo.","Retorne controlado."],tips:"Expire ao contrair — isso aumenta a ativação do core."},
 };
 
-// ── Imagens 3D anatômicas — exercisedb.io ─────────────────────
-// Formato: https://exercisedb.io/exercises/{id}/image/{0 ou 1}
-const EXERCISE_IMGS = {
-  "Supino (Barra)":                                        ["https://exercisedb.io/exercises/0025/image/0","https://exercisedb.io/exercises/0025/image/1"],
-  "Supino Declinado (Halter)":                             ["https://exercisedb.io/exercises/0301/image/0","https://exercisedb.io/exercises/0301/image/1"],
-  "Supino Inclinado (Halter)":                             ["https://exercisedb.io/exercises/0314/image/0","https://exercisedb.io/exercises/0314/image/1"],
-  "Crucifixo na Polia (Máquina)":                         ["https://exercisedb.io/exercises/0254/image/0","https://exercisedb.io/exercises/0254/image/1"],
-  "Levantamento Terra (Barra)":                            ["https://exercisedb.io/exercises/0011/image/0","https://exercisedb.io/exercises/0011/image/1"],
-  "Barra Fixa":                                            ["https://exercisedb.io/exercises/0031/image/0","https://exercisedb.io/exercises/0031/image/1"],
-  "Remada Inclinada Apoiada No Peito (Halter)":            ["https://exercisedb.io/exercises/0307/image/0","https://exercisedb.io/exercises/0307/image/1"],
-  "Puxada Alta na Polia (Máquina)":                       ["https://exercisedb.io/exercises/0019/image/0","https://exercisedb.io/exercises/0019/image/1"],
-  "Levantamento Terra Romeno (Barra)":                     ["https://exercisedb.io/exercises/0038/image/0","https://exercisedb.io/exercises/0038/image/1"],
-  "Desenvolvimento (Halter)":                              ["https://exercisedb.io/exercises/0323/image/0","https://exercisedb.io/exercises/0323/image/1"],
-  "Elevação Lateral (Halter)":                             ["https://exercisedb.io/exercises/0329/image/0","https://exercisedb.io/exercises/0329/image/1"],
-  "Elevação Lateral Unilateral (Cabo)":                    ["https://exercisedb.io/exercises/0620/image/0","https://exercisedb.io/exercises/0620/image/1"],
-  "Aberturas Invertidas De Ombro Posterior (Na Máquina)":  ["https://exercisedb.io/exercises/0291/image/0","https://exercisedb.io/exercises/0291/image/1"],
-  "Agachamento (Barra)":                                   ["https://exercisedb.io/exercises/0047/image/0","https://exercisedb.io/exercises/0047/image/1"],
-  "Leg Press 45º (Máquina)":                               ["https://exercisedb.io/exercises/0280/image/0","https://exercisedb.io/exercises/0280/image/1"],
-  "Mesa Flexora (Máquina)":                                ["https://exercisedb.io/exercises/0051/image/0","https://exercisedb.io/exercises/0051/image/1"],
-  "Extensora (Máquina)":                                   ["https://exercisedb.io/exercises/0052/image/0","https://exercisedb.io/exercises/0052/image/1"],
-  "Afundo (Halter)":                                       ["https://exercisedb.io/exercises/0041/image/0","https://exercisedb.io/exercises/0041/image/1"],
-  "Elevação de Panturrilha Sentado (Máquina)":             ["https://exercisedb.io/exercises/1355/image/0","https://exercisedb.io/exercises/1355/image/1"],
-  "Elevação Unilateral de Panturrilha em Pé (Máquina)":   ["https://exercisedb.io/exercises/0341/image/0","https://exercisedb.io/exercises/0341/image/1"],
-  "Rosca Direta na Barra W":                               ["https://exercisedb.io/exercises/0032/image/0","https://exercisedb.io/exercises/0032/image/1"],
-  "Rosca Scott (Barra)":                                   ["https://exercisedb.io/exercises/0286/image/0","https://exercisedb.io/exercises/0286/image/1"],
-  "Rosca Inclinada (Halter)":                              ["https://exercisedb.io/exercises/0098/image/0","https://exercisedb.io/exercises/0098/image/1"],
-  "Rosca Martelo (Halter)":                                ["https://exercisedb.io/exercises/0097/image/0","https://exercisedb.io/exercises/0097/image/1"],
-  "Tríceps na Paralela (Com Peso)":                        ["https://exercisedb.io/exercises/0045/image/0","https://exercisedb.io/exercises/0045/image/1"],
-  "Extensão de tríceps acima da cabeça (cabo)":            ["https://exercisedb.io/exercises/1701/image/0","https://exercisedb.io/exercises/1701/image/1"],
-  "Abdominal (Corda)":                                     ["https://exercisedb.io/exercises/0024/image/0","https://exercisedb.io/exercises/0024/image/1"],
-  "Abdominal Na Máquina":                                  ["https://exercisedb.io/exercises/0025/image/0","https://exercisedb.io/exercises/0025/image/1"],
+// ── ExerciseDB Images — getExerciseImage endpoint ─────────────
+const RAPIDAPI_KEY = "863ed60540msha869e2cf0791bd5p1ccf0cjsn2febf3210d99";
+
+// Mapa PT-BR → exerciseId do ExerciseDB
+const EXERCISE_IDS = {
+  "Supino (Barra)":                                       "0025",
+  "Supino Declinado (Halter)":                            "0301",
+  "Supino Inclinado (Halter)":                            "0314",
+  "Crucifixo na Polia (Máquina)":                        "0254",
+  "Levantamento Terra (Barra)":                           "0011",
+  "Barra Fixa":                                           "0031",
+  "Remada Inclinada Apoiada No Peito (Halter)":           "0307",
+  "Puxada Alta na Polia (Máquina)":                      "0019",
+  "Levantamento Terra Romeno (Barra)":                    "0038",
+  "Desenvolvimento (Halter)":                             "0323",
+  "Elevação Lateral (Halter)":                            "0329",
+  "Elevação Lateral Unilateral (Cabo)":                   "0620",
+  "Aberturas Invertidas De Ombro Posterior (Na Máquina)": "0291",
+  "Agachamento (Barra)":                                  "0047",
+  "Leg Press 45º (Máquina)":                              "0280",
+  "Mesa Flexora (Máquina)":                               "0051",
+  "Extensora (Máquina)":                                  "0052",
+  "Afundo (Halter)":                                      "0041",
+  "Elevação de Panturrilha Sentado (Máquina)":            "1355",
+  "Elevação Unilateral de Panturrilha em Pé (Máquina)":  "0341",
+  "Rosca Direta na Barra W":                              "0032",
+  "Rosca Scott (Barra)":                                  "0286",
+  "Rosca Inclinada (Halter)":                             "0098",
+  "Rosca Martelo (Halter)":                               "0097",
+  "Tríceps na Paralela (Com Peso)":                       "0045",
+  "Extensão de tríceps acima da cabeça (cabo)":           "1701",
+  "Abdominal (Corda)":                                    "0024",
+  "Abdominal Na Máquina":                                 "0025",
 };
 
-// Slideshow com crossfade suave entre as 2 imagens 3D
+// Cache em memória
+const _imgCache = {};
+
+async function fetchExerciseImage(exName){
+  if(_imgCache[exName]) return _imgCache[exName];
+  // Checar Supabase
+  try{
+    const{data}=await supabase.from('exercise_gifs').select('gif_url').eq('exercise_name',exName).maybeSingle();
+    if(data?.gif_url){_imgCache[exName]=data.gif_url;return data.gif_url;}
+  }catch(e){}
+  // Buscar na API
+  const id=EXERCISE_IDS[exName];
+  if(!id) return null;
+  try{
+    const res=await fetch(`https://exercisedb.p.rapidapi.com/image?exerciseId=${id}&resolution=180`,{
+      headers:{
+        'x-rapidapi-key': RAPIDAPI_KEY,
+        'x-rapidapi-host': 'exercisedb.p.rapidapi.com',
+        'Content-Type': 'application/json',
+      }
+    });
+    if(!res.ok) return null;
+    // Resposta pode ser blob (imagem direta) ou JSON com URL
+    const ct = res.headers.get('content-type')||'';
+    let imgUrl = null;
+    if(ct.includes('image')){
+      const blob = await res.blob();
+      imgUrl = URL.createObjectURL(blob);
+    } else {
+      const data = await res.json();
+      imgUrl = data.url || data.gifUrl || data.imageUrl || null;
+    }
+    if(!imgUrl) return null;
+    _imgCache[exName] = imgUrl;
+    // Salvar no Supabase
+    try{
+      const{data:u}=await supabase.auth.getUser();
+      if(u?.user?.id) await supabase.from('exercise_gifs').upsert({exercise_name:exName,gif_url:imgUrl},{onConflict:'exercise_name'});
+    }catch(e){}
+    return imgUrl;
+  }catch(e){ return null; }
+}
+
 function ExerciseSlideshow({exName,color}){
-  const imgs = EXERCISE_IMGS[exName] || [];
-  const[frame,setFrame]=useState(0);
+  const[imgUrl,setImgUrl]=useState(null);
+  const[loading,setLoading]=useState(true);
   const[paused,setPaused]=useState(false);
-  const[loaded,setLoaded]=useState([false,false]);
-  const[errors,setErrors]=useState([false,false]);
-  const intervalRef=useRef(null);
 
   useEffect(()=>{
-    setFrame(0);setLoaded([false,false]);setPaused(false);setErrors([false,false]);
+    setImgUrl(null);setLoading(true);setPaused(false);
+    fetchExerciseImage(exName).then(url=>{
+      setImgUrl(url);
+      setLoading(false);
+    });
   },[exName]);
 
-  useEffect(()=>{
-    if(imgs.length<2||paused){clearInterval(intervalRef.current);return;}
-    intervalRef.current=setInterval(()=>setFrame(f=>f===0?1:0),900);
-    return()=>clearInterval(intervalRef.current);
-  },[paused,exName,imgs.length]);
-
-  // Fallback para free-exercise-db se exercisedb.io não funcionar
-  const BASE_IMG="https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/";
-  const FALLBACK={
-    "Supino (Barra)":[BASE_IMG+"Barbell_Bench_Press_-_Medium_Grip/0.jpg",BASE_IMG+"Barbell_Bench_Press_-_Medium_Grip/1.jpg"],
-    "Levantamento Terra (Barra)":[BASE_IMG+"Barbell_Deadlift/0.jpg",BASE_IMG+"Barbell_Deadlift/1.jpg"],
-    "Agachamento (Barra)":[BASE_IMG+"Barbell_Full_Squat/0.jpg",BASE_IMG+"Barbell_Full_Squat/1.jpg"],
-  };
-
-  const hasError=errors[0]&&errors[1];
-  const fallbackImgs=FALLBACK[exName]||[];
-  const displayImgs=hasError&&fallbackImgs.length?fallbackImgs:imgs;
-
-  if(!displayImgs.length) return(
-    <div style={{background:"#f5f5f5",borderRadius:16,minHeight:200,display:"flex",alignItems:"center",justifyContent:"center",margin:"16px 0",flexDirection:"column",gap:8}}>
-      <div style={{fontSize:32}}>🏋️</div>
-      <div style={{fontSize:12,color:"#999"}}>Animação em breve</div>
-    </div>
-  );
-
-  const allLoaded=loaded[0]&&loaded[1];
   return(
-    <div style={{position:"relative",margin:"16px 0",borderRadius:16,overflow:"hidden",background:"#fff",minHeight:200}}>
+    <div style={{position:"relative",margin:"16px 0",borderRadius:16,overflow:"hidden",background:"#fff",minHeight:200,display:"flex",alignItems:"center",justifyContent:"center"}}>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      {displayImgs.map((src,i)=>(
-        <img key={src} src={src}
-          onLoad={()=>setLoaded(l=>{const n=[...l];n[i]=true;return n;})}
-          onError={()=>setErrors(e=>{const n=[...e];n[i]=true;return n;})}
-          style={{
-            position:i===0?"relative":"absolute",
-            top:0,left:0,width:"100%",maxHeight:280,
-            objectFit:"contain",display:"block",
-            opacity:allLoaded?(frame===i?1:0):0,
-            transition:"opacity 0.35s ease",
-          }}
-          alt={exName}
-        />
-      ))}
-      {!allLoaded&&(
-        <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",background:"#fff"}}>
+      {loading&&(
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",minHeight:200}}>
           <div style={{width:30,height:30,borderRadius:"50%",border:"3px solid #eee",borderTopColor:color,animation:"spin 0.8s linear infinite"}}/>
         </div>
       )}
-      {allLoaded&&(
-        <button onClick={()=>setPaused(p=>!p)} style={{
-          position:"absolute",bottom:10,right:10,
-          width:34,height:34,borderRadius:"50%",
-          background:"rgba(0,0,0,0.4)",border:"none",
-          cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",
-        }}>
-          {paused
-            ?<svg width="13" height="13" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg>
-            :<svg width="13" height="13" viewBox="0 0 24 24" fill="#fff"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-          }
-        </button>
+      {!loading&&imgUrl&&(
+        <img src={imgUrl} alt={exName}
+          style={{width:"100%",maxHeight:280,objectFit:"contain",display:"block"}}
+        />
+      )}
+      {!loading&&!imgUrl&&(
+        <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,padding:32}}>
+          <div style={{fontSize:32}}>🏋️</div>
+          <div style={{fontSize:12,color:"#999"}}>Imagem não disponível</div>
+        </div>
       )}
     </div>
   );
