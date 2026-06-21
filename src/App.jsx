@@ -37,6 +37,15 @@ const EX_GROUP = {
   "Tríceps na Paralela (Com Peso)":"Triceps","Extensão de tríceps acima da cabeça (cabo)":"Triceps",
   "Abdominal (Corda)":"Core","Abdominal Na Máquina":"Core",
 };
+const MUSCLE_COLORS={"Peito":"#3B82F6","Costas":"#10B981","Pernas":"#F59E0B","Ombros":"#8B5CF6","Braços":"#EF4444","Core":"#06B6D4","Glúteos":"#F97316","Panturrilha":"#EC4899"};
+const MUSCLE_KEYWORDS={"Peito":["Supino","Crucifixo","Peitoral","Inclinado","Declinado","Chest"],"Costas":["Terra","Remada","Puxada","Barra Fixa","Pull","Row","Pulldown"],"Pernas":["Agachamento","Leg Press","Cadeira","Mesa Flexora","Afundo","Lunges"],"Ombros":["Desenvolvimento","Elevação Lateral","Aberturas","Arnold","Shoulder","Press"],"Braços":["Rosca","Tríceps","Coice","Martelo","Scott","Concentrada","Extensão","Curl"],"Core":["Abdominal","Core","Prancha","Elevação De Pernas","Plank"],"Glúteos":["Romeno","Hip Thrust","Glúteo","Levantamento Terra Romeno"],"Panturrilha":["Panturrilha","Elevação de Panturrilha","Calf","Sóleo"]};
+function getExMuscle(exName){
+  const n=exName.toLowerCase();
+  for(const [g,kws] of Object.entries(MUSCLE_KEYWORDS)){
+    if(kws.some(kw=>n.includes(kw.toLowerCase()))) return g;
+  }
+  return null;
+}
 const RPE_LABELS = {6:"Muito fácil",6.5:"Fácil",7:"Leve",7.5:"Moderado",8:"Difícil",8.5:"Muito difícil",9:"Quase máximo",9.5:"Máximo",10:"Falha"};
 
 
@@ -2273,46 +2282,6 @@ const EXERCISES_INFO = {
   "Abdominal Na Máquina":{group:"Core",secondary:[],type:"Isolado",equipment:"Máquina",muscles:["Reto abdominal"],instructions:["Sentado na máquina, mãos nas alças.","Flexione o tronco contra a resistência.","Contraia o abdômen no ponto mais baixo.","Retorne controlado."],tips:"Expire ao contrair — isso aumenta a ativação do core."},
 };
 
-const EXERCISE_IMAGES={
-  "Supino (Barra)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg",
-  "Supino Inclinado (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg",
-  "Supino Declinado (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Decline_Barbell_Bench_Press/0.jpg",
-  "Desenvolvimento (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Shoulder_Press/0.jpg",
-  "Elevação Lateral (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Lateral_Raise/0.jpg",
-  "Elevação Lateral (Cabo)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Seated_Lateral_Raise/0.jpg",
-  "Crucifixo na Polia (Máquina)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Crossover/0.jpg",
-  "Aberturas De Ombros Dobradas":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Rear_Delt_Row/0.jpg",
-  "Aberturas Invertidas De Ombro Posterior":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Rear_Delt_Row/0.jpg",
-  "Agachamento (Barra)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/0.jpg",
-  "Leg Press 45º (Máquina)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Press/0.jpg",
-  "Levantamento Terra (Barra)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Deadlift/0.jpg",
-  "Levantamento Terra Romeno (Barra)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg",
-  "Cadeira Flexora (Máquina)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Leg_Curl/0.jpg",
-  "Cadeira Extensora (Máquina)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Extensions/0.jpg",
-  "Afundo (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Lunges/0.jpg",
-  "Elevação de Panturrilha Sentado (Máquina)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Calf_Raise/0.jpg",
-  "Elevação de Panturrilha em Pé (Máquina)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Rocking_Standing_Calf_Raise/0.jpg",
-  "Elevação Unilateral de Panturrilha em Pé (Máquina)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Rocking_Standing_Calf_Raise/0.jpg",
-  "Hip Thrust (Barra)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Hip_Thrust/0.jpg",
-  "Puxada Alta na Polia (Máquina)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg",
-  "Barra Fixa":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg",
-  "Remada Inclinada Apoiada No Peito (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Over_Two-Dumbbell_Row/0.jpg",
-  "Remadas Dobradas (Barra)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Over_Two-Dumbbell_Row/0.jpg",
-  "Remada (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Over_Two-Dumbbell_Row/0.jpg",
-  "Rosca Direta (Barra)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Curl/0.jpg",
-  "Rosca Direta (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/0.jpg",
-  "Rosca Martelo (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hammer_Curls/0.jpg",
-  "Rosca Scott (Barra)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Preacher_Curl/0.jpg",
-  "Rosca Inclinada (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Curl/0.jpg",
-  "Tríceps Corda (Cabo)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown/0.jpg",
-  "Extensão de Tríceps (Cabo)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Overhead_Cable_Curl/0.jpg",
-  "Extensão de tríceps acima da cabeça (cabo)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Overhead_Cable_Curl/0.jpg",
-  "Tríceps na Paralela (Com Peso)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Dips/0.jpg",
-  "Abdominal":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Ab_Crunch_Machine/0.jpg",
-  "Abdominal Na Máquina":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Ab_Crunch_Machine/0.jpg",
-  "Abdominal (Corda)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Crunch/0.jpg",
-  "Elevação De Pernas Na Barra Fixa":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hanging_Leg_Raise/0.jpg",
-};
 
 function ExercicioScreen({name,onNavigate,onBack}){
   const[tab,setTab]=useState("resumo");
@@ -2335,15 +2304,14 @@ function ExercicioScreen({name,onNavigate,onBack}){
     return()=>document.body.classList.remove("hide-carbon-header");
   },[]);
 
-  // Load exercise image: static map first, then Supabase
   useEffect(()=>{
     setGifUrl(null);
     setGifLoading(true);
-    const staticImg=EXERCISE_IMAGES[exName];
-    if(staticImg){setGifUrl(staticImg);setGifLoading(false);return;}
-    // Try Supabase for custom GIFs
     supabase.from('exercise_gifs').select('gif_url').eq('exercise_name',exName).maybeSingle()
-      .then(({data})=>{if(data?.gif_url)setGifUrl(data.gif_url);setGifLoading(false);})
+      .then(({data})=>{
+        if(data?.gif_url) setGifUrl(data.gif_url);
+        setGifLoading(false);
+      })
       .catch(()=>setGifLoading(false));
   },[exName]);
 
@@ -2442,25 +2410,18 @@ function ExercicioScreen({name,onNavigate,onBack}){
       </div>
       <div style={{flex:1,overflowY:"auto",padding:"0 16px 20px"}}>
         {tab==="resumo"&&<div>
-          <div style={{borderRadius:16,overflow:"hidden",margin:"16px 0",border:"1px solid "+C.border,background:"#0A0D14",minHeight:gifUrl?0:180,display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
+          <div style={{background:"#000",borderRadius:16,overflow:"hidden",margin:"16px 0",border:"1px solid "+C.border,minHeight:220,display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
             {gifUrl
-              ? <img
-                  src={gifUrl}
-                  alt={exName}
-                  onError={()=>setGifUrl(null)}
-                  style={{width:"100%",maxHeight:320,objectFit:"cover",display:"block"}}
-                />
+              ? <img src={gifUrl} alt={exName} onLoad={()=>setGifLoading(false)} onError={()=>{setGifLoading(false);setGifUrl(null);}} style={{width:"100%",maxHeight:280,objectFit:"contain"}}/>
               : gifLoading
-                ? <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:40,minHeight:180}}>
-                    <div style={{width:28,height:28,borderRadius:"50%",border:"2px solid "+C.border,borderTopColor:gc,animation:"spin 0.8s linear infinite"}}/>
+                ? <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:32}}>
+                    <div style={{width:32,height:32,borderRadius:"50%",border:"3px solid "+C.border,borderTopColor:gc,animation:"spin 0.8s linear infinite"}}/>
                     <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
                   </div>
-                : <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,padding:40}}>
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke={C.muted} strokeWidth="1.5"/><path d="M8 12h8M12 8v8" stroke={C.muted} strokeWidth="1.5" strokeLinecap="round"/></svg>
-                    <div style={{fontSize:12,color:C.muted}}>Sem imagem disponível</div>
+                : <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,padding:32}}>
+                    <div style={{fontSize:12,color:C.muted,opacity:0.4}}>Adicione o GIF via Supabase</div>
                   </div>
             }
-            {gifUrl&&<div style={{position:"absolute",top:8,right:8,background:"rgba(0,0,0,0.6)",borderRadius:6,padding:"3px 8px",fontSize:10,color:"rgba(255,255,255,0.5)"}}>exercício</div>}
           </div>
           <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:12}}>
             <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:8}}>
@@ -3156,16 +3117,6 @@ function StrengthDetailScreen({onBack}){
 // ══════════════════════════════════════════════════════════════
 // VOLUME DETAIL SCREEN — sets per muscle group over time
 // ══════════════════════════════════════════════════════════════
-const MUSCLE_COLORS={"Peito":"#3B82F6","Costas":"#10B981","Pernas":"#F59E0B","Ombros":"#8B5CF6","Braços":"#EF4444","Core":"#06B6D4","Glúteos":"#F97316","Panturrilha":"#EC4899"};
-const MUSCLE_KEYWORDS={"Peito":["Supino","Crucifixo","Peitoral","Inclinado","Declinado","Chest"],"Costas":["Terra","Remada","Puxada","Barra Fixa","Pull","Row","Pulldown"],"Pernas":["Agachamento","Leg Press","Cadeira","Mesa Flexora","Afundo","Lunges"],"Ombros":["Desenvolvimento","Elevação Lateral","Aberturas","Arnold","Shoulder","Press"],"Braços":["Rosca","Tríceps","Coice","Martelo","Scott","Concentrada","Extensão","Curl"],"Core":["Abdominal","Core","Prancha","Elevação De Pernas","Plank"],"Glúteos":["Romeno","Hip Thrust","Glúteo","Levantamento Terra Romeno"],"Panturrilha":["Panturrilha","Elevação de Panturrilha","Calf","Sóleo"]};
-
-function getExMuscle(exName){
-  const n=exName.toLowerCase();
-  for(const [g,kws] of Object.entries(MUSCLE_KEYWORDS)){
-    if(kws.some(kw=>n.includes(kw.toLowerCase()))) return g;
-  }
-  return null;
-}
 
 function VolumeDetailScreen({onBack}){
   const[interval,setInterval_]=useState("semana");
