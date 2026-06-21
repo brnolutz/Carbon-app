@@ -546,65 +546,6 @@ function WorkoutDetail({session,onClose}){
     </div>
   );
 }
-    <div style={{position:"fixed",inset:0,zIndex:600,background:C.bg,overflowY:"auto",paddingTop:52}}>
-      <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"14px 16px 14px"}}>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <button onClick={onClose} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-          <div style={{fontSize:16,fontWeight:700,color:C.text}}>Detalhe do Treino</div>
-        </div>
-      </div>
-      <div style={{padding:"12px 16px 80px"}}>
-        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
-          <div style={{width:36,height:36,borderRadius:"50%",background:C.grad,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900,color:"#fff",flexShrink:0}}>B</div>
-          <div><div style={{fontSize:13,fontWeight:700,color:C.text}}>Bruno</div><div style={{fontSize:10,color:C.sub}}>{weekday}</div></div>
-        </div>
-        <div style={{fontSize:19,fontWeight:900,color:C.text,marginBottom:10,letterSpacing:"-0.5px"}}>{cleanName(session.name)}</div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:6}}>
-          {[{l:"Tempo",v:session.duration?fmtDur(session.duration):fmtDur(Math.round(session.totalSets*3))},{l:"Volume",v:session.totalVol+"t"},{l:"Séries",v:session.totalSets}].map(s=>(
-            <div key={s.l} style={{background:C.card,border:"1px solid "+C.border,borderRadius:10,padding:"8px 10px"}}>
-              <div style={{fontSize:9,color:C.sub,fontWeight:600,marginBottom:2}}>{s.l}</div>
-              <div style={{fontSize:16,fontWeight:800,color:C.text}}>{s.v}</div>
-            </div>
-          ))}
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:14}}>
-          <div style={{background:C.card,border:"1px solid "+C.amber+"33",borderRadius:10,padding:"8px 10px",display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontSize:16}}>🥇</span>
-            <div><div style={{fontSize:9,color:C.sub,fontWeight:600}}>Recordes</div><div style={{fontSize:16,fontWeight:800,color:C.amber}}>{session.prs||0}</div></div>
-          </div>
-          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:10,padding:"8px 10px",display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontSize:16}}>🔥</span>
-            <div><div style={{fontSize:9,color:C.sub,fontWeight:600}}>Cal. est.</div><div style={{fontSize:16,fontWeight:800,color:"#60A5FA"}}>~{session.calories!=null?session.calories:Math.round(session.totalSets*18)}</div></div>
-          </div>
-        </div>
-        {muscles.length>0&&<div style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"12px",marginBottom:14}}>
-          <div style={{fontSize:10,fontWeight:700,color:C.sub,marginBottom:10,letterSpacing:"0.06em",textTransform:"uppercase"}}>Divisão Muscular</div>
-          {muscles.map(([label,sets])=>{const pct=Math.round(sets/totalMS*100);const col=mColors[label]||C.blueL;return(<div key={label} style={{marginBottom:8}}>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}><span style={{fontSize:13,fontWeight:600,color:C.text}}>{label}</span><span style={{fontSize:11,fontWeight:700,color:C.sub}}>{pct}%</span></div>
-            <div style={{height:6,background:C.border,borderRadius:3}}><div style={{height:"100%",width:pct+"%",background:col,borderRadius:3}}/></div>
-          </div>);})}
-        </div>}
-        <div style={{fontSize:10,fontWeight:700,color:C.sub,marginBottom:10,letterSpacing:"0.06em",textTransform:"uppercase"}}>Treinamento</div>
-        {session.exercises.map((ex,i)=>{
-          const gc=GC[EX_GROUP[ex.name]]||C.blueL;
-          return(<div key={i} style={{marginBottom:14}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
-              <div style={{width:28,height:28,borderRadius:"50%",background:gc+"22",border:"1px solid "+gc+"44",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><div style={{width:7,height:7,borderRadius:"50%",background:gc}}/></div>
-              <div style={{fontSize:14,fontWeight:800,color:"#93C5FD"}}>{ex.name}</div>
-            </div>
-            {ex.setData.map((set,si)=>{
-              const rc=set.rpe?(set.rpe<=7?"#6EE7B7":set.rpe<=8.5?"#93C5FD":"#94A3B8"):null;
-              return(<div key={si} style={{display:"grid",gridTemplateColumns:"30px 1fr",gap:6,padding:"7px 0 7px 36px",borderBottom:"1px solid "+C.border+"22",alignItems:"center"}}>
-                <div style={{fontSize:12,fontWeight:700,color:C.sub}}>{si+1}</div>
-                <div style={{fontSize:13,color:"#CBD5E1"}}>{set.w>0?set.w+"kg":"—"} × {set.r}{set.rpe&&<span style={{color:rc,fontWeight:700}}> @ {set.rpe} rpe</span>}</div>
-              </div>);
-            })}
-          </div>);
-        })}
-      </div>
-    </div>
-  );
-}
 
 function FeedCard({session,onOpen}){
   const[expanded,setExpanded]=useState(false);
