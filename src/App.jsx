@@ -2273,6 +2273,47 @@ const EXERCISES_INFO = {
   "Abdominal Na Máquina":{group:"Core",secondary:[],type:"Isolado",equipment:"Máquina",muscles:["Reto abdominal"],instructions:["Sentado na máquina, mãos nas alças.","Flexione o tronco contra a resistência.","Contraia o abdômen no ponto mais baixo.","Retorne controlado."],tips:"Expire ao contrair — isso aumenta a ativação do core."},
 };
 
+const EXERCISE_IMAGES={
+  "Supino (Barra)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Bench_Press_-_Medium_Grip/0.jpg",
+  "Supino Inclinado (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Press/0.jpg",
+  "Supino Declinado (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Decline_Barbell_Bench_Press/0.jpg",
+  "Desenvolvimento (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Shoulder_Press/0.jpg",
+  "Elevação Lateral (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Lateral_Raise/0.jpg",
+  "Elevação Lateral (Cabo)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Seated_Lateral_Raise/0.jpg",
+  "Crucifixo na Polia (Máquina)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Crossover/0.jpg",
+  "Aberturas De Ombros Dobradas":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Rear_Delt_Row/0.jpg",
+  "Aberturas Invertidas De Ombro Posterior":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Rear_Delt_Row/0.jpg",
+  "Agachamento (Barra)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Full_Squat/0.jpg",
+  "Leg Press 45º (Máquina)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Press/0.jpg",
+  "Levantamento Terra (Barra)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Deadlift/0.jpg",
+  "Levantamento Terra Romeno (Barra)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Romanian_Deadlift/0.jpg",
+  "Cadeira Flexora (Máquina)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Leg_Curl/0.jpg",
+  "Cadeira Extensora (Máquina)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Leg_Extensions/0.jpg",
+  "Afundo (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Lunges/0.jpg",
+  "Elevação de Panturrilha Sentado (Máquina)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Seated_Calf_Raise/0.jpg",
+  "Elevação de Panturrilha em Pé (Máquina)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Rocking_Standing_Calf_Raise/0.jpg",
+  "Elevação Unilateral de Panturrilha em Pé (Máquina)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Rocking_Standing_Calf_Raise/0.jpg",
+  "Hip Thrust (Barra)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Hip_Thrust/0.jpg",
+  "Puxada Alta na Polia (Máquina)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg",
+  "Barra Fixa":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Wide-Grip_Lat_Pulldown/0.jpg",
+  "Remada Inclinada Apoiada No Peito (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Over_Two-Dumbbell_Row/0.jpg",
+  "Remadas Dobradas (Barra)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Over_Two-Dumbbell_Row/0.jpg",
+  "Remada (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Bent_Over_Two-Dumbbell_Row/0.jpg",
+  "Rosca Direta (Barra)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Barbell_Curl/0.jpg",
+  "Rosca Direta (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Dumbbell_Bicep_Curl/0.jpg",
+  "Rosca Martelo (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hammer_Curls/0.jpg",
+  "Rosca Scott (Barra)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Preacher_Curl/0.jpg",
+  "Rosca Inclinada (Halter)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Incline_Dumbbell_Curl/0.jpg",
+  "Tríceps Corda (Cabo)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Pushdown/0.jpg",
+  "Extensão de Tríceps (Cabo)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Overhead_Cable_Curl/0.jpg",
+  "Extensão de tríceps acima da cabeça (cabo)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Overhead_Cable_Curl/0.jpg",
+  "Tríceps na Paralela (Com Peso)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Triceps_Dips/0.jpg",
+  "Abdominal":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Ab_Crunch_Machine/0.jpg",
+  "Abdominal Na Máquina":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Ab_Crunch_Machine/0.jpg",
+  "Abdominal (Corda)":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Cable_Crunch/0.jpg",
+  "Elevação De Pernas Na Barra Fixa":"https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/Hanging_Leg_Raise/0.jpg",
+};
+
 function ExercicioScreen({name,onNavigate,onBack}){
   const[tab,setTab]=useState("resumo");
   const[chartMode,setChartMode]=useState("carga");
@@ -2294,45 +2335,15 @@ function ExercicioScreen({name,onNavigate,onBack}){
     return()=>document.body.classList.remove("hide-carbon-header");
   },[]);
 
-  // Map Portuguese exercise names to English for wger API
-  const EX_TO_WGER={
-    "Supino (Barra)":"bench press","Supino Inclinado (Halter)":"incline dumbbell press","Supino Declinado (Halter)":"decline bench press",
-    "Desenvolvimento (Halter)":"dumbbell shoulder press","Elevação Lateral (Halter)":"lateral raise","Elevação Lateral (Cabo)":"cable lateral raise",
-    "Agachamento (Barra)":"barbell squat","Leg Press 45º (Máquina)":"leg press","Levantamento Terra (Barra)":"deadlift","Levantamento Terra Romeno (Barra)":"romanian deadlift",
-    "Puxada Alta na Polia (Máquina)":"lat pulldown","Remada Inclinada Apoiada No Peito (Halter)":"dumbbell bent over row","Barra Fixa":"pull up",
-    "Rosca Direta (Barra)":"barbell curl","Rosca Martelo (Halter)":"hammer curl","Rosca Scott (Barra)":"preacher curl",
-    "Tríceps Corda (Cabo)":"tricep rope pushdown","Extensão de Tríceps (Cabo)":"cable tricep extension",
-    "Afundo (Halter)":"dumbbell lunge","Elevação de Panturrilha Sentado (Máquina)":"seated calf raise","Cadeira Flexora (Máquina)":"leg curl","Cadeira Extensora (Máquina)":"leg extension",
-  };
-
+  // Load exercise image: static map first, then Supabase
   useEffect(()=>{
     setGifUrl(null);
     setGifLoading(true);
-    // Try Supabase first, then fallback to wger API
+    const staticImg=EXERCISE_IMAGES[exName];
+    if(staticImg){setGifUrl(staticImg);setGifLoading(false);return;}
+    // Try Supabase for custom GIFs
     supabase.from('exercise_gifs').select('gif_url').eq('exercise_name',exName).maybeSingle()
-      .then(({data})=>{
-        if(data?.gif_url){
-          setGifUrl(data.gif_url);
-          setGifLoading(false);
-        } else {
-          // Fallback: search wger exercise database for GIF
-          const enName=EX_TO_WGER[exName]||exName.toLowerCase().replace(/\s*\(.*?\)\s*/g,' ').trim();
-          fetch(`https://wger.de/api/v2/exercise/search/?term=${encodeURIComponent(enName)}&language=english&format=json`)
-            .then(r=>r.json())
-            .then(d=>{
-              const ex=d.suggestions?.[0];
-              if(ex?.data?.id){
-                return fetch(`https://wger.de/api/v2/exerciseinfo/${ex.data.id}/?format=json`).then(r=>r.json());
-              }
-            })
-            .then(info=>{
-              const gif=info?.images?.[0]?.image;
-              if(gif) setGifUrl(gif.startsWith('http')?gif:'https://wger.de'+gif);
-              setGifLoading(false);
-            })
-            .catch(()=>setGifLoading(false));
-        }
-      })
+      .then(({data})=>{if(data?.gif_url)setGifUrl(data.gif_url);setGifLoading(false);})
       .catch(()=>setGifLoading(false));
   },[exName]);
 
@@ -2431,27 +2442,25 @@ function ExercicioScreen({name,onNavigate,onBack}){
       </div>
       <div style={{flex:1,overflowY:"auto",padding:"0 16px 20px"}}>
         {tab==="resumo"&&<div>
-          <div style={{background:"#000",borderRadius:16,overflow:"hidden",margin:"16px 0",border:"1px solid "+C.border,minHeight:220,display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
+          <div style={{borderRadius:16,overflow:"hidden",margin:"16px 0",border:"1px solid "+C.border,background:"#0A0D14",minHeight:gifUrl?0:180,display:"flex",alignItems:"center",justifyContent:"center",position:"relative"}}>
             {gifUrl
               ? <img
                   src={gifUrl}
                   alt={exName}
-                  onLoad={()=>setGifLoading(false)}
-                  onError={()=>{setGifLoading(false);setGifUrl(null);}}
-                  style={{width:"100%",maxHeight:280,objectFit:"contain"}}
+                  onError={()=>setGifUrl(null)}
+                  style={{width:"100%",maxHeight:320,objectFit:"cover",display:"block"}}
                 />
               : gifLoading
-                ? <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:32}}>
-                    <div style={{width:32,height:32,borderRadius:"50%",border:"3px solid "+C.border,borderTopColor:gc,animation:"spin 0.8s linear infinite"}}/>
+                ? <div style={{display:"flex",alignItems:"center",justifyContent:"center",padding:40,minHeight:180}}>
+                    <div style={{width:28,height:28,borderRadius:"50%",border:"2px solid "+C.border,borderTopColor:gc,animation:"spin 0.8s linear infinite"}}/>
                     <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
                   </div>
-                : <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:8,padding:32}}>
-                    <div style={{width:48,height:48,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 3l14 9-14 9V3z" fill={C.sub}/></svg>
-                    </div>
-                    <div style={{fontSize:12,color:C.muted}}>GIF em breve</div>
+                : <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:10,padding:40}}>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="3" stroke={C.muted} strokeWidth="1.5"/><path d="M8 12h8M12 8v8" stroke={C.muted} strokeWidth="1.5" strokeLinecap="round"/></svg>
+                    <div style={{fontSize:12,color:C.muted}}>Sem imagem disponível</div>
                   </div>
             }
+            {gifUrl&&<div style={{position:"absolute",top:8,right:8,background:"rgba(0,0,0,0.6)",borderRadius:6,padding:"3px 8px",fontSize:10,color:"rgba(255,255,255,0.5)"}}>exercício</div>}
           </div>
           <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:12}}>
             <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:8}}>
@@ -3161,7 +3170,7 @@ function getExMuscle(exName){
 function VolumeDetailScreen({onBack}){
   const[interval,setInterval_]=useState("semana");
   const[range,setRange]=useState("3m");
-  const[selMuscles,setSelMuscles]=useState(new Set(Object.keys(MUSCLE_COLORS)));
+  const[selMuscles,setSelMuscles]=useState(new Set(["Peito","Costas","Ombros","Pernas","Braços"]));
 
   useEffect(()=>{
     document.body.classList.add("hide-carbon-header");
@@ -3169,28 +3178,20 @@ function VolumeDetailScreen({onBack}){
   },[]);
 
   const allSessions=getAllSessions();
-  const muscles=Object.keys(MUSCLE_COLORS);
-
-  // Build time buckets
+  const MUSCLE_COLORS_L={"Peito":"#3B82F6","Costas":"#10B981","Pernas":"#F59E0B","Ombros":"#8B5CF6","Braços":"#EF4444","Core":"#06B6D4","Glúteos":"#F97316","Panturrilha":"#EC4899"};
+  const muscles=Object.keys(MUSCLE_COLORS_L);
   const now=new Date();
   const rangeDays={"1m":30,"3m":91,"ano":365,"tudo":3650}[range]||91;
   const startDate=new Date(now.getTime()-rangeDays*86400000);
 
-  // Helper: get bucket key for a date
   const getBucket=(dateStr)=>{
     const d=new Date(dateStr+"T12:00:00");
     if(d<startDate) return null;
-    if(interval==="semana"){
-      const day=d.getDay();
-      const mon=new Date(d);mon.setDate(d.getDate()-(day===0?6:day-1));
-      return mon.toISOString().slice(0,10);
-    }
+    if(interval==="semana"){const day=d.getDay();const mon=new Date(d);mon.setDate(d.getDate()-(day===0?6:day-1));return mon.toISOString().slice(0,10);}
     if(interval==="mes") return dateStr.slice(0,7);
-    if(interval==="ano") return dateStr.slice(0,4);
-    return dateStr.slice(0,10);
+    return dateStr.slice(0,4);
   };
 
-  // Accumulate sets per muscle per bucket
   const bucketData={};
   allSessions.forEach(s=>{
     if(!s.date) return;
@@ -3206,35 +3207,40 @@ function VolumeDetailScreen({onBack}){
   });
 
   const sortedBuckets=Object.keys(bucketData).sort();
-  const maxVal=Math.max(...sortedBuckets.map(bk=>Math.max(...muscles.map(m=>bucketData[bk][m]||0))),1);
+  const visibleMuscles=[...selMuscles];
+  const maxVal=Math.max(...sortedBuckets.flatMap(bk=>visibleMuscles.map(m=>bucketData[bk][m]||0)),1);
 
-  // Format bucket label
   const fmtBucket=(bk)=>{
     if(interval==="semana") return new Date(bk+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"});
     if(interval==="mes"){const[y,m]=bk.split("-");return["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"][+m-1]+(y!==String(now.getFullYear())?" "+y.slice(2):"");}
     return bk;
   };
 
-  // Total sets per muscle in range
   const totalsByMuscle={};
   muscles.forEach(m=>{totalsByMuscle[m]=sortedBuckets.reduce((s,bk)=>s+(bucketData[bk][m]||0),0);});
 
-  const W=360,H=140,PAD=8;
-  const bw=sortedBuckets.length>0?(W-PAD*2)/sortedBuckets.length-2:20;
+  const toggleMuscle=(m)=>setSelMuscles(prev=>{const n=new Set(prev);if(n.has(m))n.delete(m);else n.add(m);return n;});
 
-  const toggleMuscle=(m)=>{
-    setSelMuscles(prev=>{const n=new Set(prev);if(n.has(m))n.delete(m);else n.add(m);return n;});
-  };
+  // SVG line chart dimensions
+  const W=360,H=160,PL=28,PR=12,PT=10,PB=24;
+  const cw=W-PL-PR;const ch=H-PT-PB;
+  const n=sortedBuckets.length;
+  const px2=(i)=>n>1?PL+i*cw/(n-1):PL+cw/2;
+  const py2=(v)=>PT+ch-(v/maxVal)*ch;
 
   return(
     <div style={{background:"#080A0E",minHeight:"100dvh",paddingBottom:100,overflowY:"auto"}}>
       <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
         <div style={{padding:"12px 16px"}}>
-          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
             <button onClick={onBack} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
-            <div style={{fontSize:18,fontWeight:800,color:"#fff",letterSpacing:"-0.5px"}}>Volume por Grupo Muscular</div>
+            <div>
+              <div style={{fontSize:18,fontWeight:800,color:"#fff",letterSpacing:"-0.5px"}}>Volume por Grupo Muscular</div>
+              <div style={{fontSize:11,color:"rgba(255,255,255,0.35)"}}>Séries por semana ao longo do tempo</div>
+            </div>
           </div>
-          <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+          {/* Controls */}
+          <div style={{display:"flex",gap:6}}>
             <div style={{display:"flex",background:"rgba(255,255,255,0.05)",borderRadius:10,padding:2,border:"1px solid rgba(255,255,255,0.08)"}}>
               {[{k:"semana",l:"Sem"},{k:"mes",l:"Mês"},{k:"ano",l:"Ano"}].map(v=>(
                 <button key={v.k} onClick={()=>setInterval_(v.k)} style={{padding:"5px 10px",borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:700,background:interval===v.k?"rgba(255,255,255,0.15)":"transparent",color:interval===v.k?"#fff":"rgba(255,255,255,0.4)"}}>
@@ -3243,7 +3249,7 @@ function VolumeDetailScreen({onBack}){
               ))}
             </div>
             <div style={{display:"flex",background:"rgba(255,255,255,0.05)",borderRadius:10,padding:2,border:"1px solid rgba(255,255,255,0.08)"}}>
-              {[{k:"1m",l:"30d"},{k:"3m",l:"3M"},{k:"ano",l:"1A"},{k:"tudo",l:"Tudo"}].map(v=>(
+              {[{k:"1m",l:"1M"},{k:"3m",l:"3M"},{k:"ano",l:"1A"},{k:"tudo",l:"Tudo"}].map(v=>(
                 <button key={v.k} onClick={()=>setRange(v.k)} style={{padding:"5px 10px",borderRadius:8,border:"none",cursor:"pointer",fontSize:11,fontWeight:700,background:range===v.k?"rgba(59,130,246,0.3)":"transparent",color:range===v.k?"#93C5FD":"rgba(255,255,255,0.4)"}}>
                   {v.l}
                 </button>
@@ -3254,71 +3260,102 @@ function VolumeDetailScreen({onBack}){
       </div>
 
       <div style={{padding:"16px 16px 0"}}>
-        {/* Chart */}
-        <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:16,padding:"14px",marginBottom:16,overflowX:"auto"}}>
-          {sortedBuckets.length===0
-            ? <div style={{textAlign:"center",padding:"40px 0",color:"rgba(255,255,255,0.3)"}}>Sem dados para este período</div>
-            : <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{minWidth:Math.max(W,sortedBuckets.length*28)}}>
-                {/* Grid lines */}
+        {/* Line Chart */}
+        <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:16,padding:"16px 8px 12px",marginBottom:16,overflowX:"auto"}}>
+          {sortedBuckets.length<2
+            ? <div style={{textAlign:"center",padding:"40px 0",color:"rgba(255,255,255,0.3)"}}>Sem dados suficientes para o período</div>
+            : <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{minWidth:Math.max(W,n*22),display:"block"}}>
+                <defs>
+                  {visibleMuscles.map(m=>(
+                    <linearGradient key={m} id={`grad-${m}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={MUSCLE_COLORS_L[m]} stopOpacity="0.3"/>
+                      <stop offset="100%" stopColor={MUSCLE_COLORS_L[m]} stopOpacity="0"/>
+                    </linearGradient>
+                  ))}
+                </defs>
+                {/* Grid */}
                 {[0.25,0.5,0.75,1].map(f=>(
-                  <line key={f} x1={PAD} x2={W-PAD} y1={H-PAD-(f*(H-PAD*2))} y2={H-PAD-(f*(H-PAD*2))} stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
+                  <line key={f} x1={PL} x2={W-PR} y1={PT+ch*(1-f)} y2={PT+ch*(1-f)} stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
                 ))}
-                {/* Bars per bucket — stacked by muscle */}
-                {sortedBuckets.map((bk,bi)=>{
-                  const x=PAD+bi*(W-PAD*2)/sortedBuckets.length;
-                  let yBottom=H-PAD;
-                  const visibleMuscles=[...selMuscles];
-                  return visibleMuscles.map(m=>{
-                    const val=bucketData[bk][m]||0;
-                    if(val===0) return null;
-                    const barH=Math.max(2,(val/maxVal)*(H-PAD*2));
-                    const rect=<rect key={m} x={x+1} y={yBottom-barH} width={Math.min(bw-1,20)} height={barH} fill={MUSCLE_COLORS[m]} rx="2"/>;
-                    yBottom-=barH;
-                    return rect;
-                  });
+                {/* Y axis labels */}
+                {[0,Math.round(maxVal/2),maxVal].map((v,i)=>(
+                  <text key={i} x={PL-4} y={py2(v)+4} fontSize="8" fill="rgba(255,255,255,0.25)" textAnchor="end">{v}</text>
+                ))}
+                {/* Area fills */}
+                {visibleMuscles.map(m=>{
+                  if(sortedBuckets.length<2) return null;
+                  const pts=sortedBuckets.map((bk,i)=>`${px2(i).toFixed(1)},${py2(bucketData[bk][m]||0).toFixed(1)}`).join(' ');
+                  const first=`${px2(0).toFixed(1)},${(PT+ch).toFixed(1)}`;
+                  const last=`${px2(n-1).toFixed(1)},${(PT+ch).toFixed(1)}`;
+                  return<polygon key={m} points={`${first} ${pts} ${last}`} fill={`url(#grad-${m})`}/>;
                 })}
-                {/* X labels */}
-                {sortedBuckets.filter((_,i)=>i%Math.max(1,Math.floor(sortedBuckets.length/6))===0).map((bk,i)=>(
-                  <text key={i} x={PAD+(sortedBuckets.indexOf(bk))*(W-PAD*2)/sortedBuckets.length+bw/2} y={H-1} fontSize="7" fill="rgba(255,255,255,0.3)" textAnchor="middle">{fmtBucket(bk)}</text>
-                ))}
+                {/* Lines */}
+                {visibleMuscles.map(m=>{
+                  if(sortedBuckets.length<2) return null;
+                  const d=sortedBuckets.map((bk,i)=>`${i===0?'M':'L'}${px2(i).toFixed(1)},${py2(bucketData[bk][m]||0).toFixed(1)}`).join(' ');
+                  return<path key={m} d={d} stroke={MUSCLE_COLORS_L[m]} strokeWidth="2" fill="none" strokeLinejoin="round" strokeLinecap="round"/>;
+                })}
+                {/* Dots at last point */}
+                {visibleMuscles.map(m=>{
+                  const last=sortedBuckets[n-1];
+                  const v=bucketData[last]?.[m]||0;
+                  if(v===0) return null;
+                  return<circle key={m} cx={px2(n-1)} cy={py2(v)} r="3" fill={MUSCLE_COLORS_L[m]} stroke="#080A0E" strokeWidth="1.5"/>;
+                })}
+                {/* X labels — show max 6 */}
+                {sortedBuckets.filter((_,i)=>i%Math.max(1,Math.floor(n/5))===0||i===n-1).map((bk,_,arr)=>{
+                  const i=sortedBuckets.indexOf(bk);
+                  return<text key={bk} x={px2(i)} y={H-6} fontSize="8" fill="rgba(255,255,255,0.3)" textAnchor="middle">{fmtBucket(bk)}</text>;
+                })}
               </svg>
           }
         </div>
 
-        {/* Muscle legend + totals */}
-        <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:10}}>
-          Séries por Músculo · {range==="1m"?"Últimos 30 dias":range==="3m"?"Últimos 3 meses":range==="ano"?"Este ano":"Todo período"}
+        {/* Muscle toggles — sorted by total */}
+        <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>
+          Grupos Musculares · Toque para filtrar
         </div>
-        {muscles.sort((a,b)=>(totalsByMuscle[b]||0)-(totalsByMuscle[a]||0)).map(m=>(
-          <button key={m} onClick={()=>toggleMuscle(m)} style={{width:"100%",display:"flex",alignItems:"center",gap:10,padding:"12px 14px",background:selMuscles.has(m)?"rgba(255,255,255,0.04)":"rgba(255,255,255,0.01)",border:"1px solid "+(selMuscles.has(m)?"rgba(255,255,255,0.08)":"rgba(255,255,255,0.04)"),borderRadius:12,marginBottom:6,cursor:"pointer",opacity:selMuscles.has(m)?1:0.4}}>
-            <div style={{width:12,height:12,borderRadius:3,background:MUSCLE_COLORS[m],flexShrink:0}}/>
-            <div style={{flex:1,textAlign:"left",fontSize:13,fontWeight:600,color:"#fff"}}>{m}</div>
-            <div style={{fontSize:18,fontWeight:900,color:MUSCLE_COLORS[m]}}>{totalsByMuscle[m]||0}</div>
-            <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",marginLeft:4}}>séries</div>
-          </button>
-        ))}
+        <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:16}}>
+          {muscles.sort((a,b)=>(totalsByMuscle[b]||0)-(totalsByMuscle[a]||0)).map(m=>{
+            const on=selMuscles.has(m);
+            const col=MUSCLE_COLORS_L[m];
+            return(
+              <button key={m} onClick={()=>toggleMuscle(m)} style={{display:"flex",alignItems:"center",gap:6,padding:"7px 12px",background:on?col+"22":"rgba(255,255,255,0.03)",border:"1px solid "+(on?col+"66":"rgba(255,255,255,0.07)"),borderRadius:99,cursor:"pointer",transition:"all 0.2s"}}>
+                <div style={{width:8,height:8,borderRadius:"50%",background:on?col:"rgba(255,255,255,0.15)"}}/>
+                <span style={{fontSize:12,fontWeight:600,color:on?col:"rgba(255,255,255,0.4)"}}>{m}</span>
+                <span style={{fontSize:11,color:on?col+"99":"rgba(255,255,255,0.2)",fontWeight:700}}>{totalsByMuscle[m]||0}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Totals table */}
+        <div style={{background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)",borderRadius:14,padding:"14px",marginBottom:12}}>
+          <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>
+            Total no período
+          </div>
+          {muscles.filter(m=>selMuscles.has(m)).sort((a,b)=>(totalsByMuscle[b]||0)-(totalsByMuscle[a]||0)).map(m=>{
+            const col=MUSCLE_COLORS_L[m];
+            const pct=totalsByMuscle[m]/(Math.max(...Object.values(totalsByMuscle),1));
+            return(
+              <div key={m} style={{marginBottom:8}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
+                  <span style={{fontSize:12,fontWeight:600,color:"#fff"}}>{m}</span>
+                  <span style={{fontSize:12,fontWeight:700,color:col}}>{totalsByMuscle[m]} séries</span>
+                </div>
+                <div style={{height:4,background:"rgba(255,255,255,0.05)",borderRadius:99}}>
+                  <div style={{height:"100%",width:(pct*100)+"%",background:col,borderRadius:99,transition:"width 0.4s"}}/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 }
 
-// ── Shared muscle recovery model (used by ProgressoScreen + CorpoScreen) ──
-const RECOVERY_HRS={
-  "Peito":60,"Costas":72,"Pernas":96,"Ombros":48,"Braços":48,"Core":36,
-  "Glúteos":72,"Panturrilha":36,
-};
-const EX_TO_MUSCLE={
-  "Peito":["Supino","Crucifixo","Peitoral"],"Costas":["Terra","Remada","Puxada","Barra Fixa","Remadas"],
-  "Pernas":["Agachamento","Leg Press","Cadeira","Mesa Flexora","Afundo"],
-  "Ombros":["Desenvolvimento","Elevação Lateral","Aberturas","Arnold"],"Braços":["Rosca","Tríceps","Coice","Martelo","Scott","Concentrada"],
-  "Core":["Abdominal","Core","Prancha","Oblíquo"],
-  "Glúteos":["Agachamento","Afundo","Romeno","Leg Press","Hip Thrust","Glúteo"],
-  "Panturrilha":["Panturrilha","Elevação de Panturrilha","Calf"],
-};
 
-// ══════════════════════════════════════════════════════════════
-// PROGRESSO SCREEN — BeFit-inspired glassmorphism v2
-// ══════════════════════════════════════════════════════════════
 function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   const[chartMode,setChartMode]=useState("vol");
   const[chartRange,setChartRange]=useState("3m");
@@ -3920,11 +3957,28 @@ function CalendarioFullScreen({onNavigate}){
   const workoutDates=useMemo(()=>{const s=new Set();getAllSessions().forEach(f=>{if(f.date)s.add(f.date);});return s;},[]);
   const todayStr=new Date().toISOString().slice(0,10);
   const allSessions=getAllSessions();
+  const mesContainerRef=React.useRef(null);
 
   useEffect(()=>{
     document.body.classList.add("hide-carbon-header");
     return()=>document.body.classList.remove("hide-carbon-header");
   },[]);
+
+  // Scroll to penultimate month when calendar mounts in "mes" view
+  useEffect(()=>{
+    if(view!=="mes") return;
+    const timer=setTimeout(()=>{
+      if(mesContainerRef.current){
+        const targets=mesContainerRef.current.querySelectorAll('[data-month-idx]');
+        const target=targets[targets.length-2];
+        if(target){
+          const parent=mesContainerRef.current;
+          parent.scrollTop=Math.max(0,target.offsetTop-120);
+        }
+      }
+    },50);
+    return()=>clearTimeout(timer);
+  },[view]);
 
   // Session detail overlay
   if(selDetail){
@@ -3961,21 +4015,8 @@ function CalendarioFullScreen({onNavigate}){
       const d=new Date(now.getFullYear(),now.getMonth()-11+m,1);
       months.push(d);
     }
-    const mesScrollRef=React.useRef(null);
-    React.useEffect(()=>{
-      if(mesScrollRef.current){
-        const containers=mesScrollRef.current.querySelectorAll('[data-month-idx]');
-        const targetIdx=months.length-2;
-        if(containers[targetIdx]){
-          const el=containers[targetIdx];
-          const elTop=el.getBoundingClientRect().top+window.scrollY;
-          const scrollParent=mesScrollRef.current.closest('[data-overflowy]')||document.documentElement;
-          scrollParent.scrollTop=Math.max(0,elTop-120);
-        }
-      }
-    },[]);
     return(
-      <div style={{padding:"0 16px 100px"}} ref={mesScrollRef}>
+      <div style={{padding:"0 16px 100px"}} ref={mesContainerRef}>
         {/* Streak info */}
         <div style={{display:"flex",gap:8,marginBottom:16}}>
           <div style={{flex:1,background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"10px 14px",display:"flex",alignItems:"center",gap:8}}>
@@ -4145,9 +4186,8 @@ function CalendarioFullScreen({onNavigate}){
     );
   };
 
-  const calScrollContainerRef=React.useRef(null);
   return(
-    <div ref={calScrollContainerRef} style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0,overflowY:"auto"}}>
+    <div style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0,overflowY:"auto"}}>
       {/* Header */}
       <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
         <div style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
