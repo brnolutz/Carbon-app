@@ -4647,8 +4647,8 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
         </div>
 
         {/* ── MAPA MUSCULAR ── */}
-        <GlassCard style={{padding:"12px 12px 8px",marginBottom:10}}>
-          <div style={{fontSize:10,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:8}}>Mapa Muscular</div>
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"12px",marginBottom:10}}>
+          <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Mapa Muscular</div>
           <BodyDiagram muscleHeat={muscleHeat} width={Math.min(300,window.innerWidth-64)}/>
           <div style={{display:"flex",justifyContent:"center",gap:12,marginTop:8,flexWrap:"wrap"}}>
             {[{c:"#3B82F6",o:1,l:"Fatigado"},{c:"#3B82F6",o:0.55,l:"Recuperando"},{c:"#3B82F6",o:0.25,l:"Quase pronto"},{c:C.muted,o:1,l:"Descansado"}].map(item=>(
@@ -4658,7 +4658,7 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
               </div>
             ))}
           </div>
-        </GlassCard>
+        </div>
 
         {/* ── RECOVERY SPIDER ── */}
         <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"12px",marginBottom:10}}>
