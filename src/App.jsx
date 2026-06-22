@@ -92,13 +92,16 @@ function measureRowToEntry(r){return{date:r.date,...(r.data||{})};}
 // ─── PERSISTENCE (Supabase-backed) ──────────────────────────
 function loadSavedSessions(){return _sessionsCache;}
 
-async function deleteSession(session){
+async function deleteSession(session, onDone){
   try{
     await supabase.from('sessions').delete().eq('id', session.id);
-    // Remover do FEED local
-    const idx = FEED.findIndex(s=>s.id===session.id);
-    if(idx>=0) FEED.splice(idx,1);
+    // Remover do cache local
+    const idx = _sessionsCache.findIndex(s=>s.id===session.id);
+    if(idx>=0) _sessionsCache.splice(idx,1);
+    const fidx = FEED.findIndex(s=>s.id===session.id);
+    if(fidx>=0) FEED.splice(fidx,1);
     refreshDerivedData();
+    onDone&&onDone();
   }catch(e){console.error('deleteSession',e);}
 }
 
@@ -1407,7 +1410,7 @@ function VolumeDetailScreen({onBack}){
 // ══════════════════════════════════════════════════════════════
 // HOME SCREEN
 // ══════════════════════════════════════════════════════════════
-function HomeScreen({onNavigate,onStartWorkout}){
+function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted}){
   const[detail,setDetail]=useState(null);
   const[selRoutine,setSelRoutine]=useState(null);
   const[chartMode,setChartMode]=useState("vol");
@@ -1491,7 +1494,7 @@ function HomeScreen({onNavigate,onStartWorkout}){
   if(showDeload) return <DeloadWeekScreen onBack={()=>setShowDeload(false)} onDeloadStarted={()=>setDeloadState(loadDeload())}/>;
   if(showReport) return <MonthlyReportScreen onBack={()=>setShowReport(false)}/>;
   if(showDeloadReport&&deloadState) return <DeloadReportScreen deload={deloadState} onClose={()=>{setShowDeloadReport(false);setDeloadState(loadDeload());}}/>;
-  if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)} onDelete={async(s)=>{await deleteSession(s);setDetail(null);}}/>;
+  if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)} onDelete={async(s)=>{await deleteSession(s,()=>{onSessionDeleted&&onSessionDeleted();});setDetail(null);}}/>;
   if(selRoutine) return <RoutineScreen plan={selRoutine} onClose={()=>setSelRoutine(null)} onStart={()=>{if(nextPlan){const exs=buildSets(nextPlan);onStartWorkout(nextPlan,exs);onNavigate("treino");}setSelRoutine(null);}} onNavigate={onNavigate} onSaved={()=>{}} onDeleted={()=>setSelRoutine(null)}/>;
 
   return(
@@ -3080,7 +3083,7 @@ function HistoricoScreen({onNavigate}){
   const totalVol=FEED.reduce((a,s)=>a+s.totalVol,0);
   const totalPRs=FEED.reduce((a,s)=>a+s.prs,0);
 
-  if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)} onDelete={async(s)=>{await deleteSession(s);setDetail(null);}}/>;
+  if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)} onDelete={async(s)=>{await deleteSession(s,()=>{setSavedCountawait deleteSession(s);setDetail(null)await deleteSession(s);setDetail(null)setSavedCount(c=>c+1);});setDetail(null);}}/>;
 
   return(
     <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:52}}>
@@ -5167,7 +5170,7 @@ function ForgeAppInner(){
   return(
     <div>
       <GlobalHeader/>
-      {screen==="home"&&<HomeScreen onNavigate={navigate} onStartWorkout={startWorkout}/>}
+      {screen==="home"&&<HomeScreen onNavigate={navigate} onStartWorkout={startWorkout} onSessionDeleted={()=>setSavedCount(c=>c+1)}/>}
       {screen==="treino"&&<TreinoScreen onNavigate={navigate} activeWorkout={activeWorkout} onStartWorkout={startWorkout} onEndWorkout={endWorkout} onUpdateWorkout={updateWorkout} onSubScreen={setTreinoSub} forceActive={forceActive} onMinimize={()=>navigate(prevScreenRef.current)} onWorkoutSaved={()=>setSavedCount(c=>c+1)}/>}
       {screen==="exercicio"&&<ExercicioScreen name={exName} onNavigate={navigate}/>}
       {screen==="exercicios_browser"&&<ExerciciosBrowserScreen onNavigate={navigate}/>}
@@ -5177,7 +5180,7 @@ function ForgeAppInner(){
       {screen==="corpo"&&<CorpoScreen onNavigate={navigate}/>}
       {screen==="medicoes"&&<MedicoesScreen onNavigate={navigate}/>}
       {screen==="coach"&&<CoachScreen onNavigate={navigate}/>}
-      {!["home","treino","exercicio","exercicios_browser","historico","calendario","progresso","corpo","medicoes","coach"].includes(screen)&&<HomeScreen onNavigate={navigate} onStartWorkout={startWorkout}/>}
+      {!["home","treino","exercicio","exercicios_browser","historico","calendario","progresso","corpo","medicoes","coach"].includes(screen)&&<HomeScreen onNavigate={navigate} onStartWorkout={startWorkout} onSessionDeleted={()=>setSavedCount(c=>c+1)}/>}
       {showMiniBar&&<GlobalWorkoutBar workout={activeWorkout} onOpen={openActiveWorkout} onEnd={endWorkout}/>}
     </div>
   );
