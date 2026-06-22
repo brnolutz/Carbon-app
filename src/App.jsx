@@ -3083,7 +3083,7 @@ function HistoricoScreen({onNavigate}){
   const totalVol=FEED.reduce((a,s)=>a+s.totalVol,0);
   const totalPRs=FEED.reduce((a,s)=>a+s.prs,0);
 
-  if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)} onDelete={async(s)=>{await deleteSession(s,()=>{setSavedCountawait deleteSession(s);setDetail(null)await deleteSession(s);setDetail(null)setSavedCount(c=>c+1);});setDetail(null);}}/>;
+  if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)} onDelete={async(s)=>{await deleteSession(s,()=>{});setDetail(null);}}/>;
 
   return(
     <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:52}}>
