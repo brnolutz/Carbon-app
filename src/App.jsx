@@ -1410,7 +1410,7 @@ function VolumeDetailScreen({onBack}){
 // ══════════════════════════════════════════════════════════════
 // HOME SCREEN
 // ══════════════════════════════════════════════════════════════
-function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted}){
+function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
   const[detail,setDetail]=useState(null);
   const[selRoutine,setSelRoutine]=useState(null);
   const[chartMode,setChartMode]=useState("vol");
@@ -1445,7 +1445,32 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted}){
   const periodDays={"1s":7,"1m":30,"3m":90,"all":3650}[chartRange]||90;
   const cutoff=new Date(now-periodDays*dayMs);
   const prevCutoff=new Date(now-periodDays*2*dayMs);
-  const allSess=getAllSessions();
+  // ── Todos os cálculos da HomeScreen reativos ao savedCount ──
+  const {weekWorkouts,vol7d,vol7dDelta,dynamicStreak,todaySessions,nextPlan,visibleFeed,weekProgress} = useMemo(()=>{
+    const sessions = getAllSessions();
+    const todayStr = new Date().toISOString().slice(0,10);
+    const now = new Date();
+    const sunday = new Date(now); sunday.setDate(now.getDate()-now.getDay()); sunday.setHours(0,0,0,0);
+    const weekSess = sessions.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=sunday);
+    const wCount = weekSess.length;
+    const sevenAgo = new Date(Date.now()-7*24*60*60*1000);
+    const fourteenAgo = new Date(Date.now()-14*24*60*60*1000);
+    const v7 = Math.round(sessions.filter(s=>new Date(s.date+"T12:00:00")>=sevenAgo).reduce((a,s)=>a+(s.totalVol||0),0)*100)/100;
+    const vPrev = Math.round(sessions.filter(s=>{const d=new Date(s.date+"T12:00:00");return d>=fourteenAgo&&d<sevenAgo;}).reduce((a,s)=>a+(s.totalVol||0),0)*100)/100;
+    const v7Delta = vPrev>0?Math.round((v7-vPrev)/vPrev*100):0;
+    const streak = calcStreak();
+    const todSess = sessions.filter(s=>s.date===todayStr);
+    const allPlans = loadRoutines().length>0?loadRoutines():PLANS;
+    const nPlan = allPlans.find(p=>!todSess.some(s=>s.name&&s.name.toLowerCase().includes((p.label||"").toLowerCase())))||allPlans[0];
+    const feed = sessions.slice(0,feedCount);
+    return {
+      weekWorkouts:wCount, vol7d:v7, vol7dDelta:v7Delta,
+      dynamicStreak:streak, todaySessions:todSess, nextPlan:nPlan,
+      visibleFeed:feed, weekProgress:Math.min(wCount/USER.weekGoal,1)
+    };
+  },[savedCount,feedCount]);
+
+  const allSess=useMemo(()=>getAllSessions(),[savedCount]);
   const periodSess=allSess.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=cutoff);
   const prevPeriodSess=allSess.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=prevCutoff&&new Date(s.date+"T12:00:00")<cutoff);
   const sumPeriod=(sess,field)=>sess.reduce((a,s)=>a+(s[field]||0),0);
@@ -1473,23 +1498,9 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted}){
   const wDelta=+(wEnd-wStart).toFixed(1);
   const wDeltaColor=wDelta<0?C.mint:wDelta>0?C.coral:C.sub;
 
-  const {count:weekWorkouts,vol:weekVolDyn}=getWeekStats();
-  const weekProgress=Math.min(weekWorkouts/USER.weekGoal,1);
-  // Volume últimos 7 dias
-  const sevenDaysAgo=new Date(Date.now()-7*24*60*60*1000);
-  const vol7d=Math.round(FEED.filter(s=>new Date(s.date+"T12:00:00")>=sevenDaysAgo).reduce((a,s)=>a+(s.totalVol||0),0)*100)/100;
-  const vol7dPrev=Math.round(FEED.filter(s=>{const d=new Date(s.date+"T12:00:00");return d>=new Date(Date.now()-14*24*60*60*1000)&&d<sevenDaysAgo;}).reduce((a,s)=>a+(s.totalVol||0),0)*100)/100;
-  const vol7dDelta=vol7dPrev>0?Math.round((vol7d-vol7dPrev)/vol7dPrev*100):0;
-  // Streak dinâmico
-  const dynamicStreak=calcStreak();
-
-  // Smart next session: find first routine not done today
+  // Smart next session
   const todayStr=new Date().toISOString().slice(0,10);
   const allPlans=loadRoutines().length>0?loadRoutines():PLANS;
-  const todaySessions=getAllSessions().filter(s=>s.date===todayStr);
-  const nextPlan=allPlans.find(p=>!todaySessions.some(s=>s.name&&s.name.toLowerCase().includes((p.label||"").toLowerCase())))||allPlans[0];
-
-  const visibleFeed=FEED.slice(0,feedCount);
 
   if(showDeload) return <DeloadWeekScreen onBack={()=>setShowDeload(false)} onDeloadStarted={()=>setDeloadState(loadDeload())}/>;
   if(showReport) return <MonthlyReportScreen onBack={()=>setShowReport(false)}/>;
@@ -3931,7 +3942,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
         {/* Muscle map */}
         <GlassCard style={{padding:"12px",marginBottom:8,display:"flex",flexDirection:"column",alignItems:"center"}}>
           <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:6,width:"100%"}}>Mapa Muscular</div>
-          <BodyDiagram muscleHeat={muscleHeatProgresso} width={Math.min(300,window.innerWidth-64)}/>
+          <BodyDiagram muscleHeat={muscleHeatProgresso} width={Math.min(300,window.innerWidth-64)} savedCount={savedCount}/>
         </GlassCard>
 
         {/* Chart */}
@@ -4077,7 +4088,7 @@ const MUSCLE_IMG = {
 // Priority order — which muscle to show if multiple are active
 const MUSCLE_PRIORITY = ["Peito","Costas","Pernas","Ombros","Braços","Core","Glúteos","Panturrilha"];
 
-function BodyDiagram({muscleHeat,width=320}){
+function BodyDiagram({muscleHeat,width=320,savedCount=0}){
   const H = Math.round(width * (1024/1536));
 
   // Seleciona imagem baseada nos treinos DA SEMANA ATUAL (dom a sáb)
@@ -4109,7 +4120,7 @@ function BodyDiagram({muscleHeat,width=320}){
     if(hasLegs)                       return "/body-legs.png";
     if(hasUpper)                      return "/body-upper.png";
     return "/body-rest.png";
-  },[_sessionsCache.length]);
+  },[savedCount]);
 
   return(
     <div style={{width, height:H, margin:"0 auto", position:"relative", borderRadius:12, overflow:"hidden", background:"transparent"}}>
@@ -4516,7 +4527,7 @@ function CalendarioFullScreen({onNavigate}){
 }
 
 
-function CorpoScreen({onNavigate,autoMeasure=false}){
+function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
   const MEASURE_FIELDS=["Braço D","Braço E","Peito","Cintura","Coxa D","Panturrilha D"];
   const MUSCLE_GROUPS_ALL=["Peito","Costas","Pernas","Ombros","Braços","Core","Glúteos","Panturrilha"];
   const EX_MAP_VOL={"Peito":["Supino","Crucifixo","Peitoral","Inclinado","Declinado"],"Costas":["Terra","Remada","Puxada","Barra Fixa","Pull"],"Pernas":["Agachamento","Leg Press","Cadeira","Mesa Flexora","Afundo"],"Ombros":["Desenvolvimento","Elevação Lateral","Aberturas","Arnold","Ombro"],"Braços":["Rosca","Tríceps","Coice","Martelo","Scott","Concentrada","Extensão"],"Core":["Abdominal","Core","Prancha","Elevação De Pernas"],"Glúteos":["Agachamento","Afundo","Romeno","Leg Press","Hip Thrust","Glúteo"],"Panturrilha":["Panturrilha","Elevação de Panturrilha","Calf"]};
@@ -4681,7 +4692,7 @@ function CorpoScreen({onNavigate,autoMeasure=false}){
         {/* ── MAPA MUSCULAR ── */}
         <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"12px",marginBottom:10}}>
           <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Mapa Muscular</div>
-          <BodyDiagram muscleHeat={muscleHeat} width={Math.min(300,window.innerWidth-64)}/>
+          <BodyDiagram muscleHeat={muscleHeat} width={Math.min(300,window.innerWidth-64)} savedCount={savedCount}/>
           <div style={{display:"flex",justifyContent:"center",gap:12,marginTop:8,flexWrap:"wrap"}}>
             {[{c:"#3B82F6",o:1,l:"Fatigado"},{c:"#3B82F6",o:0.55,l:"Recuperando"},{c:"#3B82F6",o:0.25,l:"Quase pronto"},{c:C.muted,o:1,l:"Descansado"}].map(item=>(
               <div key={item.l} style={{display:"flex",alignItems:"center",gap:4}}>
@@ -5170,17 +5181,17 @@ function ForgeAppInner(){
   return(
     <div>
       <GlobalHeader/>
-      {screen==="home"&&<HomeScreen onNavigate={navigate} onStartWorkout={startWorkout} onSessionDeleted={()=>setSavedCount(c=>c+1)}/>}
+      {screen==="home"&&<HomeScreen onNavigate={navigate} onStartWorkout={startWorkout} onSessionDeleted={()=>setSavedCount(c=>c+1)} savedCount={savedCount}/>}
       {screen==="treino"&&<TreinoScreen onNavigate={navigate} activeWorkout={activeWorkout} onStartWorkout={startWorkout} onEndWorkout={endWorkout} onUpdateWorkout={updateWorkout} onSubScreen={setTreinoSub} forceActive={forceActive} onMinimize={()=>navigate(prevScreenRef.current)} onWorkoutSaved={()=>setSavedCount(c=>c+1)}/>}
       {screen==="exercicio"&&<ExercicioScreen name={exName} onNavigate={navigate}/>}
       {screen==="exercicios_browser"&&<ExerciciosBrowserScreen onNavigate={navigate}/>}
       {screen==="historico"&&<HistoricoScreen onNavigate={navigate}/>}
       {screen==="calendario"&&<CalendarioFullScreen onNavigate={navigate}/>}
       {screen==="progresso"&&<ProgressoScreen onNavigate={navigate} savedCount={savedCount}/>}
-      {screen==="corpo"&&<CorpoScreen onNavigate={navigate}/>}
+      {screen==="corpo"&&<CorpoScreen onNavigate={navigate} savedCount={savedCount}/>}
       {screen==="medicoes"&&<MedicoesScreen onNavigate={navigate}/>}
       {screen==="coach"&&<CoachScreen onNavigate={navigate}/>}
-      {!["home","treino","exercicio","exercicios_browser","historico","calendario","progresso","corpo","medicoes","coach"].includes(screen)&&<HomeScreen onNavigate={navigate} onStartWorkout={startWorkout} onSessionDeleted={()=>setSavedCount(c=>c+1)}/>}
+      {!["home","treino","exercicio","exercicios_browser","historico","calendario","progresso","corpo","medicoes","coach"].includes(screen)&&<HomeScreen onNavigate={navigate} onStartWorkout={startWorkout} onSessionDeleted={()=>setSavedCount(c=>c+1)} savedCount={savedCount}/>}
       {showMiniBar&&<GlobalWorkoutBar workout={activeWorkout} onOpen={openActiveWorkout} onEnd={endWorkout}/>}
     </div>
   );
