@@ -4048,14 +4048,17 @@ const MUSCLE_PRIORITY = ["Peito","Costas","Pernas","Ombros","Braços","Core","Gl
 function BodyDiagram({muscleHeat,width=320}){
   const H = Math.round(width * (1024/1536));
 
-  // Seleciona imagem baseada nos últimos treinos da semana (lógica acumulativa)
+  // Seleciona imagem baseada nos treinos DA SEMANA ATUAL (dom a sáb)
   const imgSrc = useMemo(()=>{
     const allSessions = getAllSessions();
-    // Pegar treinos dos últimos 7 dias
-    const cutoff = new Date(Date.now() - 7*24*60*60*1000).toISOString().slice(0,10);
-    const recent = allSessions.filter(s => s.date >= cutoff);
-    const names = recent.map(s => (s.name||"").toLowerCase());
+    const now = new Date();
+    const sunday = new Date(now);
+    sunday.setDate(now.getDate() - now.getDay());
+    sunday.setHours(0,0,0,0);
+    const weekStart = sunday.toISOString().slice(0,10);
 
+    const thisWeek = allSessions.filter(s => s.date >= weekStart);
+    const names = thisWeek.map(s => (s.name||"").toLowerCase());
     const has = (kw) => names.some(n => n.includes(kw));
 
     const hasPush  = has("push");
@@ -4063,17 +4066,16 @@ function BodyDiagram({muscleHeat,width=320}){
     const hasLegs  = has("legs") || has("leg") || has("pernas");
     const hasUpper = has("upper");
 
-    // Lógica acumulativa — quanto mais treinos na semana, mais músculos acesos
-    if(hasPush && hasPull && hasLegs) return "/body-semana-atual.png"; // tudo aceso
-    if(hasPush && hasPull)            return "/body-push-pull.png";    // ✅ dia 2
+    // Acumulativo — mais treinos na semana = mais músculos acesos
+    if(hasPush && hasPull && hasLegs) return "/body-semana-atual.png";
+    if(hasPush && hasPull)            return "/body-push-pull.png";
     if(hasPush && hasLegs)            return "/body-push-legs.png";
     if(hasPull && hasLegs)            return "/body-pull-legs.png";
     if(hasUpper && hasLegs)           return "/body-upper-legs.png";
-    if(hasPush)                       return "/body-push.png";         // ✅ dia 1
+    if(hasPush)                       return "/body-push.png";
     if(hasPull)                       return "/body-pull.png";
     if(hasLegs)                       return "/body-legs.png";
     if(hasUpper)                      return "/body-upper.png";
-    // Sem treino na semana — boneco escuro
     return "/body-rest.png";
   },[]);
 
