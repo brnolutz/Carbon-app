@@ -91,6 +91,17 @@ function measureRowToEntry(r){return{date:r.date,...(r.data||{})};}
 
 // ─── PERSISTENCE (Supabase-backed) ──────────────────────────
 function loadSavedSessions(){return _sessionsCache;}
+
+async function deleteSession(session){
+  try{
+    await supabase.from('sessions').delete().eq('id', session.id);
+    // Remover do FEED local
+    const idx = FEED.findIndex(s=>s.id===session.id);
+    if(idx>=0) FEED.splice(idx,1);
+    refreshDerivedData();
+  }catch(e){console.error('deleteSession',e);}
+}
+
 function getAllSessions(){return [..._sessionsCache].sort((a,b)=>b.date.localeCompare(a.date));}
 async function saveSession(session){
   if(_sessionsCache.find(s=>s.id===session.id))return;
@@ -620,8 +631,9 @@ function LineChart({data,color,height,showAllPoints,unit,onSelect}){
 }
 
 // ─── WORKOUT DETAIL (shared by Home + Histórico) ─────────────
-function WorkoutDetail({session,onClose}){
+function WorkoutDetail({session,onClose,onDelete}){
   const[selEx,setSelEx]=useState(null);
+  const[confirmDelete,setConfirmDelete]=useState(false);
   const muscleSets={};
   session.exercises.forEach(ex=>{
     const g=EX_GROUP[ex.name]||"";
@@ -640,9 +652,26 @@ function WorkoutDetail({session,onClose}){
       <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"14px 16px 14px"}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onClose} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-          <div style={{fontSize:16,fontWeight:700,color:C.text}}>Detalhe do Treino</div>
+          <div style={{fontSize:16,fontWeight:700,color:C.text,flex:1}}>Detalhe do Treino</div>
+          <button onClick={()=>setConfirmDelete(true)} style={{width:36,height:36,borderRadius:"50%",background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",color:"#EF4444",fontSize:16,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          </button>
         </div>
       </div>
+      {/* Modal confirmação exclusão */}
+      {confirmDelete&&(
+        <div style={{position:"fixed",inset:0,zIndex:9000,background:"rgba(0,0,0,0.7)",backdropFilter:"blur(4px)",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:24,width:"100%",maxWidth:320,textAlign:"center"}}>
+            <div style={{fontSize:32,marginBottom:12}}>🗑️</div>
+            <div style={{fontSize:17,fontWeight:800,color:C.text,marginBottom:8}}>Excluir treino?</div>
+            <div style={{fontSize:13,color:C.sub,marginBottom:24}}>Essa ação não pode ser desfeita.</div>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>setConfirmDelete(false)} style={{flex:1,padding:"13px",background:C.card,border:"1px solid "+C.border,borderRadius:12,color:C.sub,fontSize:14,fontWeight:600,cursor:"pointer"}}>Cancelar</button>
+              <button onClick={()=>{setConfirmDelete(false);onDelete&&onDelete(session);}} style={{flex:1,padding:"13px",background:"#EF4444",border:"none",borderRadius:12,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer"}}>Excluir</button>
+            </div>
+          </div>
+        </div>
+      )}
       <div style={{padding:"12px 16px 80px"}}>
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
           <div style={{width:36,height:36,borderRadius:"50%",background:C.grad,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,fontWeight:900,color:"#fff",flexShrink:0}}>B</div>
@@ -1462,7 +1491,7 @@ function HomeScreen({onNavigate,onStartWorkout}){
   if(showDeload) return <DeloadWeekScreen onBack={()=>setShowDeload(false)} onDeloadStarted={()=>setDeloadState(loadDeload())}/>;
   if(showReport) return <MonthlyReportScreen onBack={()=>setShowReport(false)}/>;
   if(showDeloadReport&&deloadState) return <DeloadReportScreen deload={deloadState} onClose={()=>{setShowDeloadReport(false);setDeloadState(loadDeload());}}/>;
-  if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)}/>;
+  if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)} onDelete={async(s)=>{await deleteSession(s);setDetail(null);}}/>;
   if(selRoutine) return <RoutineScreen plan={selRoutine} onClose={()=>setSelRoutine(null)} onStart={()=>{if(nextPlan){const exs=buildSets(nextPlan);onStartWorkout(nextPlan,exs);onNavigate("treino");}setSelRoutine(null);}} onNavigate={onNavigate} onSaved={()=>{}} onDeleted={()=>setSelRoutine(null)}/>;
 
   return(
@@ -3051,7 +3080,7 @@ function HistoricoScreen({onNavigate}){
   const totalVol=FEED.reduce((a,s)=>a+s.totalVol,0);
   const totalPRs=FEED.reduce((a,s)=>a+s.prs,0);
 
-  if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)}/>;
+  if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)} onDelete={async(s)=>{await deleteSession(s);setDetail(null);}}/>;
 
   return(
     <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:52}}>
