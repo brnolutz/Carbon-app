@@ -4046,78 +4046,14 @@ const MUSCLE_IMG = {
 const MUSCLE_PRIORITY = ["Peito","Costas","Pernas","Ombros","Braços","Core","Glúteos","Panturrilha"];
 
 function BodyDiagram({muscleHeat,width=320}){
-  // muscleHeat: { "Peito": pct, "Costas": pct, ... }
-  // pct: 0=máximo calor, 100=descansado
-
-  // Mapeia grupos Carbon → arquivos de máscara (frente e costas)
-  const MUSCLE_MASKS = {
-    "Ombros":      ["f_ombros","b_ombros","b_ombros_r","b_trapezio"],
-    "Peito":       ["f_peito"],
-    "Biceps":      ["f_biceps","f_biceps_r"],
-    "Core":        ["f_core"],
-    "Pernas":      ["f_quad","f_tibial","b_isquio"],
-    "Costas":      ["b_costas","b_trapezio"],
-    "Glúteos":     ["b_gluteos"],
-    "Panturrilha": ["b_panturrilha"],
-    "Triceps":     ["b_triceps_r"],
-  };
-
-  // Determinar quais máscaras mostrar e com qual cor
-  const activeLayers = useMemo(()=>{
-    const layers = {};
-    Object.entries(muscleHeat).forEach(([group, pct])=>{
-      if(pct == null || pct >= 100) return;
-      const masks = MUSCLE_MASKS[group] || [];
-      const color = pct < 30 ? "high" : pct < 65 ? "medium" : "low";
-      masks.forEach(m => {
-        // Se já tem esse músculo, pega o mais ativo
-        if(!layers[m] || layers[m].pct > pct) {
-          layers[m] = { color, pct };
-        }
-      });
-    });
-    return layers;
-  }, [muscleHeat]);
-
   const H = Math.round(width * (1024/1536));
-
-  // Agrupa por nível para minimizar camadas
-  const highMasks   = Object.keys(activeLayers).filter(k => activeLayers[k].color === "high");
-  const mediumMasks = Object.keys(activeLayers).filter(k => activeLayers[k].color === "medium");
-  const lowMasks    = Object.keys(activeLayers).filter(k => activeLayers[k].color === "low");
-
   return(
     <div style={{width, height:H, margin:"0 auto", position:"relative", borderRadius:12, overflow:"hidden", background:"transparent"}}>
-      {/* Boneco base */}
-      <img src="/muscles/body-base.png" alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"contain",pointerEvents:"none"}}/>
-
-      {/* Overlays por grupo muscular com mixBlendMode screen para brilhar */}
-      {highMasks.length>0 && highMasks.map(m=>(
-        <img key={m} src={`/muscles/${m}.png`} alt="" style={{
-          position:"absolute",inset:0,width:"100%",height:"100%",
-          objectFit:"contain",pointerEvents:"none",
-          mixBlendMode:"screen", opacity:1,
-          filter:"brightness(1.4) saturate(1.5)",
-        }}/>
-      ))}
-      {mediumMasks.length>0 && mediumMasks.map(m=>(
-        <img key={m} src={`/muscles/${m}.png`} alt="" style={{
-          position:"absolute",inset:0,width:"100%",height:"100%",
-          objectFit:"contain",pointerEvents:"none",
-          mixBlendMode:"screen", opacity:0.65,
-          filter:"brightness(0.9) saturate(1.2) hue-rotate(20deg)",
-        }}/>
-      ))}
-      {lowMasks.length>0 && lowMasks.map(m=>(
-        <img key={m} src={`/muscles/${m}.png`} alt="" style={{
-          position:"absolute",inset:0,width:"100%",height:"100%",
-          objectFit:"contain",pointerEvents:"none",
-          mixBlendMode:"screen", opacity:0.35,
-          filter:"brightness(0.7) hue-rotate(40deg)",
-        }}/>
-      ))}
-
-      {/* Legenda */}
+      <img
+        src="/body-semana-atual.png"
+        alt="Mapa muscular"
+        style={{width:"100%",height:"100%",objectFit:"contain",display:"block"}}
+      />
       <div style={{position:"absolute",bottom:4,left:0,right:0,display:"flex",justifyContent:"center",gap:10}}>
         {[{c:"#00C8FF",l:"Ativo"},{c:"#1E64DC",l:"Moderado"},{c:"#143296",l:"Baixo"},{c:"rgba(255,255,255,0.2)",l:"Descansado"}].map(item=>(
           <div key={item.l} style={{display:"flex",alignItems:"center",gap:3}}>
