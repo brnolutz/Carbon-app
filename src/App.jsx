@@ -4047,21 +4047,28 @@ const MUSCLE_PRIORITY = ["Peito","Costas","Pernas","Ombros","Braços","Core","Gl
 
 function BodyDiagram({muscleHeat,width=320}){
   const H = Math.round(width * (1024/1536));
+
+  // Seleciona imagem baseada no último treino registrado
+  const imgSrc = useMemo(()=>{
+    const last = getAllSessions()[0]; // mais recente
+    if(!last) return "/body-semana-atual.png";
+    const name = (last.name||"").toLowerCase();
+    if(name.includes("push"))           return "/body-push.png";
+    if(name.includes("pull"))           return "/body-pull.png";
+    if(name.includes("legs")&&name.includes("bic")) return "/body-legs-biceps.png";
+    if(name.includes("legs")||name.includes("leg")) return "/body-legs.png";
+    if(name.includes("upper"))          return "/body-upper.png";
+    // fallback: imagem atual com todos os músculos
+    return "/body-semana-atual.png";
+  },[]);
+
   return(
     <div style={{width, height:H, margin:"0 auto", position:"relative", borderRadius:12, overflow:"hidden", background:"transparent"}}>
       <img
-        src="/body-semana-atual.png"
+        src={imgSrc}
         alt="Mapa muscular"
         style={{width:"100%",height:"100%",objectFit:"contain",display:"block"}}
       />
-      <div style={{position:"absolute",bottom:4,left:0,right:0,display:"flex",justifyContent:"center",gap:10}}>
-        {[{c:"#00C8FF",l:"Ativo"},{c:"#1E64DC",l:"Moderado"},{c:"#143296",l:"Baixo"},{c:"rgba(255,255,255,0.2)",l:"Descansado"}].map(item=>(
-          <div key={item.l} style={{display:"flex",alignItems:"center",gap:3}}>
-            <div style={{width:6,height:6,borderRadius:"50%",background:item.c,flexShrink:0}}/>
-            <span style={{fontSize:8,color:"rgba(255,255,255,0.4)"}}>{item.l}</span>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
