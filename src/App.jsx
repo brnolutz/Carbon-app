@@ -734,14 +734,14 @@ function FeedCard({session,onOpen}){
   const visible=expanded?session.exercises:session.exercises.slice(0,3);
   const more=session.exercises.length-3;
   return(
-    <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,marginBottom:10,overflow:"hidden"}}>
+    <div onClick={()=>onOpen(session)} style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,marginBottom:10,overflow:"hidden",cursor:"pointer"}}>
       <div style={{padding:"16px 18px 14px"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
           <div>
             <div style={{fontSize:10,fontWeight:700,color:C.blueXL,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:3}}>{fmtDate(session.date)}</div>
             <div style={{fontSize:17,fontWeight:800,color:"#FFFFFF",letterSpacing:"-0.3px"}}>{cleanName(session.name)}</div>
           </div>
-          <button onClick={()=>onOpen(session)} style={{padding:"6px 14px",borderRadius:99,background:C.blueM+"30",border:"1px solid "+C.blueL+"40",color:C.blueXL,fontSize:10,fontWeight:700,cursor:"pointer",letterSpacing:"0.06em",textTransform:"uppercase",flexShrink:0}}>Ver</button>
+          <svg width="16" height="16" fill="none" stroke={C.sub} strokeWidth="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
         </div>
         <div style={{display:"flex",gap:6}}>
           {[{l:"Tempo",v:session.duration?fmtDur(session.duration):fmtDur(Math.round(session.totalSets*3))},{l:"Volume",v:session.totalVol+"t"},{l:"Séries",v:session.totalSets}].map(s=>(
@@ -749,7 +749,7 @@ function FeedCard({session,onOpen}){
           ))}
         </div>
       </div>
-      <div style={{borderTop:"1px solid "+C.border,padding:"10px 18px"}}>
+      <div onClick={e=>e.stopPropagation()} style={{borderTop:"1px solid "+C.border,padding:"10px 18px"}}>
         {visible.map((ex,i)=>{
           const gc=GC[EX_GROUP[ex.name]]||C.blueL;
           return(<div key={i} style={{display:"flex",alignItems:"center",gap:10,padding:"6px 0",borderBottom:i<visible.length-1?"1px solid "+C.border:"none"}}>
@@ -4109,7 +4109,7 @@ function BodyDiagram({muscleHeat,width=320}){
     if(hasLegs)                       return "/body-legs.png";
     if(hasUpper)                      return "/body-upper.png";
     return "/body-rest.png";
-  },[]);
+  },[_sessionsCache.length]);
 
   return(
     <div style={{width, height:H, margin:"0 auto", position:"relative", borderRadius:12, overflow:"hidden", background:"transparent"}}>
