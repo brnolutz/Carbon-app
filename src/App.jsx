@@ -1915,7 +1915,7 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
 function PRToast({pr}){
   if(!pr)return null;
   return(
-    <div style={{position:"fixed",top:64,left:16,right:16,zIndex:500,display:"flex",justifyContent:"center",pointerEvents:"none"}}>
+    <div style={{position:"fixed",top:56,left:16,right:16,zIndex:9999,display:"flex",justifyContent:"center",pointerEvents:"none"}}>
       <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 16px",borderRadius:99,background:"linear-gradient(135deg,#92400E,#B45309,#F59E0B)",boxShadow:"0 6px 24px rgba(245,158,11,0.45)",animation:"prToastIn 0.35s ease-out"}}>
         <span style={{fontSize:18}}>🏆</span>
         <div>
@@ -2203,8 +2203,8 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
     if(set.done){updateSet(ei,si,"done",false);return;}
     updateSet(ei,si,"done",true);
     const exWarmLen=exTarget.activeSets.filter(s=>s.type==="warmup").length;
-    if(set.type==="work"){setTimeout(()=>setRpeModal({ei,si,rest:exTarget.rest}),700);}
-    else{setRestTimer({seconds:si===exWarmLen-1?105:60});}
+    if(set.type==="work"){setRestTimer(null);setTimeout(()=>setRpeModal({ei,si,rest:exTarget.rest}),700);}
+    else{setRestTimer(null);setTimeout(()=>setRestTimer({seconds:si===exWarmLen-1?105:60,key:Date.now()}),50);}
   }
 
   function handleRpeSelect(rpe){
@@ -2486,13 +2486,13 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
   const totalVol=exercises.flatMap(e=>e.activeSets.filter(s=>s.type==="work"&&s.done)).reduce((s,set)=>s+set.w*set.r,0);
   const muscleGroups=[...new Set(exercises.map(e=>e.group).filter(Boolean))];
   return(
-    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:52}}>
+    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0,paddingBottom:160}}>
       <style>{`
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
 @keyframes prFlash{0%{transform:scale(1);box-shadow:0 0 0 0 #F59E0B00}20%{transform:scale(1.04);box-shadow:0 0 32px 6px #F59E0BCC}100%{transform:scale(1);box-shadow:0 0 12px 2px #F59E0B44}}
 @keyframes prTextBounce{0%{opacity:0;transform:scale(0.8)}60%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
       `}</style>
-      <div style={{position:"sticky",top:52,zIndex:50,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"14px 16px 10px"}}>
+      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"calc(52px + 14px) 16px 10px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
           <button onClick={()=>{setScreen("plans");onMinimize&&onMinimize();}} style={{width:30,height:30,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="#6B7FA3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -2542,7 +2542,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                   <div style={{display:"flex",alignItems:"center",gap:6,flex:1,minWidth:0}}>
                     <div style={{width:6,height:6,borderRadius:"50%",background:GC[exItem.group]||C.blueL,flexShrink:0}}/>
-                    <div style={{fontSize:13,fontWeight:800,color:allDone?C.mint:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{exItem.name}</div>
+                    <button onClick={()=>onNavigate("exercicio",{name:exItem.name})} style={{fontSize:13,fontWeight:800,color:allDone?C.mint:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",background:"none",border:"none",padding:0,cursor:"pointer",textAlign:"left"}}>{exItem.name}</button>
                     {allDone&&<span style={{color:C.mint,fontSize:10,flexShrink:0}}>✓</span>}
                   </div>
                   <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
@@ -2606,7 +2606,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
       </div>
 
       {rpeModal&&<RPEModal onSelect={handleRpeSelect} onSkip={()=>{const{rest}=rpeModal;setRpeModal(null);if(rest!=null)setRestTimer({seconds:rest});}}/>}
-      {restTimer&&!rpeModal&&<RestTimer seconds={restTimer.seconds} onDone={()=>setRestTimer(null)} onSkip={()=>setRestTimer(null)}/>}
+      {restTimer&&!rpeModal&&<RestTimer key={restTimer.key||restTimer.seconds} seconds={restTimer.seconds} onDone={()=>setRestTimer(null)} onSkip={()=>setRestTimer(null)}/>}
       {restPickerEi!=null&&<RestTimePickerModal initial={exercises[restPickerEi].rest} onClose={()=>setRestPickerEi(null)} onSelect={(val)=>{setExercises(prev=>prev.map((e,i)=>i!==restPickerEi?e:{...e,rest:val}));setRestPickerEi(null);}}/>}
       <PRToast pr={prToast}/>
       {showGallery&&<ExerciseGallery onAdd={addExercise} onClose={()=>setShowGallery(false)}/>}
