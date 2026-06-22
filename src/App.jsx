@@ -4046,190 +4046,90 @@ const MUSCLE_IMG = {
 const MUSCLE_PRIORITY = ["Peito","Costas","Pernas","Ombros","Braços","Core","Glúteos","Panturrilha"];
 
 function BodyDiagram({muscleHeat,width=320}){
-  // Mapeia grupos de músculo para intensidade de cor
-  // muscleHeat: { "Peito": pct, "Costas": pct, ... } onde pct=0 = máximo calor, pct=100 = descansado
-  const getColor=(group)=>{
-    const pct = muscleHeat[group];
-    if(pct == null || pct >= 100) return "rgba(255,255,255,0.08)"; // descansado
-    if(pct < 30) return "#3B82F6";   // azul forte — muito ativo
-    if(pct < 60) return "#6366F1";   // roxo médio — moderado
-    return "#4338CA";                 // azul escuro — baixo
+  // muscleHeat: { "Peito": pct, "Costas": pct, ... }
+  // pct: 0=máximo calor, 100=descansado
+
+  // Mapeia grupos Carbon → arquivos de máscara (frente e costas)
+  const MUSCLE_MASKS = {
+    "Ombros":      ["f_ombros","b_ombros","b_ombros_r","b_trapezio"],
+    "Peito":       ["f_peito"],
+    "Biceps":      ["f_biceps","f_biceps_r"],
+    "Core":        ["f_core"],
+    "Pernas":      ["f_quad","f_tibial","b_isquio"],
+    "Costas":      ["b_costas","b_trapezio"],
+    "Glúteos":     ["b_gluteos"],
+    "Panturrilha": ["b_panturrilha"],
+    "Triceps":     ["b_triceps_r"],
   };
-  const getOpacity=(group)=>{
-    const pct = muscleHeat[group];
-    if(pct == null || pct >= 100) return 0.15;
-    if(pct < 30) return 1;
-    if(pct < 60) return 0.75;
-    return 0.45;
-  };
 
-  const W = width;
-  const H = Math.round(width * 1.5);
-  const fw = W * 0.44; // largura de cada boneco
-  const fh = H * 0.92;
-  const lx = W * 0.02; // posição X boneco frente
-  const rx = W * 0.52; // posição X boneco costas
+  // Determinar quais máscaras mostrar e com qual cor
+  const activeLayers = useMemo(()=>{
+    const layers = {};
+    Object.entries(muscleHeat).forEach(([group, pct])=>{
+      if(pct == null || pct >= 100) return;
+      const masks = MUSCLE_MASKS[group] || [];
+      const color = pct < 30 ? "high" : pct < 65 ? "medium" : "low";
+      masks.forEach(m => {
+        // Se já tem esse músculo, pega o mais ativo
+        if(!layers[m] || layers[m].pct > pct) {
+          layers[m] = { color, pct };
+        }
+      });
+    });
+    return layers;
+  }, [muscleHeat]);
 
-  // Cores por grupo
-  const C_peito    = getColor("Peito");
-  const C_costas   = getColor("Costas");
-  const C_ombros   = getColor("Ombros");
-  const C_biceps   = getColor("Biceps");
-  const C_triceps  = getColor("Triceps");
-  const C_pernas   = getColor("Pernas");
-  const C_core     = getColor("Core");
-  const C_gluteos  = getColor("Glúteos");
-  const C_pant     = getColor("Panturrilha");
-  const O_peito    = getOpacity("Peito");
-  const O_costas   = getOpacity("Costas");
-  const O_ombros   = getOpacity("Ombros");
-  const O_biceps   = getOpacity("Biceps");
-  const O_triceps  = getOpacity("Triceps");
-  const O_pernas   = getOpacity("Pernas");
-  const O_core     = getOpacity("Core");
-  const O_gluteos  = getOpacity("Glúteos");
-  const O_pant     = getOpacity("Panturrilha");
+  const H = Math.round(width * (1024/1536));
 
-  const body = "rgba(255,255,255,0.12)";
-  const stroke = "rgba(255,255,255,0.2)";
-  const sw = 0.8;
+  // Agrupa por nível para minimizar camadas
+  const highMasks   = Object.keys(activeLayers).filter(k => activeLayers[k].color === "high");
+  const mediumMasks = Object.keys(activeLayers).filter(k => activeLayers[k].color === "medium");
+  const lowMasks    = Object.keys(activeLayers).filter(k => activeLayers[k].color === "low");
 
   return(
-    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`} style={{display:"block",margin:"0 auto"}}>
-      <defs>
-        <radialGradient id="glow_blue" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.9"/>
-          <stop offset="100%" stopColor="#1E40AF" stopOpacity="0.3"/>
-        </radialGradient>
-        <filter id="blur_glow">
-          <feGaussianBlur stdDeviation="2" result="blur"/>
-          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-      </defs>
+    <div style={{width, height:H, margin:"0 auto", position:"relative", borderRadius:12, overflow:"hidden", background:"transparent"}}>
+      {/* Boneco base */}
+      <img src="/muscles/body-base.png" alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"contain",pointerEvents:"none"}}/>
 
-      {/* ══ FRENTE ══ */}
-      <g transform={`translate(${lx},${H*0.02})`}>
-        {/* Cabeça */}
-        <ellipse cx={fw*0.5} cy={fh*0.04} rx={fw*0.12} ry={fh*0.05} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Pescoço */}
-        <rect x={fw*0.44} y={fh*0.085} width={fw*0.12} height={fh*0.04} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Trapézio */}
-        <path d={`M${fw*0.3},${fh*0.12} L${fw*0.5},${fh*0.09} L${fw*0.7},${fh*0.12} L${fw*0.65},${fh*0.17} L${fw*0.35},${fh*0.17}Z`} fill={C_ombros} opacity={O_ombros} stroke={stroke} strokeWidth={sw}/>
-        {/* Deltóide esq */}
-        <ellipse cx={fw*0.2} cy={fh*0.18} rx={fw*0.1} ry={fh*0.07} fill={C_ombros} opacity={O_ombros} stroke={stroke} strokeWidth={sw}/>
-        {/* Deltóide dir */}
-        <ellipse cx={fw*0.8} cy={fh*0.18} rx={fw*0.1} ry={fh*0.07} fill={C_ombros} opacity={O_ombros} stroke={stroke} strokeWidth={sw}/>
-        {/* Peito esq */}
-        <path d={`M${fw*0.35},${fh*0.17} L${fw*0.5},${fh*0.16} L${fw*0.5},${fh*0.3} L${fw*0.3},${fh*0.32} L${fw*0.24},${fh*0.26}Z`} fill={C_peito} opacity={O_peito} stroke={stroke} strokeWidth={sw} filter="url(#blur_glow)"/>
-        {/* Peito dir */}
-        <path d={`M${fw*0.65},${fh*0.17} L${fw*0.5},${fh*0.16} L${fw*0.5},${fh*0.3} L${fw*0.7},${fh*0.32} L${fw*0.76},${fh*0.26}Z`} fill={C_peito} opacity={O_peito} stroke={stroke} strokeWidth={sw} filter="url(#blur_glow)"/>
-        {/* Bíceps esq */}
-        <path d={`M${fw*0.15},${fh*0.24} L${fw*0.24},${fh*0.22} L${fw*0.22},${fh*0.39} L${fw*0.13},${fh*0.38}Z`} fill={C_biceps} opacity={O_biceps} stroke={stroke} strokeWidth={sw}/>
-        {/* Bíceps dir */}
-        <path d={`M${fw*0.85},${fh*0.24} L${fw*0.76},${fh*0.22} L${fw*0.78},${fh*0.39} L${fw*0.87},${fh*0.38}Z`} fill={C_biceps} opacity={O_biceps} stroke={stroke} strokeWidth={sw}/>
-        {/* Antebraço esq */}
-        <path d={`M${fw*0.13},${fh*0.39} L${fw*0.21},${fh*0.38} L${fw*0.19},${fh*0.52} L${fw*0.12},${fh*0.51}Z`} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Antebraço dir */}
-        <path d={`M${fw*0.87},${fh*0.39} L${fw*0.79},${fh*0.38} L${fw*0.81},${fh*0.52} L${fw*0.88},${fh*0.51}Z`} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Abdômen / Core */}
-        <path d={`M${fw*0.33},${fh*0.31} L${fw*0.67},${fh*0.31} L${fw*0.65},${fh*0.51} L${fw*0.5},${fh*0.53} L${fw*0.35},${fh*0.51}Z`} fill={C_core} opacity={O_core} stroke={stroke} strokeWidth={sw}/>
-        {/* Linea alba */}
-        <line x1={fw*0.5} y1={fh*0.31} x2={fw*0.5} y2={fh*0.52} stroke={stroke} strokeWidth={sw*0.5}/>
-        {/* Oblíquo esq */}
-        <path d={`M${fw*0.27},${fh*0.3} L${fw*0.33},${fh*0.31} L${fw*0.35},${fh*0.51} L${fw*0.25},${fh*0.46}Z`} fill={C_core} opacity={O_core*0.6} stroke={stroke} strokeWidth={sw}/>
-        {/* Oblíquo dir */}
-        <path d={`M${fw*0.73},${fh*0.3} L${fw*0.67},${fh*0.31} L${fw*0.65},${fh*0.51} L${fw*0.75},${fh*0.46}Z`} fill={C_core} opacity={O_core*0.6} stroke={stroke} strokeWidth={sw}/>
-        {/* Quadríceps esq */}
-        <path d={`M${fw*0.33},${fh*0.53} L${fw*0.49},${fh*0.52} L${fw*0.47},${fh*0.75} L${fw*0.3},${fh*0.73}Z`} fill={C_pernas} opacity={O_pernas} stroke={stroke} strokeWidth={sw}/>
-        {/* Quadríceps dir */}
-        <path d={`M${fw*0.67},${fh*0.53} L${fw*0.51},${fh*0.52} L${fw*0.53},${fh*0.75} L${fw*0.7},${fh*0.73}Z`} fill={C_pernas} opacity={O_pernas} stroke={stroke} strokeWidth={sw}/>
-        {/* Joelho esq */}
-        <ellipse cx={fw*0.38} cy={fh*0.77} rx={fw*0.08} ry={fh*0.025} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Joelho dir */}
-        <ellipse cx={fw*0.62} cy={fh*0.77} rx={fw*0.08} ry={fh*0.025} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Canela esq */}
-        <path d={`M${fw*0.31},${fh*0.79} L${fw*0.45},${fh*0.79} L${fw*0.43},${fh*0.94} L${fw*0.32},${fh*0.94}Z`} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Canela dir */}
-        <path d={`M${fw*0.69},${fh*0.79} L${fw*0.55},${fh*0.79} L${fw*0.57},${fh*0.94} L${fw*0.68},${fh*0.94}Z`} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Panturrilha frente esq */}
-        <ellipse cx={fw*0.37} cy={fh*0.87} rx={fw*0.06} ry={fh*0.04} fill={C_pant} opacity={O_pant*0.5} stroke={stroke} strokeWidth={sw}/>
-        {/* Panturrilha frente dir */}
-        <ellipse cx={fw*0.63} cy={fh*0.87} rx={fw*0.06} ry={fh*0.04} fill={C_pant} opacity={O_pant*0.5} stroke={stroke} strokeWidth={sw}/>
-        {/* Pé esq */}
-        <ellipse cx={fw*0.37} cy={fh*0.97} rx={fw*0.09} ry={fh*0.02} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Pé dir */}
-        <ellipse cx={fw*0.63} cy={fh*0.97} rx={fw*0.09} ry={fh*0.02} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Mão esq */}
-        <ellipse cx={fw*0.115} cy={fh*0.54} rx={fw*0.06} ry={fh*0.025} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Mão dir */}
-        <ellipse cx={fw*0.885} cy={fh*0.54} rx={fw*0.06} ry={fh*0.025} fill={body} stroke={stroke} strokeWidth={sw}/>
-      </g>
-
-      {/* ══ COSTAS ══ */}
-      <g transform={`translate(${rx},${H*0.02})`}>
-        {/* Cabeça costas */}
-        <ellipse cx={fw*0.5} cy={fh*0.04} rx={fw*0.12} ry={fh*0.05} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Pescoço */}
-        <rect x={fw*0.44} y={fh*0.085} width={fw*0.12} height={fh*0.035} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Trapézio costas */}
-        <path d={`M${fw*0.28},${fh*0.12} L${fw*0.5},${fh*0.085} L${fw*0.72},${fh*0.12} L${fw*0.68},${fh*0.22} L${fw*0.5},${fh*0.25} L${fw*0.32},${fh*0.22}Z`} fill={C_costas} opacity={O_costas} stroke={stroke} strokeWidth={sw}/>
-        {/* Deltóide post esq */}
-        <ellipse cx={fw*0.19} cy={fh*0.18} rx={fw*0.1} ry={fh*0.07} fill={C_ombros} opacity={O_ombros} stroke={stroke} strokeWidth={sw}/>
-        {/* Deltóide post dir */}
-        <ellipse cx={fw*0.81} cy={fh*0.18} rx={fw*0.1} ry={fh*0.07} fill={C_ombros} opacity={O_ombros} stroke={stroke} strokeWidth={sw}/>
-        {/* Grande dorsal esq */}
-        <path d={`M${fw*0.26},${fh*0.22} L${fw*0.5},${fh*0.25} L${fw*0.48},${fh*0.46} L${fw*0.36},${fh*0.5} L${fw*0.22},${fh*0.38}Z`} fill={C_costas} opacity={O_costas} stroke={stroke} strokeWidth={sw} filter="url(#blur_glow)"/>
-        {/* Grande dorsal dir */}
-        <path d={`M${fw*0.74},${fh*0.22} L${fw*0.5},${fh*0.25} L${fw*0.52},${fh*0.46} L${fw*0.64},${fh*0.5} L${fw*0.78},${fh*0.38}Z`} fill={C_costas} opacity={O_costas} stroke={stroke} strokeWidth={sw} filter="url(#blur_glow)"/>
-        {/* Lombar */}
-        <path d={`M${fw*0.36},${fh*0.46} L${fw*0.64},${fh*0.46} L${fw*0.62},${fh*0.54} L${fw*0.5},${fh*0.56} L${fw*0.38},${fh*0.54}Z`} fill={C_costas} opacity={O_costas*0.8} stroke={stroke} strokeWidth={sw}/>
-        {/* Tríceps esq */}
-        <path d={`M${fw*0.14},${fh*0.22} L${fw*0.23},${fh*0.21} L${fw*0.21},${fh*0.4} L${fw*0.12},${fh*0.39}Z`} fill={C_triceps} opacity={O_triceps} stroke={stroke} strokeWidth={sw}/>
-        {/* Tríceps dir */}
-        <path d={`M${fw*0.86},${fh*0.22} L${fw*0.77},${fh*0.21} L${fw*0.79},${fh*0.4} L${fw*0.88},${fh*0.39}Z`} fill={C_triceps} opacity={O_triceps} stroke={stroke} strokeWidth={sw}/>
-        {/* Antebraço post esq */}
-        <path d={`M${fw*0.12},${fh*0.4} L${fw*0.2},${fh*0.39} L${fw*0.18},${fh*0.53} L${fw*0.11},${fh*0.52}Z`} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Antebraço post dir */}
-        <path d={`M${fw*0.88},${fh*0.4} L${fw*0.8},${fh*0.39} L${fw*0.82},${fh*0.53} L${fw*0.89},${fh*0.52}Z`} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Glúteo esq */}
-        <path d={`M${fw*0.36},${fh*0.54} L${fw*0.5},${fh*0.55} L${fw*0.49},${fh*0.67} L${fw*0.33},${fh*0.65}Z`} fill={C_gluteos} opacity={O_gluteos} stroke={stroke} strokeWidth={sw}/>
-        {/* Glúteo dir */}
-        <path d={`M${fw*0.64},${fh*0.54} L${fw*0.5},${fh*0.55} L${fw*0.51},${fh*0.67} L${fw*0.67},${fh*0.65}Z`} fill={C_gluteos} opacity={O_gluteos} stroke={stroke} strokeWidth={sw}/>
-        {/* Isquiotibiais esq */}
-        <path d={`M${fw*0.33},${fh*0.65} L${fw*0.49},${fh*0.67} L${fw*0.47},${fh*0.79} L${fw*0.31},${fh*0.77}Z`} fill={C_pernas} opacity={O_pernas} stroke={stroke} strokeWidth={sw}/>
-        {/* Isquiotibiais dir */}
-        <path d={`M${fw*0.67},${fh*0.65} L${fw*0.51},${fh*0.67} L${fw*0.53},${fh*0.79} L${fw*0.69},${fh*0.77}Z`} fill={C_pernas} opacity={O_pernas} stroke={stroke} strokeWidth={sw}/>
-        {/* Panturrilha esq */}
-        <path d={`M${fw*0.31},${fh*0.8} L${fw*0.46},${fh*0.8} L${fw*0.44},${fh*0.93} L${fw*0.32},${fh*0.92}Z`} fill={C_pant} opacity={O_pant} stroke={stroke} strokeWidth={sw}/>
-        {/* Panturrilha dir */}
-        <path d={`M${fw*0.69},${fh*0.8} L${fw*0.54},${fh*0.8} L${fw*0.56},${fh*0.93} L${fw*0.68},${fh*0.92}Z`} fill={C_pant} opacity={O_pant} stroke={stroke} strokeWidth={sw}/>
-        {/* Pé post esq */}
-        <ellipse cx={fw*0.37} cy={fh*0.96} rx={fw*0.08} ry={fh*0.02} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Pé post dir */}
-        <ellipse cx={fw*0.63} cy={fh*0.96} rx={fw*0.08} ry={fh*0.02} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Mão post esq */}
-        <ellipse cx={fw*0.105} cy={fh*0.545} rx={fw*0.055} ry={fh*0.022} fill={body} stroke={stroke} strokeWidth={sw}/>
-        {/* Mão post dir */}
-        <ellipse cx={fw*0.895} cy={fh*0.545} rx={fw*0.055} ry={fh*0.022} fill={body} stroke={stroke} strokeWidth={sw}/>
-      </g>
+      {/* Overlays por grupo muscular com mixBlendMode screen para brilhar */}
+      {highMasks.length>0 && highMasks.map(m=>(
+        <img key={m} src={`/muscles/${m}.png`} alt="" style={{
+          position:"absolute",inset:0,width:"100%",height:"100%",
+          objectFit:"contain",pointerEvents:"none",
+          mixBlendMode:"screen", opacity:1,
+          filter:"brightness(1.4) saturate(1.5)",
+        }}/>
+      ))}
+      {mediumMasks.length>0 && mediumMasks.map(m=>(
+        <img key={m} src={`/muscles/${m}.png`} alt="" style={{
+          position:"absolute",inset:0,width:"100%",height:"100%",
+          objectFit:"contain",pointerEvents:"none",
+          mixBlendMode:"screen", opacity:0.65,
+          filter:"brightness(0.9) saturate(1.2) hue-rotate(20deg)",
+        }}/>
+      ))}
+      {lowMasks.length>0 && lowMasks.map(m=>(
+        <img key={m} src={`/muscles/${m}.png`} alt="" style={{
+          position:"absolute",inset:0,width:"100%",height:"100%",
+          objectFit:"contain",pointerEvents:"none",
+          mixBlendMode:"screen", opacity:0.35,
+          filter:"brightness(0.7) hue-rotate(40deg)",
+        }}/>
+      ))}
 
       {/* Legenda */}
-      <g transform={`translate(0,${H*0.96})`}>
-        {[
-          {c:"#3B82F6",l:"Ativo"},
-          {c:"#6366F1",l:"Moderado"},
-          {c:"#4338CA",l:"Baixo"},
-          {c:"rgba(255,255,255,0.15)",l:"Descansado"},
-        ].map((item,i)=>(
-          <g key={i} transform={`translate(${i*(W/4)+W*0.04},0)`}>
-            <circle cx={6} cy={6} r={5} fill={item.c}/>
-            <text x={14} y={10} fontSize={8} fill="rgba(255,255,255,0.4)" fontFamily="sans-serif">{item.l}</text>
-          </g>
+      <div style={{position:"absolute",bottom:4,left:0,right:0,display:"flex",justifyContent:"center",gap:10}}>
+        {[{c:"#00C8FF",l:"Ativo"},{c:"#1E64DC",l:"Moderado"},{c:"#143296",l:"Baixo"},{c:"rgba(255,255,255,0.2)",l:"Descansado"}].map(item=>(
+          <div key={item.l} style={{display:"flex",alignItems:"center",gap:3}}>
+            <div style={{width:6,height:6,borderRadius:"50%",background:item.c,flexShrink:0}}/>
+            <span style={{fontSize:8,color:"rgba(255,255,255,0.4)"}}>{item.l}</span>
+          </div>
         ))}
-      </g>
-    </svg>
+      </div>
+    </div>
   );
 }
+
 
 
 // ══════════════════════════════════════════════════════════════
