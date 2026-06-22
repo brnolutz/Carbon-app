@@ -4046,21 +4046,20 @@ const MUSCLE_IMG = {
 const MUSCLE_PRIORITY = ["Peito","Costas","Pernas","Ombros","Braços","Core","Glúteos","Panturrilha"];
 
 function BodyDiagram({muscleHeat,width=320}){
-  const activeImgs = useMemo(()=>{
-    const active = Object.entries(muscleHeat)
-      .filter(([g, pct])=> pct != null && pct < 100 && MUSCLE_IMG[g]);
-    if(active.length >= 5) return ["/body-semana-atual.png"];
-    if(active.length === 0) return ["/body-base.png"];
-    return active.map(([g])=> MUSCLE_IMG[g]);
-  },[muscleHeat]);
-
   const h = Math.round(width * 0.75);
-
   return(
-    <div style={{width:width,height:h,margin:"0 auto",position:"relative"}}>
-      {activeImgs.map((src,i)=>(
-        <img key={src+i} src={src} alt="" style={{position:"absolute",inset:0,width:"100%",height:"100%",objectFit:"contain",objectPosition:"center",display:"block",mixBlendMode:"lighten",opacity:0.6}}/>
-      ))}
+    <div style={{width:width,height:h,margin:"0 auto",position:"relative",borderRadius:12,overflow:"hidden"}}>
+      <img
+        src="/body-semana-atual.png"
+        alt="Mapa muscular"
+        style={{
+          width:"100%",
+          height:"100%",
+          objectFit:"contain",
+          objectPosition:"center",
+          display:"block",
+        }}
+      />
     </div>
   );
 }
