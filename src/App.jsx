@@ -458,12 +458,25 @@ const USER = {
 // W_DATA is now derived dynamically from Supabase measurement data — see refreshDerivedData() near the top.
 
 function buildSets(plan){
-  refreshDerivedData();
   const seen=new Set();
   const dl=loadDeload();
+
+  // Busca direto no cache de sessões — mais recente primeiro
+  const sessions=[..._sessionsCache].sort((a,b)=>b.date.localeCompare(a.date));
+
+  function getLastSets(exName){
+    for(const s of sessions){
+      const ex=s.exercises?.find(e=>e.name===exName);
+      if(ex){
+        const sets=(ex.setData||[]).filter(s=>s.type==="work"||!s.type);
+        if(sets.length>0) return sets;
+      }
+    }
+    return null;
+  }
+
   const exercises=plan.exercises.map(ex=>{
-    const lastHist=HIST[ex.name]&&HIST[ex.name][0];
-    const lastSets=lastHist?.sets||null;
+    const lastSets=getLastSets(ex.name);
     const isFirst=!seen.has(ex.group)&&ex.warmup;seen.add(ex.group);
     const baseW=lastSets?.[0]?.w||ex.sets[0]?.w||0;
     const warm=isFirst?[
@@ -477,6 +490,7 @@ function buildSets(plan){
     });
     return{...ex,activeSets:[...warm,...workSets]};
   });
+
   if(dl?.active){
     const factor=dl.intensity/100;
     return exercises.map(ex=>{
@@ -494,7 +508,19 @@ function buildSets(plan){
   }
   return exercises;
 }
-// ─── BOTTOM NAV ──────────────────────────────────────────────
+// Recarrega sessões do Supabase e retorna os sets atualizados
+async function refreshSessionsAndBuild(plan){
+  try{
+    const{data:userData}=await supabase.auth.getUser();
+    const uid=userData?.user?.id;
+    if(uid){
+      const{data}=await supabase.from('workout_sessions').select('*');
+      if(data) _sessionsCache=data.map(rowToSession);
+      refreshDerivedData();
+    }
+  }catch(e){console.warn('refresh sessions failed',e);}
+  return buildSets(plan);
+}
 function GlassCard({children,style={},onClick}){
   return(
     <div onClick={onClick} style={{
@@ -1537,7 +1563,7 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
   if(showReport) return <MonthlyReportScreen onBack={()=>setShowReport(false)}/>;
   if(showDeloadReport&&deloadState) return <DeloadReportScreen deload={deloadState} onClose={()=>{setShowDeloadReport(false);setDeloadState(loadDeload());}}/>;
   if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)} onDelete={async(s)=>{await deleteSession(s,()=>{onSessionDeleted&&onSessionDeleted();});setDetail(null);}}/>;
-  if(selRoutine) return <RoutineScreen plan={selRoutine} onClose={()=>setSelRoutine(null)} onStart={()=>{if(nextPlan){const exs=buildSets(nextPlan);onStartWorkout(nextPlan,exs);onNavigate("treino");}setSelRoutine(null);}} onNavigate={onNavigate} onSaved={()=>{}} onDeleted={()=>setSelRoutine(null)}/>;
+  if(selRoutine) return <RoutineScreen plan={selRoutine} onClose={()=>setSelRoutine(null)} onStart={async()=>{if(nextPlan){const exs=await refreshSessionsAndBuild(nextPlan);onStartWorkout(nextPlan,exs);onNavigate("treino");}setSelRoutine(null);}} onNavigate={onNavigate} onSaved={()=>{}} onDeleted={()=>setSelRoutine(null)}/>;
 
   return(
     <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:52}}>
@@ -1585,7 +1611,7 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
             <div style={{display:"flex",gap:5,flexWrap:"wrap",marginBottom:14}}>
               {nextPlan.exercises.slice(0,6).map(ex=><span key={ex.name||ex} style={{padding:"3px 10px",borderRadius:99,background:C.blueL+"15",border:"1px solid "+C.blueL+"30",color:C.blueXL,fontSize:11,fontWeight:600}}>{ex.name||ex}</span>)}
             </div>
-            <button onClick={e=>{e.stopPropagation();const exs=buildSets(nextPlan);onStartWorkout(nextPlan,exs);onNavigate("treino");}} style={{width:"100%",padding:"13px",background:C.grad,border:"none",borderRadius:13,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+            <button onClick={async e=>{e.stopPropagation();const exs=await refreshSessionsAndBuild(nextPlan);onStartWorkout(nextPlan,exs);onNavigate("treino");}} style={{width:"100%",padding:"13px",background:C.grad,border:"none",borderRadius:13,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
               <svg width="14" height="14" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
               Iniciar Treino
             </button>
@@ -2303,8 +2329,8 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
     if(forceActive&&isActive) setScreen("active");
   },[forceActive]);
 
-  function startPlan(p){
-    const exs=buildSets(p);
+  async function startPlan(p){
+    const exs=await refreshSessionsAndBuild(p);
     onStartWorkout(p,exs);
     setFinishing(false);
     setScreen("active");
@@ -2483,7 +2509,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
             );
           })}
         </div>
-        {selectedPlan&&<RoutineScreen plan={selectedPlan} onClose={()=>setSelectedPlan(null)} onStart={()=>{if(!selectedPlan.isNew){startPlan(selectedPlan);setSelectedPlan(null);}}} onNavigate={onNavigate} onSaved={refreshRoutines} onDeleted={()=>{refreshRoutines();setSelectedPlan(null);}}/> }
+        {selectedPlan&&<RoutineScreen plan={selectedPlan} onClose={()=>setSelectedPlan(null)} onStart={async()=>{if(!selectedPlan.isNew){await startPlan(selectedPlan);setSelectedPlan(null);}}} onNavigate={onNavigate} onSaved={refreshRoutines} onDeleted={()=>{refreshRoutines();setSelectedPlan(null);}}/> }
         <BottomNav active="treino" onNavigate={onNavigate}/>
       </div>
     );
