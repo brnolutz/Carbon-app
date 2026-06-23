@@ -3925,19 +3925,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
     );
   },[showCalendar,calMonth,workoutDates,todayStr]);
 
-  const {rangeData,rangeMaxY,rangeTotal,rangeDelta}=useMemo(()=>{
-    refreshDerivedData();
-    const weeks=Object.keys(WEEKLY).sort();
-    const nWeeks={all:weeks.length,"3m":13,"1m":4,"1s":1}[chartRange]||13;
-    const rangeKey=chartMode==="vol"?"vol":chartMode==="dur"?"dur":chartMode==="reps"?"reps":"sets";
-    const rd=weeks.slice(-nWeeks).map(wk=>{const wd=WEEKLY[wk]||{};const dt=new Date(wk+"T12:00:00");return{label:dt.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}),y:wd[rangeKey]||0};});
-    const mY=Math.max(...rd.map(d=>d.y),0.01);
-    const total=Math.round(rd.reduce((a,d)=>a+d.y,0)*10)/10;
-    const prevWeeks=weeks.slice(-nWeeks*2,-nWeeks);
-    const prevTotal=Math.round(prevWeeks.reduce((a,wk)=>a+(WEEKLY[wk]?.[rangeKey]||0),0)*10)/10;
-    const dlt=prevTotal>0?Math.round((total-prevTotal)/prevTotal*100):0;
-    return{rangeData:rd,rangeMaxY:mY,rangeTotal:total,rangeDelta:dlt};
-  },[savedCount,chartRange,chartMode]);
+  const {rangeData,rangeMaxY,rangeTotal,rangeDelta}=useMemo(()=>{\n    refreshDerivedData();\n    const weeks=Object.keys(WEEKLY).sort();\n    const nWeeks={all:weeks.length,"3m":13,"1m":4,"1s":1}[chartRange]||13;\n    const rangeKey=chartMode==="vol"?"vol":chartMode==="dur"?"dur":chartMode==="reps"?"reps":"sets";\n    const rd=weeks.slice(-nWeeks).map(wk=>{const wd=WEEKLY[wk]||{};const dt=new Date(wk+"T12:00:00");return{label:dt.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}),y:wd[rangeKey]||0};});\n    const mY=Math.max(...rd.map(d=>d.y),0.01);\n    // KPI: soma direto das sessões no período (não agrupado por semana)\n    const allSess=getAllSessions();\n    const dayMs=24*60*60*1000;\n    const now=new Date();\n    let periodSess,prevPeriodSess;\n    if(chartRange==="1s"){\n      const sunday=new Date(now);sunday.setDate(now.getDate()-now.getDay());sunday.setHours(0,0,0,0);\n      const prevSunday=new Date(sunday);prevSunday.setDate(sunday.getDate()-7);\n      periodSess=allSess.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=sunday);\n      prevPeriodSess=allSess.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=prevSunday&&new Date(s.date+"T12:00:00")<sunday);\n    } else {\n      const days={"1m":30,"3m":91,"all":3650}[chartRange]||91;\n      const cutoff=new Date(now-days*dayMs);\n      const prevCutoff=new Date(now-days*2*dayMs);\n      periodSess=allSess.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=cutoff);\n      prevPeriodSess=allSess.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=prevCutoff&&new Date(s.date+"T12:00:00")<cutoff);\n    }\n    const calcTotal=(sess)=>{\n      if(chartMode==="vol") return Math.round(sess.reduce((a,s)=>a+(s.totalVol||0),0)*10)/10;\n      if(chartMode==="dur") return Math.round(sess.reduce((a,s)=>a+(s.duration||0),0));\n      if(chartMode==="sets") return sess.reduce((a,s)=>a+(s.totalSets||0),0);\n      if(chartMode==="reps") return sess.reduce((a,s)=>a+(s.exercises?.reduce((b,e)=>b+(e.setData?.reduce((c,st)=>c+(st.r||0),0)||0),0)||0),0);\n      return 0;\n    };\n    const total=calcTotal(periodSess);\n    const prevTotal=calcTotal(prevPeriodSess);\n    const dlt=prevTotal>0?Math.round((total-prevTotal)/prevTotal*100):0;\n    return{rangeData:rd,rangeMaxY:mY,rangeTotal:total,rangeDelta:dlt};\n  },[savedCount,chartRange,chartMode]);
 
   if(showProgressDetail) return <ProgressDetailScreen onBack={()=>setShowProgressDetail(false)} onNavigate={onNavigate}/>;
   if(showStrengthDetail) return <StrengthDetailScreen onBack={()=>setShowStrengthDetail(false)}/>;
@@ -4021,54 +4009,72 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
               ))}
             </div>
           </div>
-          <div style={{position:"relative",height:120,marginBottom:6}}>
+          <div style={{position:"relative",height:130,marginBottom:6}}>
             {(()=>{
               const W=100,H=100,n=rangeData.length;
-              if(n===0) return null;
-              // moving average window: adapts to range
-              const maWin={all:4,"3m":3,"1m":2,"1s":1}[chartRange]||3;
+              if(n===0) return <div style={{height:"100%",display:"flex",alignItems:"center",justifyContent:"center",color:C.muted,fontSize:12}}>Sem dados</div>;
+              // Janela de média móvel adaptada ao período
+              const maWin={all:6,"3m":4,"1m":3,"1s":1}[chartRange]||4;
               const maData=rangeData.map((_,i)=>{
                 const start=Math.max(0,i-maWin+1);
                 const slice=rangeData.slice(start,i+1).filter(d=>d.y>0);
                 return slice.length>0?slice.reduce((a,d)=>a+d.y,0)/slice.length:null;
               });
               const barW=W/n;
-              const validMA=maData.filter(v=>v!=null);
-              const maMax=validMA.length>0?Math.max(...validMA):rangeMaxY;
-              const scaleY=(v)=>H-4-(v/(rangeMaxY||1))*(H-8);
-              const maPoints=maData.map((v,i)=>v!=null?`${i*barW+barW/2},${scaleY(v)}`:null).filter(Boolean);
+              const scaleY=(v)=>H-2-(v/(rangeMaxY||1))*(H-8);
+              // pontos válidos da MA para o path
+              const maSegments=[];let cur=[];
+              maData.forEach((v,i)=>{
+                if(v!=null){cur.push(`${i*barW+barW/2},${scaleY(v)}`);}
+                else{if(cur.length>0){maSegments.push(cur);cur=[];}}
+              });
+              if(cur.length>0) maSegments.push(cur);
+              const allMAPoints=maData.map((v,i)=>v!=null?`${i*barW+barW/2},${scaleY(v)}`:null).filter(Boolean);
               return(
                 <svg width="100%" height="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{position:"absolute",inset:0}}>
                   <defs>
-                    <linearGradient id="maGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={mc.color} stopOpacity="0.25"/>
+                    <linearGradient id="maFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={mc.color} stopOpacity="0.18"/>
                       <stop offset="100%" stopColor={mc.color} stopOpacity="0"/>
                     </linearGradient>
                   </defs>
-                  {/* Bars */}
-                  {rangeData.map((d,i)=>{
-                    const pct=d.y/(rangeMaxY||1);
-                    const bh=Math.max(pct*(H-8),d.y>0?2:0);
-                    const isLast=i===rangeData.length-1;
-                    return(<rect key={i} x={i*barW+barW*0.1} y={H-bh} width={barW*0.8} height={bh}
-                      fill={isLast?mc.color:mc.color+"44"} rx="1.5"
-                      style={{filter:isLast?`drop-shadow(0 0 3px ${mc.color}88)`:undefined}}/>);
-                  })}
-                  {/* MA fill */}
-                  {maPoints.length>1&&(
-                    <polygon points={[...maPoints,`${(maData.length-1)*barW+barW/2},${H}`,`${barW/2},${H}`].join(" ")}
-                      fill="url(#maGrad)"/>
-                  )}
-                  {/* MA line */}
-                  {maPoints.length>1&&(
-                    <polyline points={maPoints.join(" ")} fill="none" stroke={mc.color} strokeWidth="1.8"
-                      strokeLinecap="round" strokeLinejoin="round" opacity="0.9"/>
-                  )}
-                  {/* MA dots at each point */}
-                  {maData.map((v,i)=>v!=null&&(
-                    <circle key={i} cx={i*barW+barW/2} cy={scaleY(v)} r="1.5"
-                      fill={mc.color} stroke="#080A0E" strokeWidth="1"/>
+                  {/* Grade sutil */}
+                  {[0.25,0.5,0.75].map((f,i)=>(
+                    <line key={i} x1="0" y1={H-2-(f*(H-8))} x2={W} y2={H-2-(f*(H-8))}
+                      stroke="rgba(255,255,255,0.04)" strokeWidth="0.5"/>
                   ))}
+                  {/* Barras — discretas, fundo */}
+                  {rangeData.map((d,i)=>{
+                    const bh=Math.max((d.y/(rangeMaxY||1))*(H-8),d.y>0?1.5:0);
+                    const isLast=i===rangeData.length-1;
+                    return(<rect key={i} x={i*barW+barW*0.15} y={H-2-bh} width={barW*0.7} height={bh}
+                      fill={isLast?mc.color+"88":mc.color+"2A"} rx="1.2"/>);
+                  })}
+                  {/* Área preenchida sob a MA */}
+                  {allMAPoints.length>1&&(
+                    <polygon
+                      points={[...allMAPoints,`${(n-1)*barW+barW/2},${H}`,`${barW/2},${H}`].join(" ")}
+                      fill="url(#maFill)"/>
+                  )}
+                  {/* Linha MA — destaque principal */}
+                  {maSegments.map((seg,si)=>(
+                    <polyline key={si} points={seg.join(" ")} fill="none"
+                      stroke={mc.color} strokeWidth="2.2"
+                      strokeLinecap="round" strokeLinejoin="round"/>
+                  ))}
+                  {/* Pontos na MA */}
+                  {maData.map((v,i)=>v!=null&&(
+                    <circle key={i} cx={i*barW+barW/2} cy={scaleY(v)} r={i===n-1?"2.5":"1.8"}
+                      fill={mc.color} stroke="#080A0E" strokeWidth="1.2"/>
+                  ))}
+                  {/* Valor do último ponto */}
+                  {maData[n-1]!=null&&(()=>{
+                    const v=maData[n-1];
+                    const label=chartMode==="vol"?v.toFixed(1)+"t":chartMode==="dur"?Math.round(v)+"min":Math.round(v)+"";
+                    const cx=(n-1)*barW+barW/2;
+                    const cy=scaleY(v)-5;
+                    return(<text x={cx} y={cy} textAnchor="middle" fontSize="4.5" fill={mc.color} fontWeight="700">{label}</text>);
+                  })()}
                 </svg>
               );
             })()}
