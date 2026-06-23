@@ -461,33 +461,43 @@ function buildSets(plan){
   const seen=new Set();
   const dl=loadDeload();
 
-  // Busca direto no cache de sessões — mais recente primeiro
+  // Sessões ordenadas mais recente primeiro
   const sessions=[..._sessionsCache].sort((a,b)=>b.date.localeCompare(a.date));
 
+  // Retorna os setData da sessão mais recente que contém esse exercício
   function getLastSets(exName){
     for(const s of sessions){
       const ex=s.exercises?.find(e=>e.name===exName);
-      if(ex){
-        const sets=(ex.setData||[]).filter(s=>s.type==="work"||!s.type);
-        if(sets.length>0) return sets;
-      }
+      if(ex&&ex.setData&&ex.setData.length>0) return ex.setData;
     }
     return null;
   }
 
   const exercises=plan.exercises.map(ex=>{
     const lastSets=getLastSets(ex.name);
-    const isFirst=!seen.has(ex.group)&&ex.warmup;seen.add(ex.group);
-    const baseW=lastSets?.[0]?.w||ex.sets[0]?.w||0;
+    const isFirst=!seen.has(ex.group)&&ex.warmup; seen.add(ex.group);
+
+    // Número de séries: usa o histórico se existir, senão usa a rotina
+    const numSets=lastSets?lastSets.length:ex.sets.length;
+    const baseW=lastSets?lastSets[0].w:(ex.sets[0]?.w||0);
+
     const warm=isFirst?[
       {w:Math.round(baseW*0.5/2.5)*2.5,r:12,done:false,type:"warmup",rpe:null},
       {w:Math.round(baseW*0.75/2.5)*2.5,r:8,done:false,type:"warmup",rpe:null},
       {w:Math.round(baseW*0.9/2.5)*2.5,r:6,done:false,type:"warmup",rpe:null},
     ]:[];
-    const workSets=ex.sets.map((s,i)=>{
-      const last=lastSets?.[i];
-      return{w:last?.w??s.w,r:last?.r??s.r,done:false,type:"work",rpe:null};
+
+    // Séries de trabalho: 100% do histórico real, sem fallback de índice
+    const workSets=Array.from({length:numSets},(_,i)=>{
+      const hist=lastSets?.[i];
+      const rtn=ex.sets?.[i];
+      return{
+        w: hist!=null ? hist.w : (rtn?.w||0),
+        r: hist!=null ? hist.r : (rtn?.r||8),
+        done:false,type:"work",rpe:null
+      };
     });
+
     return{...ex,activeSets:[...warm,...workSets]};
   });
 
@@ -514,16 +524,10 @@ async function refreshSessionsAndBuild(plan){
     const{data:userData}=await supabase.auth.getUser();
     const uid=userData?.user?.id;
     if(uid){
-      const{data,error}=await supabase.from('workout_sessions').select('*');
-      console.log('[CARBON] sessões no Supabase:',data?.length,'erro:',error?.message);
-      if(data){
-        _sessionsCache=data.map(rowToSession);
-        const recent=[..._sessionsCache].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
-        recent.forEach(s=>console.log('[CARBON] sessão:',s.date,s.name,'exercícios:',s.exercises?.map(e=>e.name+'='+e.setData?.[0]?.w+'kg').join(', ')));
-      }
-      refreshDerivedData();
+      const{data}=await supabase.from('workout_sessions').select('*');
+      if(data){ _sessionsCache=data.map(rowToSession); refreshDerivedData(); }
     }
-  }catch(e){console.warn('[CARBON] refresh sessions failed',e);}
+  }catch(e){console.warn('refresh sessions failed',e);}
   return buildSets(plan);
 }
 function GlassCard({children,style={},onClick}){
