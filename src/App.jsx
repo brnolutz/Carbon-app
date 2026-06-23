@@ -3311,81 +3311,79 @@ function ProgressDetailScreen({onBack,onNavigate}){
   const[mode,setMode]=useState("carga");
   const[range,setRange]=useState("3m");
   const[selGroupFilter,setSelGroupFilter]=useState("Todos");
+  const[selEx,setSelEx]=useState("");
 
+  // Carrega exercícios e define seleção inicial
   useEffect(()=>{
-    document.body.classList.add("hide-carbon-header");
-    return()=>document.body.classList.remove("hide-carbon-header");
+    refreshDerivedData();
+    const exs=Object.keys(HIST).sort((a,b)=>(HIST[b]?.length||0)-(HIST[a]?.length||0));
+    if(exs.length>0) setSelEx(exs[0]);
   },[]);
 
-  // Sempre lê do HIST global (já atualizado via savedCount no pai)
-  const allEx=useMemo(()=>getAllHistExercises(),[]);
-  const groupsForFilter=useMemo(()=>{
+  const allEx=Object.keys(HIST).sort((a,b)=>(HIST[b]?.length||0)-(HIST[a]?.length||0));
+  const groupsForFilter=(()=>{
     const set=new Set(allEx.map(ex=>EX_GROUP[ex]||"Outros"));
     const known=["Peito","Costas","Pernas","Ombros","Biceps","Triceps","Core"].filter(g=>set.has(g));
     const rest=[...set].filter(g=>!known.includes(g)&&g!=="Outros");
     return["Todos",...known,...rest,...(set.has("Outros")?["Outros"]:[])];
-  },[allEx]);
-  const filteredEx=useMemo(()=>
-    selGroupFilter==="Todos"?allEx:allEx.filter(ex=>(EX_GROUP[ex]||"Outros")===selGroupFilter)
-  ,[allEx,selGroupFilter]);
+  })();
+  const filteredEx=selGroupFilter==="Todos"?allEx:allEx.filter(ex=>(EX_GROUP[ex]||"Outros")===selGroupFilter);
 
-  const[selEx,setSelEx]=useState(()=>getAllHistExercises()[0]||"");
-  useEffect(()=>{
-    if(filteredEx.length>0&&!filteredEx.includes(selEx))setSelEx(filteredEx[0]);
-  },[selGroupFilter]);// eslint-disable-line
-
-  const hist=HIST[selEx]||[];
+  const hist=(selEx&&HIST[selEx])||[];
   const gc=GC[EX_GROUP[selEx]]||C.blueXL;
-
-  // safe max helper — never returns -Infinity
-  const safeMax=(arr,fallback=0)=>arr.length>0?arr.reduce((a,b)=>b>a?b:a,arr[0]):fallback;
 
   const nPts={all:999,"1a":12,"3m":6,"1m":4}[range]||6;
   const filtered=[...hist].slice(0,nPts).reverse();
 
-  const chartData=useMemo(()=>{
-    return filtered.map(s=>{
-      const wSets=s.sets.filter(ss=>ss.w>0);
-      const w1Sets=s.sets.filter(ss=>ss.w>0&&ss.r>0);
-      const y=mode==="carga"
-        ?safeMax(wSets.map(ss=>ss.w))
-        :safeMax(w1Sets.map(ss=>orm(ss.w,ss.r)));
-      return{x:s.d,y};
-    }).filter(d=>d.y>0);
-  },[selEx,mode,range]);// eslint-disable-line
+  const chartData=(()=>{
+    try{
+      return filtered.map(s=>{
+        const sets=s.sets||[];
+        const wSets=sets.filter(ss=>ss&&ss.w>0);
+        const y=mode==="carga"
+          ?(wSets.length>0?wSets.reduce((a,ss)=>ss.w>a?ss.w:a,0):0)
+          :(wSets.filter(ss=>ss.r>0).length>0?wSets.filter(ss=>ss.r>0).reduce((a,ss)=>{ const v=orm(ss.w,ss.r); return v>a?v:a; },0):0);
+        return{x:s.d,y:y||0};
+      }).filter(d=>d.y>0);
+    }catch(e){return[];}
+  })();
 
-  const maxY=safeMax(chartData.map(d=>d.y),1);
-  const minY=chartData.length>0?chartData.reduce((a,d)=>d.y<a?d.y:a,chartData[0].y):0;
+  const maxY=chartData.length>0?chartData.reduce((a,d)=>d.y>a?d.y:a,0):1;
+  const minY=chartData.length>0?chartData.reduce((a,d)=>d.y<a?d.y:a,maxY):0;
   const W=400,H=160,PAD=12;
   const px=(i)=>chartData.length>1?i*(W-PAD*2)/(chartData.length-1)+PAD:W/2;
-  const py=(v)=>H-PAD-((v-minY)/(maxY-minY||1))*(H-PAD*2);
+  const py=(v)=>H-PAD-((v-minY)/((maxY-minY)||1))*(H-PAD*2);
 
-  const best=safeMax(chartData.map(d=>d.y));
+  const best=chartData.reduce((a,d)=>d.y>a?d.y:a,0);
   const last=chartData[chartData.length-1]?.y||0;
   const prev=chartData[chartData.length-2]?.y||last;
   const delta=prev>0?Math.round((last-prev)/prev*100):0;
 
   const repRecords={};
   hist.forEach(s=>(s.sets||[]).forEach(set=>{
-    if(set.w>0&&set.r>0&&(!repRecords[set.r]||set.w>repRecords[set.r]))repRecords[set.r]=set.w;
+    if(set&&set.w>0&&set.r>0&&(!repRecords[set.r]||set.w>repRecords[set.r]))repRecords[set.r]=set.w;
   }));
   const sortedRecs=Object.entries(repRecords).sort((a,b)=>+a[0]-+b[0]);
 
   return(
-    <div style={{position:"fixed",inset:0,zIndex:800,background:"#080A0E",overflowY:"auto"}}>
-      {/* Header fixo */}
-      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"14px 16px"}}>
+    <div style={{position:"fixed",inset:0,zIndex:9999,background:"#080A0E",overflowY:"auto",display:"flex",flexDirection:"column"}}>
+      {/* Header */}
+      <div style={{flexShrink:0,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"14px 16px",paddingTop:"calc(14px + env(safe-area-inset-top,0px))"}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onBack} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.text,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
           <div style={{fontSize:18,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Progressão por Exercício</div>
         </div>
       </div>
 
-      <div style={{padding:"16px 16px 100px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"16px 16px 100px"}}>
         {/* Group filter */}
         <div style={{overflowX:"auto",display:"flex",gap:5,marginBottom:8,paddingBottom:2}}>
           {groupsForFilter.map(g=>(
-            <button key={g} onClick={()=>setSelGroupFilter(g)} style={{padding:"4px 9px",borderRadius:99,flexShrink:0,cursor:"pointer",background:selGroupFilter===g?"rgba(255,255,255,0.12)":"transparent",border:"1px solid "+(selGroupFilter===g?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.06)"),color:selGroupFilter===g?C.text:C.muted,fontSize:9,fontWeight:selGroupFilter===g?700:500,whiteSpace:"nowrap"}}>{g}</button>
+            <button key={g} onClick={()=>{
+              setSelGroupFilter(g);
+              const list=g==="Todos"?allEx:allEx.filter(ex=>(EX_GROUP[ex]||"Outros")===g);
+              if(list.length>0) setSelEx(list[0]);
+            }} style={{padding:"4px 9px",borderRadius:99,flexShrink:0,cursor:"pointer",background:selGroupFilter===g?"rgba(255,255,255,0.12)":"transparent",border:"1px solid "+(selGroupFilter===g?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.06)"),color:selGroupFilter===g?C.text:C.muted,fontSize:9,fontWeight:selGroupFilter===g?700:500,whiteSpace:"nowrap"}}>{g}</button>
           ))}
         </div>
         {/* Exercise selector */}
