@@ -2632,6 +2632,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
       let prCount=0;
       const exercisesData=exercises.map(e=>{
         const doneWork=e.activeSets.filter(s=>s.done&&s.type==='work');
+        const allWork=e.activeSets.filter(s=>s.type==='work');
         const bestW=Math.max(...doneWork.filter(s=>s.w>0).map(s=>s.w),0);
         const bestR=Math.max(...doneWork.filter(s=>s.r>0).map(s=>s.r),0);
         const today1rm=doneWork.filter(s=>s.w>0&&s.r>0).reduce((a,s)=>Math.max(a,orm(s.w,s.r)),0);
@@ -2641,15 +2642,17 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
           const priorBest=Math.max(0,...histPts,...savedPts);
           if(today1rm>priorBest) prCount++;
         }
+        // Usa séries feitas se existirem, senão usa todas as séries preenchidas
+        const setsToSave=doneWork.length>0?doneWork:allWork.filter(s=>s.w>0||s.r>0);
         return{
           name:e.name,
           sets:doneWork.length,
           bestW,
           bestR,
           vol:doneWork.reduce((a,s)=>a+s.w*s.r,0),
-          setData:doneWork.map(s=>({w:s.w,r:s.r,rpe:s.rpe})),
+          setData:setsToSave.map(s=>({w:s.w||0,r:s.r||0,rpe:s.rpe||null})),
         };
-      }).filter(e=>e.sets>0);
+      }).filter(e=>e.setData.length>0);
       // Estimate calories from total working sets performed (≈18 kcal/set, consistent with feed display)
       const estimatedCalories=Math.round(workSets.length*18);
       const persistSession={
