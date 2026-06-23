@@ -4012,43 +4012,18 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
           <div style={{position:"relative",height:130,marginBottom:6}}>
             {(()=>{
               const n=rangeData.length;
-              if(n===0) return <div style={{height:"100%",display:"flex",alignItems:"center",justifyContent:"center",color:C.muted,fontSize:12}}>Sem dados</div>;
+              if(n===0) return null;
               const W=100,H=100;
               const barW=W/n;
-              const scaleY=(v)=>H-(v/(rangeMaxY||1))*(H-4);
-              // Média móvel
-              const maWin={all:6,"3m":4,"1m":3,"1s":1}[chartRange]||4;
-              const ma=rangeData.map((_,i)=>{
-                const sl=rangeData.slice(Math.max(0,i-maWin+1),i+1).filter(d=>d.y>0);
-                return sl.length?sl.reduce((a,d)=>a+d.y,0)/sl.length:null;
-              });
-              const maPath=ma.reduce((acc,v,i)=>{
-                if(v==null) return acc;
-                const x=i*barW+barW/2;
-                const y=scaleY(v);
-                return acc+(acc===""?`M${x},${y}`:`L${x},${y}`);
-              },"");
+              const scaleY=(v)=>(v/(rangeMaxY||1))*(H-4);
               return(
                 <svg width="100%" height="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{position:"absolute",inset:0}}>
-                  <defs>
-                    <linearGradient id="maArea" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={mc.color} stopOpacity="0.12"/>
-                      <stop offset="100%" stopColor={mc.color} stopOpacity="0"/>
-                    </linearGradient>
-                  </defs>
-                  {/* Barras */}
                   {rangeData.map((d,i)=>{
-                    const bh=(d.y/(rangeMaxY||1))*(H-4);
+                    const bh=Math.max(scaleY(d.y),d.y>0?1:0);
                     const isLast=i===n-1;
-                    return <rect key={i} x={i*barW+barW*0.1} y={H-bh} width={barW*0.8} height={Math.max(bh,d.y>0?1:0)}
-                      fill={isLast?mc.color+"99":mc.color+"33"} rx="1"/>;
+                    return <rect key={i} x={i*barW+barW*0.08} y={H-bh} width={barW*0.84} height={bh}
+                      fill={isLast?"#3B82F6":"rgba(59,130,246,0.35)"} rx="2"/>;
                   })}
-                  {/* Área sob a MA */}
-                  {maPath&&<path d={`${maPath}L${(n-1)*barW+barW/2},${H}L${ma.findIndex(v=>v!=null)*barW+barW/2},${H}Z`} fill="url(#maArea)"/>}
-                  {/* Linha MA */}
-                  {maPath&&<path d={maPath} fill="none" stroke={mc.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>}
-                  {/* Ponto final */}
-                  {ma[n-1]!=null&&<circle cx={(n-1)*barW+barW/2} cy={scaleY(ma[n-1])} r="2.5" fill={mc.color} stroke="#080A0E" strokeWidth="1.5"/>}
                 </svg>
               );
             })()}
