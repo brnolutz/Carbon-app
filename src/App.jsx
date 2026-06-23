@@ -1783,7 +1783,7 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
   // EDIT MODE
   if(editing){
     return(
-      <div style={{position:"fixed",inset:0,zIndex:700,background:"#080A0E",overflowY:"auto",paddingTop:52}}>
+      <div style={{position:"fixed",inset:0,zIndex:9999,background:"#080A0E",overflowY:"auto",paddingTop:52}}>
         <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"14px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <button onClick={()=>isNew?onClose():setEditing(false)} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
           <div style={{fontSize:15,fontWeight:700,color:C.text}}>{isNew?"Nova Rotina":"Editar Rotina"}</div>
@@ -1844,9 +1844,9 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
 
   // VIEW MODE
   return(
-    <div style={{position:"fixed",inset:0,zIndex:700,background:"#080A0E",display:"flex",flexDirection:"column"}}>
+    <div style={{position:"fixed",inset:0,zIndex:9999,background:"#080A0E",display:"flex",flexDirection:"column"}}>
       {/* Header fixo */}
-      <div style={{flexShrink:0,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"14px 16px",paddingTop:"calc(52px + env(safe-area-inset-top,0px))"}}>
+      <div style={{flexShrink:0,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"14px 16px",paddingTop:"calc(14px + env(safe-area-inset-top,0px))"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <button onClick={onClose} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.text,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
           <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.1em"}}>Rotina</div>
