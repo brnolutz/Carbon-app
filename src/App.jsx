@@ -4011,70 +4011,44 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
           </div>
           <div style={{position:"relative",height:130,marginBottom:6}}>
             {(()=>{
-              const W=100,H=100,n=rangeData.length;
+              const n=rangeData.length;
               if(n===0) return <div style={{height:"100%",display:"flex",alignItems:"center",justifyContent:"center",color:C.muted,fontSize:12}}>Sem dados</div>;
-              // Janela de média móvel adaptada ao período
-              const maWin={all:6,"3m":4,"1m":3,"1s":1}[chartRange]||4;
-              const maData=rangeData.map((_,i)=>{
-                const start=Math.max(0,i-maWin+1);
-                const slice=rangeData.slice(start,i+1).filter(d=>d.y>0);
-                return slice.length>0?slice.reduce((a,d)=>a+d.y,0)/slice.length:null;
-              });
+              const W=100,H=100;
               const barW=W/n;
-              const scaleY=(v)=>H-2-(v/(rangeMaxY||1))*(H-8);
-              // pontos válidos da MA para o path
-              const maSegments=[];let cur=[];
-              maData.forEach((v,i)=>{
-                if(v!=null){cur.push(`${i*barW+barW/2},${scaleY(v)}`);}
-                else{if(cur.length>0){maSegments.push(cur);cur=[];}}
+              const scaleY=(v)=>H-(v/(rangeMaxY||1))*(H-4);
+              // Média móvel
+              const maWin={all:6,"3m":4,"1m":3,"1s":1}[chartRange]||4;
+              const ma=rangeData.map((_,i)=>{
+                const sl=rangeData.slice(Math.max(0,i-maWin+1),i+1).filter(d=>d.y>0);
+                return sl.length?sl.reduce((a,d)=>a+d.y,0)/sl.length:null;
               });
-              if(cur.length>0) maSegments.push(cur);
-              const allMAPoints=maData.map((v,i)=>v!=null?`${i*barW+barW/2},${scaleY(v)}`:null).filter(Boolean);
+              const maPath=ma.reduce((acc,v,i)=>{
+                if(v==null) return acc;
+                const x=i*barW+barW/2;
+                const y=scaleY(v);
+                return acc+(acc===""?`M${x},${y}`:`L${x},${y}`);
+              },"");
               return(
                 <svg width="100%" height="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{position:"absolute",inset:0}}>
                   <defs>
-                    <linearGradient id="maFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={mc.color} stopOpacity="0.18"/>
+                    <linearGradient id="maArea" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={mc.color} stopOpacity="0.12"/>
                       <stop offset="100%" stopColor={mc.color} stopOpacity="0"/>
                     </linearGradient>
                   </defs>
-                  {/* Grade sutil */}
-                  {[0.25,0.5,0.75].map((f,i)=>(
-                    <line key={i} x1="0" y1={H-2-(f*(H-8))} x2={W} y2={H-2-(f*(H-8))}
-                      stroke="rgba(255,255,255,0.04)" strokeWidth="0.5"/>
-                  ))}
-                  {/* Barras — discretas, fundo */}
+                  {/* Barras */}
                   {rangeData.map((d,i)=>{
-                    const bh=Math.max((d.y/(rangeMaxY||1))*(H-8),d.y>0?1.5:0);
-                    const isLast=i===rangeData.length-1;
-                    return(<rect key={i} x={i*barW+barW*0.15} y={H-2-bh} width={barW*0.7} height={bh}
-                      fill={isLast?mc.color+"88":mc.color+"2A"} rx="1.2"/>);
+                    const bh=(d.y/(rangeMaxY||1))*(H-4);
+                    const isLast=i===n-1;
+                    return <rect key={i} x={i*barW+barW*0.1} y={H-bh} width={barW*0.8} height={Math.max(bh,d.y>0?1:0)}
+                      fill={isLast?mc.color+"99":mc.color+"33"} rx="1"/>;
                   })}
-                  {/* Área preenchida sob a MA */}
-                  {allMAPoints.length>1&&(
-                    <polygon
-                      points={[...allMAPoints,`${(n-1)*barW+barW/2},${H}`,`${barW/2},${H}`].join(" ")}
-                      fill="url(#maFill)"/>
-                  )}
-                  {/* Linha MA — destaque principal */}
-                  {maSegments.map((seg,si)=>(
-                    <polyline key={si} points={seg.join(" ")} fill="none"
-                      stroke={mc.color} strokeWidth="2.2"
-                      strokeLinecap="round" strokeLinejoin="round"/>
-                  ))}
-                  {/* Pontos na MA */}
-                  {maData.map((v,i)=>v!=null&&(
-                    <circle key={i} cx={i*barW+barW/2} cy={scaleY(v)} r={i===n-1?"2.5":"1.8"}
-                      fill={mc.color} stroke="#080A0E" strokeWidth="1.2"/>
-                  ))}
-                  {/* Valor do último ponto */}
-                  {maData[n-1]!=null&&(()=>{
-                    const v=maData[n-1];
-                    const label=chartMode==="vol"?v.toFixed(1)+"t":chartMode==="dur"?Math.round(v)+"min":Math.round(v)+"";
-                    const cx=(n-1)*barW+barW/2;
-                    const cy=scaleY(v)-5;
-                    return(<text x={cx} y={cy} textAnchor="middle" fontSize="4.5" fill={mc.color} fontWeight="700">{label}</text>);
-                  })()}
+                  {/* Área sob a MA */}
+                  {maPath&&<path d={`${maPath}L${(n-1)*barW+barW/2},${H}L${ma.findIndex(v=>v!=null)*barW+barW/2},${H}Z`} fill="url(#maArea)"/>}
+                  {/* Linha MA */}
+                  {maPath&&<path d={maPath} fill="none" stroke={mc.color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>}
+                  {/* Ponto final */}
+                  {ma[n-1]!=null&&<circle cx={(n-1)*barW+barW/2} cy={scaleY(ma[n-1])} r="2.5" fill={mc.color} stroke="#080A0E" strokeWidth="1.5"/>}
                 </svg>
               );
             })()}
