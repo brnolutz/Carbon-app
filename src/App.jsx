@@ -458,19 +458,25 @@ const USER = {
 // W_DATA is now derived dynamically from Supabase measurement data — see refreshDerivedData() near the top.
 
 function buildSets(plan){
+  refreshDerivedData();
   const seen=new Set();
   const dl=loadDeload();
   const exercises=plan.exercises.map(ex=>{
+    const lastHist=HIST[ex.name]&&HIST[ex.name][0];
+    const lastSets=lastHist?.sets||null;
     const isFirst=!seen.has(ex.group)&&ex.warmup;seen.add(ex.group);
-    const bw=ex.sets[0].w;
+    const baseW=lastSets?.[0]?.w||ex.sets[0]?.w||0;
     const warm=isFirst?[
-      {w:Math.round(bw*0.5/2.5)*2.5,r:12,done:false,type:"warmup",rpe:null},
-      {w:Math.round(bw*0.75/2.5)*2.5,r:8,done:false,type:"warmup",rpe:null},
-      {w:Math.round(bw*0.9/2.5)*2.5,r:6,done:false,type:"warmup",rpe:null},
+      {w:Math.round(baseW*0.5/2.5)*2.5,r:12,done:false,type:"warmup",rpe:null},
+      {w:Math.round(baseW*0.75/2.5)*2.5,r:8,done:false,type:"warmup",rpe:null},
+      {w:Math.round(baseW*0.9/2.5)*2.5,r:6,done:false,type:"warmup",rpe:null},
     ]:[];
-    return{...ex,activeSets:[...warm,...ex.sets.map(s=>({w:s.w,r:s.r,done:false,type:"work",rpe:null}))]};
+    const workSets=ex.sets.map((s,i)=>{
+      const last=lastSets?.[i];
+      return{w:last?.w??s.w,r:last?.r??s.r,done:false,type:"work",rpe:null};
+    });
+    return{...ex,activeSets:[...warm,...workSets]};
   });
-  // Apply deload modifications if active
   if(dl?.active){
     const factor=dl.intensity/100;
     return exercises.map(ex=>{
@@ -488,7 +494,6 @@ function buildSets(plan){
   }
   return exercises;
 }
-
 // ─── BOTTOM NAV ──────────────────────────────────────────────
 function GlassCard({children,style={},onClick}){
   return(
@@ -2073,10 +2078,45 @@ function RPEModal({onSelect,onSkip}){
 }
 
 function RestTimer({seconds,onDone,onSkip}){
-  const[left,setLeft]=useState(seconds);
+  const endTsKey="carbon_rest_end_ts";
+  // Ao montar, salva o timestamp de fim no localStorage
+  useEffect(()=>{
+    const existing=localStorage.getItem(endTsKey);
+    if(!existing){
+      localStorage.setItem(endTsKey,Date.now()+seconds*1000);
+    }
+    return()=>localStorage.removeItem(endTsKey);
+  },[]);// eslint-disable-line
+
+  const calcLeft=()=>{
+    const end=parseInt(localStorage.getItem(endTsKey)||"0");
+    return Math.max(0,Math.round((end-Date.now())/1000));
+  };
+
+  const[left,setLeft]=useState(calcLeft);
   const pct=Math.max(0,left/seconds*100);
   const color=left>60?C.mint:left>30?C.amber:C.coral;
-  useEffect(()=>{if(left<=0){onDone();return;}const t=setTimeout(()=>setLeft(l=>l-1),1000);return()=>clearTimeout(t);},[left]);
+
+  useEffect(()=>{
+    if(left<=0){onDone();return;}
+    const t=setTimeout(()=>setLeft(calcLeft()),500);
+    return()=>clearTimeout(t);
+  },[left]);// eslint-disable-line
+
+  // Quando usuário ajusta tempo, atualiza o endTs
+  function adjustTime(delta){
+    const end=parseInt(localStorage.getItem(endTsKey)||"0");
+    const newEnd=end+delta*1000;
+    localStorage.setItem(endTsKey,newEnd);
+    setLeft(Math.max(0,Math.round((newEnd-Date.now())/1000)));
+  }
+
+  // Ao voltar para o app (visibilitychange), recalcula
+  useEffect(()=>{
+    const handler=()=>setLeft(calcLeft());
+    document.addEventListener("visibilitychange",handler);
+    return()=>document.removeEventListener("visibilitychange",handler);
+  },[]);// eslint-disable-line
   return(
     <div style={{position:"fixed",bottom:"calc(88px + env(safe-area-inset-bottom, 0px))",left:12,right:12,zIndex:200,background:C.surface+"F8",backdropFilter:"blur(20px)",borderRadius:18,border:"1px solid "+color+"66",overflow:"hidden",boxShadow:"0 4px 32px rgba(0,0,0,0.5)"}}>
       <div style={{height:3,background:C.border,width:"100%"}}><div style={{height:"100%",background:color,width:pct+"%",transition:"width 1s linear"}}/></div>
@@ -2086,7 +2126,7 @@ function RestTimer({seconds,onDone,onSkip}){
           <div style={{fontSize:9,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:C.sub,marginTop:2}}>descanso</div>
         </div>
         <div style={{display:"flex",gap:6,flex:1,justifyContent:"center"}}>
-          {[-30,-15,15,30].map(d=><button key={d} onClick={()=>setLeft(l=>Math.max(0,l+d))} style={{padding:"8px 10px",borderRadius:10,background:d<0?C.coral+"22":C.mint+"22",border:"1px solid "+(d<0?C.coral+"44":C.mint+"44"),color:d<0?C.coral:C.mint,fontSize:11,fontWeight:700,cursor:"pointer"}}>{d>0?"+":""}{d}s</button>)}
+          {[-30,-15,15,30].map(d=><button key={d} onClick={()=>adjustTime(d)} style={{padding:"8px 10px",borderRadius:10,background:d<0?C.coral+"22":C.mint+"22",border:"1px solid "+(d<0?C.coral+"44":C.mint+"44"),color:d<0?C.coral:C.mint,fontSize:11,fontWeight:700,cursor:"pointer"}}>{d>0?"+":""}{d}s</button>)}
         </div>
         <button onClick={onSkip} style={{padding:"10px 16px",borderRadius:12,background:color+"22",border:"1px solid "+color+"55",color,fontSize:13,fontWeight:700,cursor:"pointer"}}>Pular →</button>
       </div>
@@ -2669,7 +2709,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
                         <span style={{fontSize:8,fontWeight:700,color:C.amber,letterSpacing:"0.06em",textTransform:"uppercase"}}>🏆 {setIsOrmPR?"Novo PR · 1RM est.":"Novo PR · Carga"}</span>
                         <span style={{fontSize:8,color:C.amber+"88"}}>{setIsOrmPR?`${setORM}kg`:`${set.w}kg`} ant. {setIsOrmPR?bestORM:bestW}kg</span>
                       </div>}
-                      <div style={{display:"grid",gridTemplateColumns:"24px 1fr 1fr 1fr 30px 30px",gap:3,alignItems:"center",padding:"2px 0",borderRadius:8,background:setIsPR?"rgba(245,158,11,0.06)":set.done?"rgba(16,185,129,0.04)":"transparent",border:setIsPR?"1px solid "+C.amber+"44":set.done?"1px solid "+C.mint+"18":"1px solid transparent",animation:isAnim?"prFlash 0.7s ease-out 1 forwards":"none",transition:"background 0.25s,border 0.25s"}}>
+                      <div style={{display:"grid",gridTemplateColumns:"24px 1fr 1fr 1fr 30px 30px 24px",gap:3,alignItems:"center",padding:"2px 0",borderRadius:8,background:setIsPR?"rgba(245,158,11,0.06)":set.done?"rgba(16,185,129,0.04)":"transparent",border:setIsPR?"1px solid "+C.amber+"44":set.done?"1px solid "+C.mint+"18":"1px solid transparent",animation:isAnim?"prFlash 0.7s ease-out 1 forwards":"none",transition:"background 0.25s,border 0.25s"}}>
                         <div style={{width:24,height:24,borderRadius:6,background:setIsPR?"linear-gradient(135deg,#B45309,#F59E0B)":set.done?C.mint+"33":C.blueM+"22",border:"1px solid "+(setIsPR?"transparent":set.done?C.mint+"44":C.borderL),display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                           {setIsPR?<span style={{fontSize:11}}>🏆</span>:<span style={{fontSize:10,fontWeight:800,color:set.done?C.mint:C.blueXL}}>{wi+1}</span>}
                         </div>
@@ -2678,7 +2718,10 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
                         <SmartInput value={set.r} onChange={v=>!set.done&&updateSet(exIdx,si,"r",v)} readOnly={set.done} unit="reps" integer color={setIsPR?C.amber:set.done?C.mint:C.text} compact/>
                         <button onClick={()=>!set.done&&(setCurrentEx(exIdx),setRpeModal({ei:exIdx,si,rest:exItem.rest}))} style={{height:24,borderRadius:6,cursor:set.done?"default":"pointer",background:set.rpe?(rpeColor+"22"):C.surface,border:"1px solid "+(set.rpe?(rpeColor+"66"):C.border),color:set.rpe?rpeColor:C.muted,fontSize:set.rpe?9:7,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center"}}>{set.rpe||"RPE"}</button>
                         <button onClick={()=>markDone(si,exIdx)} style={{height:24,borderRadius:6,background:set.done?(setIsPR?C.amber+"33":C.mint+"33"):C.surface,border:"2px solid "+(set.done?(setIsPR?C.amber:C.mint):C.border),color:set.done?(setIsPR?C.amber:C.mint):C.muted,fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.15s"}}>{set.done?"✓":"○"}</button>
-                      </div>
+                        {!set.done
+                          ?<button onClick={()=>setExercises(prev=>prev.map((e,i)=>i!==exIdx?e:{...e,activeSets:e.activeSets.filter((_,idx)=>idx!==si)}))} style={{height:24,width:24,borderRadius:6,background:"transparent",border:"none",color:C.coral+"88",fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0}}>✕</button>
+                          :<div style={{width:24}}/>
+                        }
                       {estORM&&!set.done&&!setIsPR&&<div style={{fontSize:8,color:C.muted,paddingLeft:28,paddingTop:1}}>1RM ~{estORM}kg</div>}
                     </div>
                   );
