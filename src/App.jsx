@@ -1433,18 +1433,39 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
 
   const chartModes=[{k:"vol",l:"Volume",unit:"t",color:C.blueXL},{k:"dur",l:"Duração",unit:"min",color:C.mint},{k:"reps",l:"Repetições",unit:"",color:C.amber},{k:"sets",l:"Séries",unit:"",color:C.coral}];
   const activeMode=chartModes.find(m=>m.k===chartMode)||chartModes[0];
-  const nWeeks={all:WEEKS.length,"3m":13,"1m":4,"1s":1}[chartRange]||13;
-  const chartData=WEEKS.slice(-nWeeks).map(wk=>{
-    const d=WEEKLY[wk];const dt=new Date(wk+"T12:00:00");
-    return{label:dt.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}),y:d[chartMode]||0};
-  });
-  const maxY=Math.max(...chartData.map(d=>d.y))||1;
-  // KPI: soma do período selecionado vs período anterior
-  const now=new Date();
-  const dayMs=24*60*60*1000;
-  const periodDays={"1s":7,"1m":30,"3m":90,"all":3650}[chartRange]||90;
-  const cutoff=new Date(now-periodDays*dayMs);
-  const prevCutoff=new Date(now-periodDays*2*dayMs);
+
+  // ── Chart + KPI calculations — reactive to savedCount, chartRange, chartMode ──
+  const {chartData,maxY,curr,prevVal,delta} = useMemo(()=>{
+    refreshDerivedData();
+    const weeks=Object.keys(WEEKLY).sort();
+    const nWeeks={all:weeks.length,"3m":13,"1m":4,"1s":1}[chartRange]||13;
+    const cd=weeks.slice(-nWeeks).map(wk=>{
+      const d=WEEKLY[wk];const dt=new Date(wk+"T12:00:00");
+      return{label:dt.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}),y:d[chartMode]||0};
+    });
+    const mY=Math.max(...cd.map(d=>d.y))||1;
+    const now=new Date();
+    const dayMs=24*60*60*1000;
+    const periodDays={"1s":7,"1m":30,"3m":90,"all":3650}[chartRange]||90;
+    const cutoff=new Date(now-periodDays*dayMs);
+    const prevCutoff=new Date(now-periodDays*2*dayMs);
+    const allSessions=getAllSessions();
+    const periodSess=allSessions.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=cutoff);
+    const prevPeriodSess=allSessions.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=prevCutoff&&new Date(s.date+"T12:00:00")<cutoff);
+    const sumPeriod=(sess,field)=>sess.reduce((a,s)=>a+(s[field]||0),0);
+    const getCurr=(sess)=>{
+      if(chartMode==="vol") return Math.round(sumPeriod(sess,"totalVol")*10)/10;
+      if(chartMode==="dur") return Math.round(sumPeriod(sess,"duration"));
+      if(chartMode==="sets") return sumPeriod(sess,"totalSets");
+      if(chartMode==="reps") return sess.reduce((a,s)=>a+(s.exercises?.reduce((b,e)=>b+(e.setData?.reduce((c,st)=>c+(st.r||0),0)||0),0)||0),0);
+      return 0;
+    };
+    const c=getCurr(periodSess);
+    const p=getCurr(prevPeriodSess);
+    const d=p>0?Math.round((c-p)/p*100):0;
+    return{chartData:cd,maxY:mY,curr:c,prevVal:p,delta:d};
+  },[savedCount,chartRange,chartMode]);
+
   // ── Todos os cálculos da HomeScreen reativos ao savedCount ──
   const {weekWorkouts,vol7d,vol7dDelta,dynamicStreak,todaySessions,nextPlan,visibleFeed,weekProgress} = useMemo(()=>{
     const sessions = getAllSessions();
@@ -1477,25 +1498,7 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
     };
   },[savedCount,feedCount]);
 
-  const allSess=useMemo(()=>getAllSessions(),[savedCount]);
-  const periodSess=allSess.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=cutoff);
-  const prevPeriodSess=allSess.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=prevCutoff&&new Date(s.date+"T12:00:00")<cutoff);
-  const sumPeriod=(sess,field)=>sess.reduce((a,s)=>a+(s[field]||0),0);
-  const curr=(()=>{
-    if(chartMode==="vol") return Math.round(sumPeriod(periodSess,"totalVol")*10)/10;
-    if(chartMode==="dur") return Math.round(sumPeriod(periodSess,"duration"));
-    if(chartMode==="sets") return sumPeriod(periodSess,"totalSets");
-    if(chartMode==="reps") return periodSess.reduce((a,s)=>a+(s.exercises?.reduce((b,e)=>b+(e.setData?.reduce((c,st)=>c+(st.r||0),0)||0),0)||0),0);
-    return 0;
-  })();
-  const prevVal=(()=>{
-    if(chartMode==="vol") return Math.round(sumPeriod(prevPeriodSess,"totalVol")*10)/10;
-    if(chartMode==="dur") return Math.round(sumPeriod(prevPeriodSess,"duration"));
-    if(chartMode==="sets") return sumPeriod(prevPeriodSess,"totalSets");
-    if(chartMode==="reps") return prevPeriodSess.reduce((a,s)=>a+(s.exercises?.reduce((b,e)=>b+(e.setData?.reduce((c,st)=>c+(st.r||0),0)||0),0)||0),0);
-    return 0;
-  })();
-  const delta=prevVal>0?Math.round((curr-prevVal)/prevVal*100):0;
+
 
   const wPeriods=[{k:"1S",l:"1 sem",n:7},{k:"15D",l:"15 dias",n:15},{k:"1M",l:"30 dias",n:30},{k:"3M",l:"3 meses",n:90},{k:"TUDO",l:"Tudo",n:999}];
   const wpConf=wPeriods.find(p=>p.k===weightPeriod)||wPeriods[2];
