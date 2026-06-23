@@ -2246,9 +2246,10 @@ function WarmupSection({exWarm,exIdx,updateSet,markDone}){
   );
 }
 
-function ExerciseHistory({exName,currentSets}){
+function ExerciseHistory({exName,currentSets,histData}){
   const[open,setOpen]=useState(false);
-  const hist=getHistory(exName);
+  // Usa histData passado como prop (sempre fresco) ou fallback para getHistory
+  const hist=histData||getHistory(exName);
   const bestEver=getBestORM(exName);const bestEverW=getBestW(exName);
   let currentBest=0;
   currentSets.forEach(s=>{if(s.w>0&&s.r>0){const v=orm(s.w,s.r);if(v>currentBest)currentBest=v;}});
@@ -2782,7 +2783,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
                 </div>
                 <button onClick={()=>setRestPickerEi(exIdx)} style={{display:"flex",alignItems:"center",gap:4,background:"none",border:"none",padding:0,paddingLeft:12,marginTop:1,cursor:"pointer"}}><span style={{fontSize:9,color:C.muted}}>Descanso: {exItem.rest==null?"Off":(exItem.rest>=60?Math.floor(exItem.rest/60)+"min"+(exItem.rest%60>0?" "+exItem.rest%60+"s":""):exItem.rest+"s")}</span><span style={{fontSize:8,color:C.muted,marginLeft:2}}>✎</span></button>
               </div>
-              <div style={{padding:"4px 10px 0"}}><ExerciseHistory key={exItem.name+cacheVersion} exName={exItem.name} currentSets={exWork}/></div>
+              <div style={{padding:"4px 10px 0"}}><ExerciseHistory key={exItem.name+cacheVersion} exName={exItem.name} currentSets={exWork} histData={getHistory(exItem.name)}/></div>
               {exWarm.length>0&&<WarmupSection exWarm={exWarm} exIdx={exIdx} updateSet={updateSet} markDone={markDone}/>}
               <div style={{padding:"3px 10px 0"}}>
                 <div style={{display:"grid",gridTemplateColumns:"24px 1fr 1fr 1fr 30px 30px",gap:3,marginBottom:2,paddingBottom:2,borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
