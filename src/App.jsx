@@ -330,9 +330,26 @@ function orm(w,r){return r>1?Math.round(w*(1+r/30)*10)/10:w;}
 function fmtDate(d){const dt=new Date(d+"T12:00:00");const today=new Date();today.setHours(0,0,0,0);const diff=Math.round((today-dt)/86400000);if(diff===0)return"Hoje";if(diff===1)return"Ontem";if(diff<7)return"há "+diff+" dias";return dt.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"});}
 function cleanName(n=""){return(n||"").replace(/â[^\s]*/g,"—").replace(/\s+—\s+/g," — ").trim()||"Treino";}
 function fmtDur(m){if(!m)return"—";return m>=60?Math.round(m/60)+"h"+(m%60>0?" "+m%60+"min":""):m+"min";}
-function getHistory(exName){return(HIST[exName]||[]).slice(-3).reverse();}
-function getBestORM(exName){const h=HIST[exName]||[];let best=0;h.forEach(s=>s.sets.forEach(ss=>{if(ss.w>0&&ss.r>0){const v=orm(ss.w,ss.r);if(v>best)best=v;}}));return best;}
-function getBestW(exName){return(HIST[exName]||[]).flatMap(s=>s.sets).filter(s=>s.w>0).reduce((a,s)=>Math.max(a,s.w),0);}
+function getHistory(exName){
+  const sessions=[..._sessionsCache]
+    .filter(s=>s.exercises?.some(e=>e.name===exName))
+    .sort((a,b)=>b.date.localeCompare(a.date))
+    .slice(0,3);
+  return sessions.map(s=>{
+    const ex=s.exercises.find(e=>e.name===exName);
+    return{d:s.date,sets:(ex.setData||[])};
+  });
+}
+function getBestORM(exName){
+  let best=0;
+  _sessionsCache.forEach(s=>s.exercises?.filter(e=>e.name===exName).forEach(e=>(e.setData||[]).forEach(ss=>{if(ss.w>0&&ss.r>0){const v=orm(ss.w,ss.r);if(v>best)best=v;}})));
+  return best;
+}
+function getBestW(exName){
+  let best=0;
+  _sessionsCache.forEach(s=>s.exercises?.filter(e=>e.name===exName).forEach(e=>(e.setData||[]).forEach(ss=>{if(ss.w>0&&ss.w>best)best=ss.w;})));
+  return best;
+}
 function getGreeting(){const h=new Date().getHours();if(h<12)return"Bom dia";if(h<18)return"Boa tarde";return"Boa noite";}
 
 // ─── WORKOUT PLANS ───────────────────────────────────────────
