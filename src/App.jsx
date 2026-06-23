@@ -298,7 +298,7 @@ async function loadAllUserData(){
   if(!uid)return;
 
   let[sessRes,measRes,settRes]=await Promise.all([
-    supabase.from('workout_sessions').select('*'),
+    supabase.from('workout_sessions').select('*').order('date',{ascending:false}).limit(1000),
     supabase.from('measurements').select('*'),
     supabase.from('user_settings').select('*').eq('user_id',uid).maybeSingle(),
   ]);
@@ -312,7 +312,7 @@ async function loadAllUserData(){
     if(measureRows.length)await supabase.from('measurements').insert(measureRows);
     await supabase.from('user_settings').upsert({user_id:uid,weight_goal:74,updated_at:new Date().toISOString()});
     [sessRes,measRes,settRes]=await Promise.all([
-      supabase.from('workout_sessions').select('*'),
+      supabase.from('workout_sessions').select('*').order('date',{ascending:false}).limit(1000),
       supabase.from('measurements').select('*'),
       supabase.from('user_settings').select('*').eq('user_id',uid).maybeSingle(),
     ]);
@@ -340,7 +340,7 @@ function cleanName(n=""){return(n||"").replace(/â[^\s]*/g,"—").replace(/\s+�
 function fmtDur(m){if(!m)return"—";return m>=60?Math.round(m/60)+"h"+(m%60>0?" "+m%60+"min":""):m+"min";}
 function getHistory(exName){
   const sessions=[..._sessionsCache]
-    .filter(s=>s.exercises?.some(e=>e.name===exName))
+    .filter(s=>s.exercises?.some(e=>e.name===exName&&(e.setData||[]).length>0))
     .sort((a,b)=>b.date.localeCompare(a.date))
     .slice(0,3);
   return sessions.map(s=>{
