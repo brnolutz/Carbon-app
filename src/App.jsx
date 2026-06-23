@@ -94,15 +94,15 @@ function loadSavedSessions(){return _sessionsCache;}
 
 async function deleteSession(session, onDone){
   try{
-    await supabase.from('sessions').delete().eq('id', session.id);
+    if(!session.id){console.error('deleteSession: session sem id',session);onDone&&onDone();return;}
+    const{error}=await supabase.from('sessions').delete().eq('id', session.id);
+    if(error){console.error('deleteSession erro Supabase:',error);alert('Erro ao excluir: '+error.message);return;}
     // Remover do cache local
-    const idx = _sessionsCache.findIndex(s=>s.id===session.id);
-    if(idx>=0) _sessionsCache.splice(idx,1);
-    const fidx = FEED.findIndex(s=>s.id===session.id);
-    if(fidx>=0) FEED.splice(fidx,1);
+    _sessionsCache=_sessionsCache.filter(s=>s.id!==session.id);
+    FEED=FEED.filter(s=>s.id!==session.id);
     refreshDerivedData();
     onDone&&onDone();
-  }catch(e){console.error('deleteSession',e);}
+  }catch(e){console.error('deleteSession exception:',e);}
 }
 
 function getAllSessions(){return [..._sessionsCache].sort((a,b)=>b.date.localeCompare(a.date));}
@@ -1460,8 +1460,15 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
     const v7Delta = vPrev>0?Math.round((v7-vPrev)/vPrev*100):0;
     const streak = calcStreak();
     const todSess = sessions.filter(s=>s.date===todayStr);
+    // Treinos feitos essa semana (não só hoje)
+    const weekDone = weekSess.map(s=>(s.name||"").toLowerCase());
     const allPlans = loadRoutines().length>0?loadRoutines():PLANS;
-    const nPlan = allPlans.find(p=>!todSess.some(s=>s.name&&s.name.toLowerCase().includes((p.label||"").toLowerCase())))||allPlans[0];
+    // Próximo plano = primeiro que ainda não foi feito essa semana
+    const nPlan = allPlans.find(p=>{
+      const lbl=(p.label||"").toLowerCase();
+      const nm=(p.name||"").toLowerCase();
+      return !weekDone.some(n=>n.includes(lbl)||n.includes(nm));
+    })||allPlans[0];
     const feed = sessions.slice(0,feedCount);
     return {
       weekWorkouts:wCount, vol7d:v7, vol7dDelta:v7Delta,
