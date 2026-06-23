@@ -478,43 +478,16 @@ function buildSets(plan){
   const seen=new Set();
   const dl=loadDeload();
 
-  // Sessões ordenadas mais recente primeiro
-  const sessions=[..._sessionsCache].sort((a,b)=>b.date.localeCompare(a.date));
-
-  // Retorna os setData da sessão mais recente que contém esse exercício
-  function getLastSets(exName){
-    for(const s of sessions){
-      const ex=s.exercises?.find(e=>e.name===exName);
-      if(ex&&ex.setData&&ex.setData.length>0) return ex.setData;
-    }
-    return null;
-  }
-
   const exercises=plan.exercises.map(ex=>{
-    const lastSets=getLastSets(ex.name);
     const isFirst=!seen.has(ex.group)&&ex.warmup; seen.add(ex.group);
-
-    // Número de séries: usa o histórico se existir, senão usa a rotina
-    const numSets=lastSets?lastSets.length:ex.sets.length;
-    const baseW=lastSets?lastSets[0].w:(ex.sets[0]?.w||0);
-
+    // ex.sets já contém os valores reais do último treino (atualizados ao salvar)
+    const baseW=ex.sets[0]?.w||0;
     const warm=isFirst?[
       {w:Math.round(baseW*0.5/2.5)*2.5,r:12,done:false,type:"warmup",rpe:null},
       {w:Math.round(baseW*0.75/2.5)*2.5,r:8,done:false,type:"warmup",rpe:null},
       {w:Math.round(baseW*0.9/2.5)*2.5,r:6,done:false,type:"warmup",rpe:null},
     ]:[];
-
-    // Séries de trabalho: 100% do histórico real, sem fallback de índice
-    const workSets=Array.from({length:numSets},(_,i)=>{
-      const hist=lastSets?.[i];
-      const rtn=ex.sets?.[i];
-      return{
-        w: hist!=null ? hist.w : (rtn?.w||0),
-        r: hist!=null ? hist.r : (rtn?.r||8),
-        done:false,type:"work",rpe:null
-      };
-    });
-
+    const workSets=(ex.sets||[]).map(s=>({w:s.w||0,r:s.r||0,done:false,type:"work",rpe:null}));
     return{...ex,activeSets:[...warm,...workSets]};
   });
 
@@ -537,25 +510,12 @@ function buildSets(plan){
 }
 // Recarrega sessões do Supabase e retorna os sets atualizados
 async function refreshSessionsAndBuild(plan){
+  // Recarrega a rotina do Supabase para garantir sets atualizados
   try{
-    const{data:userData}=await supabase.auth.getUser();
-    const uid=userData?.user?.id;
-    if(uid){
-      const{data,error}=await supabase.from('workout_sessions').select('*');
-      if(data){
-        _sessionsCache=data.map(rowToSession);
-        refreshDerivedData();
-        // DEBUG TEMPORÁRIO: mostra as 3 sessões mais recentes
-        const recent=[..._sessionsCache].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
-        const msg=recent.map(s=>{
-          const exStr=(s.exercises||[]).slice(0,2).map(e=>e.name.split(' ')[0]+':'+e.setData?.[0]?.w+'kg').join(', ');
-          return s.date+' '+s.name+'\n  '+exStr;
-        }).join('\n');
-        alert('Cache carregado: '+_sessionsCache.length+' sessões\n\nMais recentes:\n'+msg);
-      }
-      if(error) alert('ERRO Supabase: '+error.message);
-    }
-  }catch(e){alert('Erro: '+e.message);}
+    await fetchRoutines();
+    const updated=_routinesCache.find(r=>r.id===plan.id);
+    if(updated) return buildSets(updated);
+  }catch(e){console.warn('refresh routines failed',e);}
   return buildSets(plan);
 }
 function GlassCard({children,style={},onClick}){
@@ -2603,6 +2563,18 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
       };
       saveSession(persistSession);
       onWorkoutSaved&&onWorkoutSaved();
+
+      // ── Atualiza a rotina com os pesos/reps reais deste treino ──
+      if(plan.id){
+        const updatedExercises=(plan.exercises||[]).map(ex=>{
+          const done=exercisesData.find(e=>e.name===ex.name);
+          if(!done||!done.setData||done.setData.length===0) return ex;
+          // Atualiza sets com os valores reais realizados
+          const newSets=done.setData.map(s=>({...s}));
+          return{...ex,sets:newSets};
+        });
+        saveRoutine({...plan,exercises:updatedExercises});
+      }
       const session={plan:plan.name,label:plan.label,elapsed:finalDurationMin*60,vol:totalVol,sets:workSets.length,avgRpe,pse:finishPse,exercises:[...exercises]};
       setFinishedSession(session);
       setFinishing(false);
