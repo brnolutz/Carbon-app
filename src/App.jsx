@@ -4021,12 +4021,57 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
               ))}
             </div>
           </div>
-          <div style={{display:"flex",gap:3,height:110,alignItems:"flex-end",marginBottom:6}}>
-            {rangeData.map((d,i)=>{
-              const pct=d.y/rangeMaxY;
-              const isLast=i===rangeData.length-1;
-              return(<div key={i} style={{flex:1,display:"flex",alignItems:"flex-end",height:"100%"}}><div style={{width:"100%",height:Math.max(pct*106,d.y>0?3:0),background:isLast?mc.color:mc.color+"44",borderRadius:"3px 3px 0 0",boxShadow:isLast?"0 0 10px "+mc.color+"66":"none"}}/></div>);
-            })}
+          <div style={{position:"relative",height:120,marginBottom:6}}>
+            {(()=>{
+              const W=100,H=100,n=rangeData.length;
+              if(n===0) return null;
+              // moving average window: adapts to range
+              const maWin={all:4,"3m":3,"1m":2,"1s":1}[chartRange]||3;
+              const maData=rangeData.map((_,i)=>{
+                const start=Math.max(0,i-maWin+1);
+                const slice=rangeData.slice(start,i+1).filter(d=>d.y>0);
+                return slice.length>0?slice.reduce((a,d)=>a+d.y,0)/slice.length:null;
+              });
+              const barW=W/n;
+              const validMA=maData.filter(v=>v!=null);
+              const maMax=validMA.length>0?Math.max(...validMA):rangeMaxY;
+              const scaleY=(v)=>H-4-(v/(rangeMaxY||1))*(H-8);
+              const maPoints=maData.map((v,i)=>v!=null?`${i*barW+barW/2},${scaleY(v)}`:null).filter(Boolean);
+              return(
+                <svg width="100%" height="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{position:"absolute",inset:0}}>
+                  <defs>
+                    <linearGradient id="maGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={mc.color} stopOpacity="0.25"/>
+                      <stop offset="100%" stopColor={mc.color} stopOpacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  {/* Bars */}
+                  {rangeData.map((d,i)=>{
+                    const pct=d.y/(rangeMaxY||1);
+                    const bh=Math.max(pct*(H-8),d.y>0?2:0);
+                    const isLast=i===rangeData.length-1;
+                    return(<rect key={i} x={i*barW+barW*0.1} y={H-bh} width={barW*0.8} height={bh}
+                      fill={isLast?mc.color:mc.color+"44"} rx="1.5"
+                      style={{filter:isLast?`drop-shadow(0 0 3px ${mc.color}88)`:undefined}}/>);
+                  })}
+                  {/* MA fill */}
+                  {maPoints.length>1&&(
+                    <polygon points={[...maPoints,`${(maData.length-1)*barW+barW/2},${H}`,`${barW/2},${H}`].join(" ")}
+                      fill="url(#maGrad)"/>
+                  )}
+                  {/* MA line */}
+                  {maPoints.length>1&&(
+                    <polyline points={maPoints.join(" ")} fill="none" stroke={mc.color} strokeWidth="1.8"
+                      strokeLinecap="round" strokeLinejoin="round" opacity="0.9"/>
+                  )}
+                  {/* MA dots at each point */}
+                  {maData.map((v,i)=>v!=null&&(
+                    <circle key={i} cx={i*barW+barW/2} cy={scaleY(v)} r="1.5"
+                      fill={mc.color} stroke="#080A0E" strokeWidth="1"/>
+                  ))}
+                </svg>
+              );
+            })()}
           </div>
           <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
             {[rangeData[0],rangeData[Math.floor(rangeData.length/2)],rangeData[rangeData.length-1]].map((d,i)=>(
