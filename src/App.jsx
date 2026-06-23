@@ -3925,7 +3925,19 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
     );
   },[showCalendar,calMonth,workoutDates,todayStr]);
 
-  const {rangeData,rangeMaxY,rangeTotal,rangeDelta}=useMemo(()=>{\n    refreshDerivedData();\n    const weeks=Object.keys(WEEKLY).sort();\n    const nWeeks={all:weeks.length,"3m":13,"1m":4,"1s":1}[chartRange]||13;\n    const rangeKey=chartMode==="vol"?"vol":chartMode==="dur"?"dur":chartMode==="reps"?"reps":"sets";\n    const rd=weeks.slice(-nWeeks).map(wk=>{const wd=WEEKLY[wk]||{};const dt=new Date(wk+"T12:00:00");return{label:dt.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}),y:wd[rangeKey]||0};});\n    const mY=Math.max(...rd.map(d=>d.y),0.01);\n    // KPI: soma direto das sessões no período (não agrupado por semana)\n    const allSess=getAllSessions();\n    const dayMs=24*60*60*1000;\n    const now=new Date();\n    let periodSess,prevPeriodSess;\n    if(chartRange==="1s"){\n      const sunday=new Date(now);sunday.setDate(now.getDate()-now.getDay());sunday.setHours(0,0,0,0);\n      const prevSunday=new Date(sunday);prevSunday.setDate(sunday.getDate()-7);\n      periodSess=allSess.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=sunday);\n      prevPeriodSess=allSess.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=prevSunday&&new Date(s.date+"T12:00:00")<sunday);\n    } else {\n      const days={"1m":30,"3m":91,"all":3650}[chartRange]||91;\n      const cutoff=new Date(now-days*dayMs);\n      const prevCutoff=new Date(now-days*2*dayMs);\n      periodSess=allSess.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=cutoff);\n      prevPeriodSess=allSess.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=prevCutoff&&new Date(s.date+"T12:00:00")<cutoff);\n    }\n    const calcTotal=(sess)=>{\n      if(chartMode==="vol") return Math.round(sess.reduce((a,s)=>a+(s.totalVol||0),0)*10)/10;\n      if(chartMode==="dur") return Math.round(sess.reduce((a,s)=>a+(s.duration||0),0));\n      if(chartMode==="sets") return sess.reduce((a,s)=>a+(s.totalSets||0),0);\n      if(chartMode==="reps") return sess.reduce((a,s)=>a+(s.exercises?.reduce((b,e)=>b+(e.setData?.reduce((c,st)=>c+(st.r||0),0)||0),0)||0),0);\n      return 0;\n    };\n    const total=calcTotal(periodSess);\n    const prevTotal=calcTotal(prevPeriodSess);\n    const dlt=prevTotal>0?Math.round((total-prevTotal)/prevTotal*100):0;\n    return{rangeData:rd,rangeMaxY:mY,rangeTotal:total,rangeDelta:dlt};\n  },[savedCount,chartRange,chartMode]);
+  const {rangeData,rangeMaxY,rangeTotal,rangeDelta}=useMemo(()=>{
+    refreshDerivedData();
+    const weeks=Object.keys(WEEKLY).sort();
+    const nWeeks={all:weeks.length,"3m":13,"1m":4,"1s":1}[chartRange]||13;
+    const rangeKey=chartMode==="vol"?"vol":chartMode==="dur"?"dur":chartMode==="reps"?"reps":"sets";
+    const rd=weeks.slice(-nWeeks).map(wk=>{const wd=WEEKLY[wk]||{};const dt=new Date(wk+"T12:00:00");return{label:dt.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}),y:wd[rangeKey]||0};});
+    const mY=Math.max(...rd.map(d=>d.y),0.01);
+    const total=Math.round(rd.reduce((a,d)=>a+d.y,0)*10)/10;
+    const prevWeeks=weeks.slice(-nWeeks*2,-nWeeks);
+    const prevTotal=Math.round(prevWeeks.reduce((a,wk)=>a+(WEEKLY[wk]?.[rangeKey]||0),0)*10)/10;
+    const dlt=prevTotal>0?Math.round((total-prevTotal)/prevTotal*100):0;
+    return{rangeData:rd,rangeMaxY:mY,rangeTotal:total,rangeDelta:dlt};
+  },[savedCount,chartRange,chartMode]);
 
   if(showProgressDetail) return <ProgressDetailScreen onBack={()=>setShowProgressDetail(false)} onNavigate={onNavigate}/>;
   if(showStrengthDetail) return <StrengthDetailScreen onBack={()=>setShowStrengthDetail(false)}/>;
