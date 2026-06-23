@@ -1740,8 +1740,13 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
   const isNew=plan.isNew||!plan.id;
 
   const allSessions=useMemo(()=>{
+    const lbl=(plan.label||"").toLowerCase();
+    const nm=(plan.name||"").toLowerCase();
     return loadSavedSessions()
-      .filter(s=>s.name&&s.name.toLowerCase().includes((plan.label||"").toLowerCase()))
+      .filter(s=>s.name&&(
+        (lbl&&s.name.toLowerCase().includes(lbl))||
+        (nm&&s.name.toLowerCase().includes(nm))
+      ))
       .sort((a,b)=>a.date.localeCompare(b.date));
   },[plan]);
 
@@ -1754,7 +1759,7 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
   const maxY=Math.max(...chartData.map(d=>d.y),0.01);
   const minY=Math.min(...chartData.map(d=>d.y),0);
   const lastSession=allSessions[allSessions.length-1];
-  const W=400,H=140,PAD=10;
+  const W=400,H=100,PAD=10;
   const px2=(i)=>chartData.length>1?i*(W-PAD*2)/(chartData.length-1)+PAD:W/2;
   const py2=(v)=>H-PAD-((v-minY)/(maxY-minY||1))*(H-PAD*2);
 
