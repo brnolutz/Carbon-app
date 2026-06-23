@@ -113,10 +113,18 @@ async function saveSession(session){
   try{
     const{data:userData}=await supabase.auth.getUser();
     const uid=userData?.user?.id;
-    if(!uid)return;
-    const{error}=await supabase.from('workout_sessions').insert(sessionToRow(session,uid));
-    if(error)console.error('saveSession error',error);
-  }catch(e){console.error(e);}
+    if(!uid){console.error('saveSession: sem uid');return;}
+    const row=sessionToRow(session,uid);
+    console.log('[Carbon] salvando sessão:',row.date,row.name,'exercises:',JSON.stringify(row.exercises?.slice(0,1)));
+    const{error}=await supabase.from('workout_sessions').insert(row);
+    if(error){
+      console.error('saveSession error',error);
+      alert('Erro ao salvar treino: '+error.message);
+    } else {
+      console.log('[Carbon] sessão salva com sucesso');
+    }
+  }catch(e){console.error(e);alert('Erro crítico ao salvar: '+e.message);}
+}
 }
 function buildWeekly(sessions){
   const weekly={};
@@ -562,11 +570,16 @@ async function refreshSessionsAndBuild(plan){
       const{data}=await supabase.from('workout_sessions').select('*').order('date',{ascending:false}).limit(200);
       if(data){
         const fromServer=data.map(rowToSession);
-        // Merge: mantém sessões locais que ainda não chegaram no servidor
         const serverIds=new Set(fromServer.map(s=>s.id));
         const localOnly=_sessionsCache.filter(s=>!serverIds.has(s.id));
         _sessionsCache=[...localOnly,...fromServer];
         refreshDerivedData();
+        console.log('[Carbon] sessões após merge: total='+_sessionsCache.length+', server='+fromServer.length+', localOnly='+localOnly.length);
+        const recent=[..._sessionsCache].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3);
+        recent.forEach(s=>{
+          const terra=s.exercises?.find(e=>e.name==='Levantamento Terra (Barra)');
+          if(terra) console.log('[Carbon]',s.date,s.name,'Terra:',JSON.stringify(terra.setData?.slice(0,1)));
+        });
       }
     }
   }catch(e){console.warn('refresh failed',e);}
