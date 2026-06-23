@@ -554,7 +554,22 @@ function buildSetsFromHistory(plan){
 }
 
 async function refreshSessionsAndBuild(plan){
-  // Usa _sessionsCache local que já está atualizado pelo loadAllUserData + saveSession
+  try{
+    // Busca sessões do Supabase (funciona em múltiplos dispositivos)
+    const{data:userData}=await supabase.auth.getUser();
+    const uid=userData?.user?.id;
+    if(uid){
+      const{data}=await supabase.from('workout_sessions').select('*').order('date',{ascending:false}).limit(200);
+      if(data){
+        const fromServer=data.map(rowToSession);
+        // Merge: mantém sessões locais que ainda não chegaram no servidor
+        const serverIds=new Set(fromServer.map(s=>s.id));
+        const localOnly=_sessionsCache.filter(s=>!serverIds.has(s.id));
+        _sessionsCache=[...localOnly,...fromServer];
+        refreshDerivedData();
+      }
+    }
+  }catch(e){console.warn('refresh failed',e);}
   return buildSetsFromHistory(plan);
 }
 function GlassCard({children,style={},onClick}){
