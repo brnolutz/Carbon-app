@@ -2342,7 +2342,7 @@ function SmartInput({value,onChange,readOnly,unit,integer,color,compact}){
   );
 }
 
-function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUpdateWorkout,onSubScreen,forceActive,onMinimize,onWorkoutSaved}){
+function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUpdateWorkout,onSubScreen,forceActive,onMinimize,onWorkoutSaved,cacheVersion=0}){
   const isActive=!!activeWorkout;
   const plan=activeWorkout?.plan||null;
   const exercises=activeWorkout?.exercises||[];
@@ -2782,7 +2782,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
                 </div>
                 <button onClick={()=>setRestPickerEi(exIdx)} style={{display:"flex",alignItems:"center",gap:4,background:"none",border:"none",padding:0,paddingLeft:12,marginTop:1,cursor:"pointer"}}><span style={{fontSize:9,color:C.muted}}>Descanso: {exItem.rest==null?"Off":(exItem.rest>=60?Math.floor(exItem.rest/60)+"min"+(exItem.rest%60>0?" "+exItem.rest%60+"s":""):exItem.rest+"s")}</span><span style={{fontSize:8,color:C.muted,marginLeft:2}}>✎</span></button>
               </div>
-              <div style={{padding:"4px 10px 0"}}><ExerciseHistory exName={exItem.name} currentSets={exWork}/></div>
+              <div style={{padding:"4px 10px 0"}}><ExerciseHistory key={exItem.name+cacheVersion} exName={exItem.name} currentSets={exWork}/></div>
               {exWarm.length>0&&<WarmupSection exWarm={exWarm} exIdx={exIdx} updateSet={updateSet} markDone={markDone}/>}
               <div style={{padding:"3px 10px 0"}}>
                 <div style={{display:"grid",gridTemplateColumns:"24px 1fr 1fr 1fr 30px 30px",gap:3,marginBottom:2,paddingBottom:2,borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
@@ -5375,6 +5375,8 @@ function ForgeAppInner(){
     setActiveWorkout({plan,exercises,currentEx:0,elapsed:0,startTs});
     setTreinoSub("active");
     setScreen("treino");
+    // Incrementa cacheVersion para forçar re-render do ExerciseHistory com dados frescos
+    setSavedCount(c=>c+1);
   }
 
   function endWorkout(){
@@ -5416,7 +5418,7 @@ function ForgeAppInner(){
     <div>
       <GlobalHeader/>
       {screen==="home"&&<HomeScreen onNavigate={navigate} onStartWorkout={startWorkout} onSessionDeleted={()=>setSavedCount(c=>c+1)} savedCount={savedCount}/>}
-      {screen==="treino"&&<TreinoScreen onNavigate={navigate} activeWorkout={activeWorkout} onStartWorkout={startWorkout} onEndWorkout={endWorkout} onUpdateWorkout={updateWorkout} onSubScreen={setTreinoSub} forceActive={forceActive} onMinimize={()=>navigate(prevScreenRef.current)} onWorkoutSaved={()=>setSavedCount(c=>c+1)}/>}
+      {screen==="treino"&&<TreinoScreen onNavigate={navigate} activeWorkout={activeWorkout} onStartWorkout={startWorkout} onEndWorkout={endWorkout} onUpdateWorkout={updateWorkout} onSubScreen={setTreinoSub} forceActive={forceActive} onMinimize={()=>navigate(prevScreenRef.current)} onWorkoutSaved={()=>setSavedCount(c=>c+1)} cacheVersion={savedCount}/>}
       {screen==="exercicio"&&<ExercicioScreen name={exName} onNavigate={navigate}/>}
       {screen==="exercicios_browser"&&<ExerciciosBrowserScreen onNavigate={navigate}/>}
       {screen==="historico"&&<HistoricoScreen onNavigate={navigate}/>}
