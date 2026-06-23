@@ -2394,6 +2394,8 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
     if(forceActive&&isActive) setScreen("active");
   },[forceActive]);
 
+  const[cacheReady,setCacheReady]=useState(false);
+
   // Ao montar com treino ativo: atualiza sets não feitos com histórico real do Supabase
   useEffect(()=>{
     if(!isActive||!plan) return;
@@ -2413,7 +2415,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
         }
       }catch(e){console.warn('sync failed',e);}
 
-      // Atualiza cada exercício com o último peso real, só se ainda não foi feito
+      // Atualiza sets não feitos com histórico real
       setExercises(prev=>prev.map(ex=>{
         const sessions=[..._sessionsCache].sort((a,b)=>b.date.localeCompare(a.date));
         let lastSets=null;
@@ -2429,6 +2431,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
         });
         return{...ex,activeSets:updated};
       }));
+      setCacheReady(true);// força re-render do ExerciseHistory
     })();
   },[]);// roda uma vez ao montar
     const exs=await refreshSessionsAndBuild(p);
@@ -2822,7 +2825,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
                 </div>
                 <button onClick={()=>setRestPickerEi(exIdx)} style={{display:"flex",alignItems:"center",gap:4,background:"none",border:"none",padding:0,paddingLeft:12,marginTop:1,cursor:"pointer"}}><span style={{fontSize:9,color:C.muted}}>Descanso: {exItem.rest==null?"Off":(exItem.rest>=60?Math.floor(exItem.rest/60)+"min"+(exItem.rest%60>0?" "+exItem.rest%60+"s":""):exItem.rest+"s")}</span><span style={{fontSize:8,color:C.muted,marginLeft:2}}>✎</span></button>
               </div>
-              <div style={{padding:"4px 10px 0"}}><ExerciseHistory key={exItem.name+cacheVersion} exName={exItem.name} currentSets={exWork} histData={getHistory(exItem.name)}/></div>
+              <div style={{padding:"4px 10px 0"}}><ExerciseHistory key={exItem.name+cacheReady} exName={exItem.name} currentSets={exWork} histData={cacheReady?getHistory(exItem.name):undefined}/></div>
               {exWarm.length>0&&<WarmupSection exWarm={exWarm} exIdx={exIdx} updateSet={updateSet} markDone={markDone}/>}
               <div style={{padding:"3px 10px 0"}}>
                 <div style={{display:"grid",gridTemplateColumns:"24px 1fr 1fr 1fr 30px 30px",gap:3,marginBottom:2,paddingBottom:2,borderBottom:"1px solid rgba(255,255,255,0.04)"}}>
