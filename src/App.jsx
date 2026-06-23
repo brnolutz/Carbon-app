@@ -95,7 +95,7 @@ function loadSavedSessions(){return _sessionsCache;}
 async function deleteSession(session, onDone){
   try{
     if(!session.id){console.error('deleteSession: session sem id',session);onDone&&onDone();return;}
-    const{error}=await supabase.from('sessions').delete().eq('id', session.id);
+    const{error}=await supabase.from('workout_sessions').delete().eq('id', session.id);
     if(error){console.error('deleteSession erro Supabase:',error);alert('Erro ao excluir: '+error.message);return;}
     // Remover do cache local
     _sessionsCache=_sessionsCache.filter(s=>s.id!==session.id);
