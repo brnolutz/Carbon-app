@@ -514,11 +514,16 @@ async function refreshSessionsAndBuild(plan){
     const{data:userData}=await supabase.auth.getUser();
     const uid=userData?.user?.id;
     if(uid){
-      const{data}=await supabase.from('workout_sessions').select('*');
-      if(data) _sessionsCache=data.map(rowToSession);
+      const{data,error}=await supabase.from('workout_sessions').select('*');
+      console.log('[CARBON] sessões no Supabase:',data?.length,'erro:',error?.message);
+      if(data){
+        _sessionsCache=data.map(rowToSession);
+        const recent=[..._sessionsCache].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5);
+        recent.forEach(s=>console.log('[CARBON] sessão:',s.date,s.name,'exercícios:',s.exercises?.map(e=>e.name+'='+e.setData?.[0]?.w+'kg').join(', ')));
+      }
       refreshDerivedData();
     }
-  }catch(e){console.warn('refresh sessions failed',e);}
+  }catch(e){console.warn('[CARBON] refresh sessions failed',e);}
   return buildSets(plan);
 }
 function GlassCard({children,style={},onClick}){
