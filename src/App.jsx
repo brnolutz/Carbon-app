@@ -1789,6 +1789,7 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
   if(editing){
     return(
       <div style={{position:"fixed",inset:0,zIndex:9999,background:"#080A0E",overflowY:"auto",paddingTop:52}}>
+        <style>{`body.editing-routine .carbon-global-header{display:none}`}</style>
         <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"14px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <button onClick={()=>isNew?onClose():setEditing(false)} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
           <div style={{fontSize:15,fontWeight:700,color:C.text}}>{isNew?"Nova Rotina":"Editar Rotina"}</div>
@@ -1848,6 +1849,11 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
   }
 
   // VIEW MODE
+  useEffect(()=>{
+    document.body.classList.add("hide-carbon-header");
+    return()=>document.body.classList.remove("hide-carbon-header");
+  },[]);
+
   return(
     <div style={{position:"fixed",inset:0,zIndex:9999,background:"#080A0E",display:"flex",flexDirection:"column"}}>
       {/* Header fixo */}
