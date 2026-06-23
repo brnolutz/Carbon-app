@@ -3308,60 +3308,67 @@ function MuscleDetailScreen({muscles,onBack,onNavigate}){
 // PROGRESS DETAIL SCREEN — gráfico detalhado de progresso
 // ══════════════════════════════════════════════════════════════
 function ProgressDetailScreen({onBack,onNavigate}){
-  const[refreshKey,setRefreshKey]=useState(0);
   const[mode,setMode]=useState("carga");
   const[range,setRange]=useState("3m");
   const[selGroupFilter,setSelGroupFilter]=useState("Todos");
 
   useEffect(()=>{
     document.body.classList.add("hide-carbon-header");
-    refreshDerivedData(); // garante HIST atualizado ao abrir
-    setRefreshKey(k=>k+1);
     return()=>document.body.classList.remove("hide-carbon-header");
   },[]);
 
-  const allEx=useMemo(()=>{refreshDerivedData();return getAllHistExercises();},[refreshKey]);
+  // Sempre lê do HIST global (já atualizado via savedCount no pai)
+  const allEx=useMemo(()=>getAllHistExercises(),[]);
   const groupsForFilter=useMemo(()=>{
     const set=new Set(allEx.map(ex=>EX_GROUP[ex]||"Outros"));
     const known=["Peito","Costas","Pernas","Ombros","Biceps","Triceps","Core"].filter(g=>set.has(g));
     const rest=[...set].filter(g=>!known.includes(g)&&g!=="Outros");
     return["Todos",...known,...rest,...(set.has("Outros")?["Outros"]:[])];
   },[allEx]);
-  const filteredEx=useMemo(()=>selGroupFilter==="Todos"?allEx:allEx.filter(ex=>(EX_GROUP[ex]||"Outros")===selGroupFilter),[allEx,selGroupFilter]);
-  const[selEx,setSelEx]=useState(()=>{refreshDerivedData();return getAllHistExercises()[0]||"";});
+  const filteredEx=useMemo(()=>
+    selGroupFilter==="Todos"?allEx:allEx.filter(ex=>(EX_GROUP[ex]||"Outros")===selGroupFilter)
+  ,[allEx,selGroupFilter]);
 
-  // Sync selEx when group filter changes
+  const[selEx,setSelEx]=useState(()=>getAllHistExercises()[0]||"");
   useEffect(()=>{
     if(filteredEx.length>0&&!filteredEx.includes(selEx))setSelEx(filteredEx[0]);
-  },[selGroupFilter,filteredEx]);
+  },[selGroupFilter]);// eslint-disable-line
 
-  const hist=useMemo(()=>HIST[selEx]||[],[selEx,refreshKey]);
+  const hist=HIST[selEx]||[];
   const gc=GC[EX_GROUP[selEx]]||C.blueXL;
 
-  const nPts={all:hist.length,"1a":12,"3m":6,"1m":4}[range]||6;
-  const filtered=[...hist].slice(0,nPts).reverse(); // chronological
+  // safe max helper — never returns -Infinity
+  const safeMax=(arr,fallback=0)=>arr.length>0?arr.reduce((a,b)=>b>a?b:a,arr[0]):fallback;
 
-  const chartData=useMemo(()=>filtered.map(s=>({
-    x:s.d,
-    y:mode==="carga"
-      ?Math.max(...s.sets.filter(ss=>ss.w>0).map(ss=>ss.w),0)
-      :Math.max(...s.sets.filter(ss=>ss.w>0&&ss.r>0).map(ss=>orm(ss.w,ss.r)),0)
-  })).filter(d=>d.y>0),[filtered,mode]);
+  const nPts={all:999,"1a":12,"3m":6,"1m":4}[range]||6;
+  const filtered=[...hist].slice(0,nPts).reverse();
 
-  const maxY=Math.max(...chartData.map(d=>d.y),0.01);
-  const minY=Math.min(...chartData.map(d=>d.y),0);
+  const chartData=useMemo(()=>{
+    return filtered.map(s=>{
+      const wSets=s.sets.filter(ss=>ss.w>0);
+      const w1Sets=s.sets.filter(ss=>ss.w>0&&ss.r>0);
+      const y=mode==="carga"
+        ?safeMax(wSets.map(ss=>ss.w))
+        :safeMax(w1Sets.map(ss=>orm(ss.w,ss.r)));
+      return{x:s.d,y};
+    }).filter(d=>d.y>0);
+  },[selEx,mode,range]);// eslint-disable-line
+
+  const maxY=safeMax(chartData.map(d=>d.y),1);
+  const minY=chartData.length>0?chartData.reduce((a,d)=>d.y<a?d.y:a,chartData[0].y):0;
   const W=400,H=160,PAD=12;
   const px=(i)=>chartData.length>1?i*(W-PAD*2)/(chartData.length-1)+PAD:W/2;
   const py=(v)=>H-PAD-((v-minY)/(maxY-minY||1))*(H-PAD*2);
 
-  const best=chartData.reduce((a,d)=>Math.max(a,d.y),0);
+  const best=safeMax(chartData.map(d=>d.y));
   const last=chartData[chartData.length-1]?.y||0;
   const prev=chartData[chartData.length-2]?.y||last;
   const delta=prev>0?Math.round((last-prev)/prev*100):0;
 
-  // Records per rep
   const repRecords={};
-  hist.forEach(s=>s.sets.forEach(set=>{if(set.w>0&&set.r>0){if(!repRecords[set.r]||set.w>repRecords[set.r])repRecords[set.r]=set.w;}}));
+  hist.forEach(s=>(s.sets||[]).forEach(set=>{
+    if(set.w>0&&set.r>0&&(!repRecords[set.r]||set.w>repRecords[set.r]))repRecords[set.r]=set.w;
+  }));
   const sortedRecs=Object.entries(repRecords).sort((a,b)=>+a[0]-+b[0]);
 
   return(
