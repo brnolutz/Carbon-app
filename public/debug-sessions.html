@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Carbon Debug</title>
+<style>
+body{background:#080A0E;color:#fff;font-family:monospace;padding:20px;font-size:12px;}
+pre{background:#111;padding:10px;border-radius:8px;overflow:auto;white-space:pre-wrap;}
+button{background:#3B82F6;color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:14px;margin-bottom:20px;}
+h2{color:#10B981;}
+.session{background:#0A0D14;border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:12px;margin-bottom:8px;}
+.ex{color:#60A5FA;margin-left:16px;}
+.sets{color:#10B981;margin-left:32px;}
+</style>
+</head>
+<body>
+<h2>Carbon — Debug Sessões Supabase</h2>
+<button onclick="load()">Carregar Sessões</button>
+<div id="out"></div>
+<script>
+const URL='https://fukbdxzpqrlyjuhbdwin.supabase.co';
+const KEY='sb_publishable_uMdPj6RTbeNHxaLkmSiakg_Ti9iNgJQ';
+
+async function getUser(){
+  // Tenta pegar o token do localStorage do Supabase
+  const keys=Object.keys(localStorage).filter(k=>k.includes('supabase'));
+  for(const k of keys){
+    try{
+      const v=JSON.parse(localStorage.getItem(k));
+      if(v?.access_token) return v.access_token;
+    }catch(e){}
+  }
+  return null;
+}
+
+async function load(){
+  const out=document.getElementById('out');
+  out.innerHTML='<p>Buscando...</p>';
+  
+  const token=await getUser();
+  if(!token){out.innerHTML='<p style="color:red">Não autenticado. Abra o Carbon normalmente primeiro, depois volte aqui.</p>';return;}
+  
+  const res=await fetch(URL+'/rest/v1/workout_sessions?select=id,date,name,exercises&order=date.desc&limit=10',{
+    headers:{
+      'apikey':KEY,
+      'Authorization':'Bearer '+token,
+      'Content-Type':'application/json'
+    }
+  });
+  
+  const data=await res.json();
+  
+  if(!Array.isArray(data)){
+    out.innerHTML='<pre>'+JSON.stringify(data,null,2)+'</pre>';
+    return;
+  }
+  
+  out.innerHTML='<p>Total: '+data.length+' sessões mais recentes</p>'+
+  data.map(s=>{
+    const exs=(s.exercises||[]).map(e=>{
+      const sets=(e.setData||[]).map(st=>st.w+'kg×'+st.r).join(', ');
+      return '<div class="ex">'+e.name+'</div><div class="sets">'+sets+'</div>';
+    }).join('');
+    return '<div class="session"><strong>'+s.date+' — '+s.name+'</strong>'+exs+'</div>';
+  }).join('');
+}
+</script>
+</body>
+</html>
