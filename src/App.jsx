@@ -3368,7 +3368,7 @@ function ProgressDetailScreen({onBack,onNavigate}){
   return(
     <div style={{position:"fixed",inset:0,zIndex:9999,background:"#080A0E",overflowY:"auto",display:"flex",flexDirection:"column"}}>
       {/* Header */}
-      <div style={{flexShrink:0,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"14px 16px",paddingTop:"calc(14px + env(safe-area-inset-top,0px))"}}>
+      <div style={{flexShrink:0,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"14px 16px",paddingTop:"calc(52px + env(safe-area-inset-top,0px))"}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onBack} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.text,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
           <div style={{fontSize:18,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Progressão por Exercício</div>
@@ -3426,29 +3426,41 @@ function ProgressDetailScreen({onBack,onNavigate}){
         {/* Line chart */}
         {chartData.length>0?(
           <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:14}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
               <div>
-                <div style={{fontSize:22,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{last}kg</div>
+                <div style={{fontSize:26,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{last}kg</div>
                 {delta!==0&&<div style={{fontSize:11,fontWeight:700,color:delta>0?C.mint:C.coral}}>{delta>0?"↑":"↓"}{Math.abs(delta)}% vs anterior</div>}
               </div>
-              <div style={{fontSize:10,color:C.blueXL}}>{fmtDate(chartData[chartData.length-1]?.x)}</div>
+              <div style={{textAlign:"right"}}>
+                <div style={{fontSize:10,color:C.muted}}>Recorde</div>
+                <div style={{fontSize:16,fontWeight:800,color:C.amber}}>{best}kg</div>
+              </div>
             </div>
-            <div style={{position:"relative"}}>
-              <div style={{position:"absolute",left:0,top:0,bottom:20,width:36,display:"flex",flexDirection:"column",justifyContent:"space-between",pointerEvents:"none"}}>
+            <div style={{position:"relative",marginBottom:8}}>
+              <div style={{position:"absolute",left:0,top:0,bottom:20,width:32,display:"flex",flexDirection:"column",justifyContent:"space-between",pointerEvents:"none"}}>
                 {[maxY,Math.round((maxY+minY)/2),minY].map((v,i)=><span key={i} style={{fontSize:8,color:C.muted}}>{v}kg</span>)}
               </div>
-              <div style={{marginLeft:40}}>
+              <div style={{marginLeft:36}}>
                 <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{overflow:"visible"}}>
-                  <defs><linearGradient id="pdg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={gc} stopOpacity="0.3"/><stop offset="100%" stopColor={gc} stopOpacity="0"/></linearGradient></defs>
-                  {[0,0.5,1].map((f,i)=><line key={i} x1={PAD} y1={PAD+(H-PAD*2)*f} x2={W-PAD} y2={PAD+(H-PAD*2)*f} stroke={C.border} strokeWidth="1" strokeDasharray="4,4"/>)}
+                  <defs>
+                    <linearGradient id="pdg" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor={gc} stopOpacity="0.25"/>
+                      <stop offset="100%" stopColor={gc} stopOpacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  {/* Grid lines */}
+                  {[0,0.5,1].map((f,i)=><line key={i} x1={PAD} y1={PAD+(H-PAD*2)*f} x2={W-PAD} y2={PAD+(H-PAD*2)*f} stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>)}
+                  {/* Area fill */}
                   {chartData.length>1&&<polygon points={[...chartData.map((d,i)=>`${px(i)},${py(d.y)}`),`${px(chartData.length-1)},${H-PAD}`,`${px(0)},${H-PAD}`].join(" ")} fill="url(#pdg)"/>}
+                  {/* Line */}
                   <polyline points={chartData.map((d,i)=>`${px(i)},${py(d.y)}`).join(" ")} fill="none" stroke={gc} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  {/* All dots small */}
                   {chartData.map((d,i)=>(
-                    <g key={i}>
-                      <circle cx={px(i)} cy={py(d.y)} r="4" fill={gc} stroke={C.bg} strokeWidth="2"/>
-                      <text x={px(i)} y={py(d.y)-8} textAnchor="middle" fontSize="9" fill={C.sub}>{d.y}kg</text>
-                    </g>
+                    <circle key={i} cx={px(i)} cy={py(d.y)} r="3" fill={gc} stroke={C.bg} strokeWidth="1.5"/>
                   ))}
+                  {/* First & last value labels only */}
+                  {chartData.length>0&&<text x={px(0)} y={py(chartData[0].y)-8} textAnchor="middle" fontSize="9" fill={C.muted}>{chartData[0].y}kg</text>}
+                  {chartData.length>1&&<text x={px(chartData.length-1)} y={py(chartData[chartData.length-1].y)-8} textAnchor="middle" fontSize="9" fill={gc} fontWeight="700">{chartData[chartData.length-1].y}kg</text>}
                 </svg>
                 <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
                   <span style={{fontSize:9,color:C.muted}}>{fmtDate(chartData[0]?.x)}</span>
