@@ -510,13 +510,39 @@ function buildSets(plan){
 }
 // Recarrega sessões do Supabase e retorna os sets atualizados
 async function refreshSessionsAndBuild(plan){
-  // Recarrega a rotina do Supabase para garantir sets atualizados
   try{
-    await fetchRoutines();
-    const updated=_routinesCache.find(r=>r.id===plan.id);
-    if(updated) return buildSets(updated);
-  }catch(e){console.warn('refresh routines failed',e);}
-  return buildSets(plan);
+    // 1) Recarrega sessões e rotinas do Supabase
+    const{data:userData}=await supabase.auth.getUser();
+    const uid=userData?.user?.id;
+    if(uid){
+      const[sessRes]=await Promise.all([
+        supabase.from('workout_sessions').select('*'),
+        fetchRoutines(),
+      ]);
+      if(sessRes.data) _sessionsCache=sessRes.data.map(rowToSession);
+      refreshDerivedData();
+    }
+  }catch(e){console.warn('refresh failed',e);}
+
+  // 2) Tenta usar rotina atualizada do cache
+  const updatedPlan=_routinesCache.find(r=>r.id===plan.id)||plan;
+
+  // 3) Sobrescreve os sets com o último treino real de cada exercício
+  const sessions=[..._sessionsCache].sort((a,b)=>b.date.localeCompare(a.date));
+  const planWithRealSets={
+    ...updatedPlan,
+    exercises:(updatedPlan.exercises||[]).map(ex=>{
+      for(const s of sessions){
+        const found=s.exercises?.find(e=>e.name===ex.name);
+        if(found?.setData?.length>0){
+          return{...ex,sets:found.setData.map(sd=>({w:sd.w||0,r:sd.r||0}))};
+        }
+      }
+      return ex; // sem histórico: mantém os sets da rotina
+    }),
+  };
+
+  return buildSets(planWithRealSets);
 }
 function GlassCard({children,style={},onClick}){
   return(
