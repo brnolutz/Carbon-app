@@ -120,12 +120,19 @@ async function saveSession(session){
 }
 function buildWeekly(sessions){
   const weekly={};
+  const toLocalKey=(d)=>{
+    // Use local date to avoid timezone offset shifting the date
+    const y=d.getFullYear();
+    const m=String(d.getMonth()+1).padStart(2,'0');
+    const day=String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  };
   sessions.forEach(s=>{
     if(!s.date)return;
     const d=new Date(s.date+'T12:00:00');
-    const day=d.getDay();
-    const wkStart=new Date(d);wkStart.setDate(d.getDate()-day);
-    const wk=wkStart.toISOString().slice(0,10);
+    const dayOfWeek=d.getDay();
+    const wkStart=new Date(d);wkStart.setDate(d.getDate()-dayOfWeek);
+    const wk=toLocalKey(wkStart);
     if(!weekly[wk])weekly[wk]={vol:0,dur:0,reps:0,sets:0,sessions:0};
     weekly[wk].vol+=s.totalVol||0;
     weekly[wk].dur+=s.duration||0;
@@ -137,7 +144,7 @@ function buildWeekly(sessions){
   const now=new Date();
   const curDay=now.getDay();
   const curWkStart=new Date(now);curWkStart.setDate(now.getDate()-curDay);
-  const curWk=curWkStart.toISOString().slice(0,10);
+  const curWk=toLocalKey(curWkStart);
   if(!weekly[curWk])weekly[curWk]={vol:0,dur:0,reps:0,sets:0,sessions:0};
   Object.keys(weekly).forEach(k=>{
     weekly[k].vol=Math.round((weekly[k].vol||0)*100)/100;
@@ -1446,9 +1453,18 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
     const mY=Math.max(...cd.map(d=>d.y))||1;
     const now=new Date();
     const dayMs=24*60*60*1000;
-    const periodDays={"1s":7,"1m":30,"3m":90,"all":3650}[chartRange]||90;
-    const cutoff=new Date(now-periodDays*dayMs);
-    const prevCutoff=new Date(now-periodDays*2*dayMs);
+    // Para "1s": usa início da semana atual (domingo), não rolling 7 dias
+    let cutoff, prevCutoff;
+    if(chartRange==="1s"){
+      const sunday=new Date(now);sunday.setDate(now.getDate()-now.getDay());sunday.setHours(0,0,0,0);
+      cutoff=sunday;
+      const prevSunday=new Date(sunday);prevSunday.setDate(sunday.getDate()-7);
+      prevCutoff=prevSunday;
+    } else {
+      const periodDays={"1m":30,"3m":90,"all":3650}[chartRange]||90;
+      cutoff=new Date(now-periodDays*dayMs);
+      prevCutoff=new Date(now-periodDays*2*dayMs);
+    }
     const allSessions=getAllSessions();
     const periodSess=allSessions.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=cutoff);
     const prevPeriodSess=allSessions.filter(s=>s.date&&new Date(s.date+"T12:00:00")>=prevCutoff&&new Date(s.date+"T12:00:00")<cutoff);
