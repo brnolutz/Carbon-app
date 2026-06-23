@@ -3372,18 +3372,16 @@ function ProgressDetailScreen({onBack,onNavigate}){
   const sortedRecs=Object.entries(repRecords).sort((a,b)=>+a[0]-+b[0]);
 
   return(
-    <div data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:52,paddingBottom:120,overflowY:"auto"}}>
-      {/* Header */}
-      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
-        <div style={{padding:"10px 16px"}}>
-          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
-            <button onClick={onBack} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
-            <div style={{fontSize:20,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Progressão por Exercício</div>
-          </div>
+    <div style={{position:"fixed",inset:0,zIndex:800,background:"#080A0E",overflowY:"auto"}}>
+      {/* Header fixo */}
+      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"14px 16px"}}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <button onClick={onBack} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.text,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
+          <div style={{fontSize:18,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Progressão por Exercício</div>
         </div>
       </div>
 
-      <div style={{padding:"16px 16px 0"}}>
+      <div style={{padding:"16px 16px 100px"}}>
         {/* Group filter */}
         <div style={{overflowX:"auto",display:"flex",gap:5,marginBottom:8,paddingBottom:2}}>
           {groupsForFilter.map(g=>(
