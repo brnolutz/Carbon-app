@@ -4009,24 +4009,12 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
               ))}
             </div>
           </div>
-          <div style={{position:"relative",height:130,marginBottom:6}}>
-            {(()=>{
-              const n=rangeData.length;
-              if(n===0) return null;
-              const W=100,H=100;
-              const barW=W/n;
-              const scaleY=(v)=>(v/(rangeMaxY||1))*(H-4);
-              return(
-                <svg width="100%" height="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{position:"absolute",inset:0}}>
-                  {rangeData.map((d,i)=>{
-                    const bh=Math.max(scaleY(d.y),d.y>0?1:0);
-                    const isLast=i===n-1;
-                    return <rect key={i} x={i*barW+barW*0.08} y={H-bh} width={barW*0.84} height={bh}
-                      fill={isLast?"#3B82F6":"rgba(59,130,246,0.35)"} rx="2"/>;
-                  })}
-                </svg>
-              );
-            })()}
+          <div style={{display:"flex",gap:3,height:110,alignItems:"flex-end",marginBottom:6}}>
+            {rangeData.map((d,i)=>{
+              const pct=d.y/rangeMaxY;
+              const isLast=i===rangeData.length-1;
+              return(<div key={i} style={{flex:1,display:"flex",alignItems:"flex-end",height:"100%"}}><div style={{width:"100%",height:Math.max(pct*106,d.y>0?3:0),background:isLast?mc.color:mc.color+"44",borderRadius:"3px 3px 0 0",boxShadow:isLast?"0 0 10px "+mc.color+"66":"none"}}/></div>);
+            })}
           </div>
           <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
             {[rangeData[0],rangeData[Math.floor(rangeData.length/2)],rangeData[rangeData.length-1]].map((d,i)=>(
