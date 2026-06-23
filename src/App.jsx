@@ -475,12 +475,11 @@ const USER = {
 // W_DATA is now derived dynamically from Supabase measurement data — see refreshDerivedData() near the top.
 
 function buildSets(plan){
+  return buildSetsFromHistory(plan);}
+function _buildSets_unused(plan){
   const seen=new Set();
-  const dl=loadDeload();
-
   const exercises=plan.exercises.map(ex=>{
     const isFirst=!seen.has(ex.group)&&ex.warmup; seen.add(ex.group);
-    // ex.sets já contém os valores reais do último treino (atualizados ao salvar)
     const baseW=ex.sets[0]?.w||0;
     const warm=isFirst?[
       {w:Math.round(baseW*0.5/2.5)*2.5,r:12,done:false,type:"warmup",rpe:null},
@@ -509,40 +508,54 @@ function buildSets(plan){
   return exercises;
 }
 // Recarrega sessões do Supabase e retorna os sets atualizados
-async function refreshSessionsAndBuild(plan){
-  try{
-    // 1) Recarrega sessões e rotinas do Supabase
-    const{data:userData}=await supabase.auth.getUser();
-    const uid=userData?.user?.id;
-    if(uid){
-      const[sessRes]=await Promise.all([
-        supabase.from('workout_sessions').select('*'),
-        fetchRoutines(),
-      ]);
-      if(sessRes.data) _sessionsCache=sessRes.data.map(rowToSession);
-      refreshDerivedData();
-    }
-  }catch(e){console.warn('refresh failed',e);}
-
-  // 2) Tenta usar rotina atualizada do cache
-  const updatedPlan=_routinesCache.find(r=>r.id===plan.id)||plan;
-
-  // 3) Sobrescreve os sets com o último treino real de cada exercício
+function buildSetsFromHistory(plan){
+  // Usa _sessionsCache local — sempre atualizado, nunca substituído por query
   const sessions=[..._sessionsCache].sort((a,b)=>b.date.localeCompare(a.date));
-  const planWithRealSets={
-    ...updatedPlan,
-    exercises:(updatedPlan.exercises||[]).map(ex=>{
-      for(const s of sessions){
-        const found=s.exercises?.find(e=>e.name===ex.name);
-        if(found?.setData?.length>0){
-          return{...ex,sets:found.setData.map(sd=>({w:sd.w||0,r:sd.r||0}))};
-        }
-      }
-      return ex; // sem histórico: mantém os sets da rotina
-    }),
-  };
+  const seen=new Set();
+  const dl=loadDeload();
 
-  return buildSets(planWithRealSets);
+  const exercises=(plan.exercises||[]).map(ex=>{
+    // Busca último treino desse exercício no cache local
+    let lastSets=null;
+    for(const s of sessions){
+      const found=s.exercises?.find(e=>e.name===ex.name);
+      if(found?.setData?.length>0){lastSets=found.setData;break;}
+    }
+
+    const isFirst=!seen.has(ex.group)&&ex.warmup; seen.add(ex.group);
+    const baseW=lastSets?lastSets[0].w:(ex.sets[0]?.w||0);
+    const warm=isFirst?[
+      {w:Math.round(baseW*0.5/2.5)*2.5,r:12,done:false,type:"warmup",rpe:null},
+      {w:Math.round(baseW*0.75/2.5)*2.5,r:8,done:false,type:"warmup",rpe:null},
+      {w:Math.round(baseW*0.9/2.5)*2.5,r:6,done:false,type:"warmup",rpe:null},
+    ]:[];
+
+    // Séries: usa histórico se existir, senão usa rotina
+    const srcSets=lastSets||ex.sets||[];
+    const workSets=srcSets.map(s=>({w:s.w||0,r:s.r||0,done:false,type:"work",rpe:null}));
+    return{...ex,activeSets:[...warm,...workSets]};
+  });
+
+  if(dl?.active){
+    const factor=dl.intensity/100;
+    return exercises.map(ex=>{
+      if(dl.method==="volume"){
+        const ws=ex.activeSets.filter(s=>s.type==="work");
+        const wm=ex.activeSets.filter(s=>s.type!=="work");
+        return{...ex,activeSets:[...wm,...ws.slice(0,Math.max(1,Math.round(ws.length*factor)))],_deload:true};
+      }
+      if(dl.method==="intensity"||dl.method==="technique"){
+        return{...ex,activeSets:ex.activeSets.map(s=>s.type==="work"?{...s,w:s.w?Math.round(s.w*factor*2)/2:s.w}:s),_deload:true};
+      }
+      return ex;
+    });
+  }
+  return exercises;
+}
+
+async function refreshSessionsAndBuild(plan){
+  // Usa _sessionsCache local que já está atualizado pelo loadAllUserData + saveSession
+  return buildSetsFromHistory(plan);
 }
 function GlassCard({children,style={},onClick}){
   return(
