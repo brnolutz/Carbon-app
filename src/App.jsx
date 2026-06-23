@@ -3308,28 +3308,45 @@ function MuscleDetailScreen({muscles,onBack,onNavigate}){
 // PROGRESS DETAIL SCREEN — gráfico detalhado de progresso
 // ══════════════════════════════════════════════════════════════
 function ProgressDetailScreen({onBack,onNavigate}){
-  const[selEx,setSelEx]=useState(()=>getAllHistExercises()[0]||"");
+  const[refreshKey,setRefreshKey]=useState(0);
   const[mode,setMode]=useState("carga");
   const[range,setRange]=useState("3m");
+  const[selGroupFilter,setSelGroupFilter]=useState("Todos");
 
   useEffect(()=>{
     document.body.classList.add("hide-carbon-header");
+    refreshDerivedData(); // garante HIST atualizado ao abrir
+    setRefreshKey(k=>k+1);
     return()=>document.body.classList.remove("hide-carbon-header");
   },[]);
 
-  const allEx=getAllHistExercises();
-  const hist=HIST[selEx]||[];
+  const allEx=useMemo(()=>{refreshDerivedData();return getAllHistExercises();},[refreshKey]);
+  const groupsForFilter=useMemo(()=>{
+    const set=new Set(allEx.map(ex=>EX_GROUP[ex]||"Outros"));
+    const known=["Peito","Costas","Pernas","Ombros","Biceps","Triceps","Core"].filter(g=>set.has(g));
+    const rest=[...set].filter(g=>!known.includes(g)&&g!=="Outros");
+    return["Todos",...known,...rest,...(set.has("Outros")?["Outros"]:[])];
+  },[allEx]);
+  const filteredEx=useMemo(()=>selGroupFilter==="Todos"?allEx:allEx.filter(ex=>(EX_GROUP[ex]||"Outros")===selGroupFilter),[allEx,selGroupFilter]);
+  const[selEx,setSelEx]=useState(()=>{refreshDerivedData();return getAllHistExercises()[0]||"";});
+
+  // Sync selEx when group filter changes
+  useEffect(()=>{
+    if(filteredEx.length>0&&!filteredEx.includes(selEx))setSelEx(filteredEx[0]);
+  },[selGroupFilter,filteredEx]);
+
+  const hist=useMemo(()=>HIST[selEx]||[],[selEx,refreshKey]);
   const gc=GC[EX_GROUP[selEx]]||C.blueXL;
 
   const nPts={all:hist.length,"1a":12,"3m":6,"1m":4}[range]||6;
   const filtered=[...hist].slice(0,nPts).reverse(); // chronological
 
-  const chartData=filtered.map(s=>({
+  const chartData=useMemo(()=>filtered.map(s=>({
     x:s.d,
     y:mode==="carga"
       ?Math.max(...s.sets.filter(ss=>ss.w>0).map(ss=>ss.w),0)
       :Math.max(...s.sets.filter(ss=>ss.w>0&&ss.r>0).map(ss=>orm(ss.w,ss.r)),0)
-  })).filter(d=>d.y>0);
+  })).filter(d=>d.y>0),[filtered,mode]);
 
   const maxY=Math.max(...chartData.map(d=>d.y),0.01);
   const minY=Math.min(...chartData.map(d=>d.y),0);
@@ -3360,9 +3377,15 @@ function ProgressDetailScreen({onBack,onNavigate}){
       </div>
 
       <div style={{padding:"16px 16px 0"}}>
+        {/* Group filter */}
+        <div style={{overflowX:"auto",display:"flex",gap:5,marginBottom:8,paddingBottom:2}}>
+          {groupsForFilter.map(g=>(
+            <button key={g} onClick={()=>setSelGroupFilter(g)} style={{padding:"4px 9px",borderRadius:99,flexShrink:0,cursor:"pointer",background:selGroupFilter===g?"rgba(255,255,255,0.12)":"transparent",border:"1px solid "+(selGroupFilter===g?"rgba(255,255,255,0.2)":"rgba(255,255,255,0.06)"),color:selGroupFilter===g?C.text:C.muted,fontSize:9,fontWeight:selGroupFilter===g?700:500,whiteSpace:"nowrap"}}>{g}</button>
+          ))}
+        </div>
         {/* Exercise selector */}
         <div style={{overflowX:"auto",display:"flex",gap:6,marginBottom:14,paddingBottom:4}}>
-          {allEx.map(ex=>(
+          {filteredEx.map(ex=>(
             <button key={ex} onClick={()=>setSelEx(ex)} style={{padding:"6px 12px",borderRadius:99,flexShrink:0,cursor:"pointer",background:selEx===ex?(GC[EX_GROUP[ex]]||C.blueXL)+"33":"rgba(255,255,255,0.05)",border:"1px solid "+(selEx===ex?(GC[EX_GROUP[ex]]||C.blueXL)+"66":"rgba(255,255,255,0.07)"),color:selEx===ex?(GC[EX_GROUP[ex]]||C.blueXL):C.muted,fontSize:11,fontWeight:selEx===ex?700:500,whiteSpace:"nowrap"}}>{shortExName(ex)}</button>
           ))}
         </div>
