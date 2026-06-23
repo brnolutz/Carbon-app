@@ -3925,10 +3925,6 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
     );
   },[showCalendar,calMonth,workoutDates,todayStr]);
 
-  if(showProgressDetail) return <ProgressDetailScreen onBack={()=>setShowProgressDetail(false)} onNavigate={onNavigate}/>;
-  if(showStrengthDetail) return <StrengthDetailScreen onBack={()=>setShowStrengthDetail(false)}/>;
-  if(showVolumeDetail) return <VolumeDetailScreen onBack={()=>setShowVolumeDetail(false)}/>;
-
   const {rangeData,rangeMaxY,rangeTotal,rangeDelta}=useMemo(()=>{
     refreshDerivedData();
     const weeks=Object.keys(WEEKLY).sort();
@@ -3936,14 +3932,17 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
     const rangeKey=chartMode==="vol"?"vol":chartMode==="dur"?"dur":chartMode==="reps"?"reps":"sets";
     const rd=weeks.slice(-nWeeks).map(wk=>{const wd=WEEKLY[wk]||{};const dt=new Date(wk+"T12:00:00");return{label:dt.toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}),y:wd[rangeKey]||0};});
     const mY=Math.max(...rd.map(d=>d.y),0.01);
-    // soma do período atual
     const total=Math.round(rd.reduce((a,d)=>a+d.y,0)*10)/10;
-    // período anterior (mesmo nWeeks antes da janela atual)
     const prevWeeks=weeks.slice(-nWeeks*2,-nWeeks);
     const prevTotal=Math.round(prevWeeks.reduce((a,wk)=>a+(WEEKLY[wk]?.[rangeKey]||0),0)*10)/10;
     const dlt=prevTotal>0?Math.round((total-prevTotal)/prevTotal*100):0;
     return{rangeData:rd,rangeMaxY:mY,rangeTotal:total,rangeDelta:dlt};
   },[savedCount,chartRange,chartMode]);
+
+  if(showProgressDetail) return <ProgressDetailScreen onBack={()=>setShowProgressDetail(false)} onNavigate={onNavigate}/>;
+  if(showStrengthDetail) return <StrengthDetailScreen onBack={()=>setShowStrengthDetail(false)}/>;
+  if(showVolumeDetail) return <VolumeDetailScreen onBack={()=>setShowVolumeDetail(false)}/>;
+
 
   return(
     <div ref={scrollRef} data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingTop:52,paddingBottom:120,overflowY:"auto"}}>
