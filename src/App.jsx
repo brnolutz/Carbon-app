@@ -2394,7 +2394,45 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
     if(forceActive&&isActive) setScreen("active");
   },[forceActive]);
 
-  async function startPlan(p){
+  // Ao montar com treino ativo: atualiza sets não feitos com histórico real do Supabase
+  useEffect(()=>{
+    if(!isActive||!plan) return;
+    (async()=>{
+      try{
+        const{data:userData}=await supabase.auth.getUser();
+        const uid=userData?.user?.id;
+        if(uid){
+          const{data}=await supabase.from('workout_sessions').select('*').order('date',{ascending:false}).limit(200);
+          if(data){
+            const fromServer=data.map(rowToSession);
+            const serverIds=new Set(fromServer.map(s=>s.id));
+            const localOnly=_sessionsCache.filter(s=>!serverIds.has(s.id));
+            _sessionsCache=[...localOnly,...fromServer];
+            refreshDerivedData();
+          }
+        }
+      }catch(e){console.warn('sync failed',e);}
+
+      // Atualiza cada exercício com o último peso real, só se ainda não foi feito
+      setExercises(prev=>prev.map(ex=>{
+        const sessions=[..._sessionsCache].sort((a,b)=>b.date.localeCompare(a.date));
+        let lastSets=null;
+        for(const s of sessions){
+          const found=s.exercises?.find(e=>e.name===ex.name);
+          if(found?.setData?.length>0){lastSets=found.setData;break;}
+        }
+        if(!lastSets) return ex;
+        // Só atualiza séries que ainda não foram marcadas como done
+        const updated=ex.activeSets.map((set,i)=>{
+          if(set.done) return set; // não toca em séries já feitas
+          if(set.type!=='work') return set; // não toca em aquecimento
+          const hist=lastSets[i]||lastSets[lastSets.length-1];
+          return{...set,w:hist.w||set.w,r:hist.r||set.r};
+        });
+        return{...ex,activeSets:updated};
+      }));
+    })();
+  },[isActive]);
     const exs=await refreshSessionsAndBuild(p);
     onStartWorkout(p,exs);
     setFinishing(false);
