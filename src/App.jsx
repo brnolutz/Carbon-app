@@ -2166,9 +2166,18 @@ function RPEModal({onSelect,onSkip}){
 }
 
 function RestTimer({seconds,onDone,onSkip}){
-  const endTs=useRef(Date.now()+seconds*1000);
+  const endTsKey="carbon_rest_end_ts";
 
-  const calcLeft=()=>Math.max(0,Math.round((endTs.current-Date.now())/1000));
+  // Sempre grava novo endTs ao montar — sobrescreve qualquer valor antigo
+  useEffect(()=>{
+    localStorage.setItem(endTsKey, Date.now()+seconds*1000);
+    return()=>{}; // não remove ao desmontar — queremos persistir ao trocar de tela
+  },[]);// eslint-disable-line
+
+  const calcLeft=()=>{
+    const end=parseInt(localStorage.getItem(endTsKey)||"0");
+    return Math.max(0,Math.round((end-Date.now())/1000));
+  };
 
   const[left,setLeft]=useState(calcLeft);
   const pct=Math.max(0,left/seconds*100);
@@ -2181,10 +2190,13 @@ function RestTimer({seconds,onDone,onSkip}){
   },[left]);// eslint-disable-line
 
   function adjustTime(delta){
-    endTs.current=endTs.current+delta*1000;
-    setLeft(calcLeft());
+    const end=parseInt(localStorage.getItem(endTsKey)||"0");
+    const newEnd=end+delta*1000;
+    localStorage.setItem(endTsKey,newEnd);
+    setLeft(Math.max(0,Math.round((newEnd-Date.now())/1000)));
   }
 
+  // Ao voltar para o app, recalcula o tempo real
   useEffect(()=>{
     const handler=()=>setLeft(calcLeft());
     document.addEventListener("visibilitychange",handler);
@@ -2338,7 +2350,12 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
 
   function setScreen(s){_setScreen(s);onSubScreen&&onSubScreen(s);}
   const[screen,_setScreen]=useState(isActive?"active":"plans");
-  const[restTimer,setRestTimer]=useState(null);
+  const[restTimer,setRestTimer]=useState(()=>{
+    // Restaura timer se ainda estiver ativo ao voltar para a tela
+    const end=parseInt(localStorage.getItem("carbon_rest_end_ts")||"0");
+    const left=Math.round((end-Date.now())/1000);
+    return left>0?{seconds:left,key:end}:null;
+  });
   const[rpeModal,setRpeModal]=useState(null);
   const[finishing,setFinishing]=useState(false);
   const[finishedSession,setFinishedSession]=useState(null);
