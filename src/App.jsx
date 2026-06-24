@@ -4268,7 +4268,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
               ))}
             </div>
           </div>
-          <div style={{display:"flex",gap:3,height:110,alignItems:"flex-end",marginBottom:6}}>
+          <div style={{display:"flex",gap:2,height:110,alignItems:"flex-end",marginBottom:6}}>
             {rangeData.map((d,i)=>{
               const pct=d.y/rangeMaxY;
               const isLast=i===rangeData.length-1;
