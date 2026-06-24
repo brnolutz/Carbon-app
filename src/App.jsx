@@ -2167,12 +2167,9 @@ function RPEModal({onSelect,onSkip}){
 
 function RestTimer({seconds,onDone,onSkip}){
   const endTsKey="carbon_rest_end_ts";
-  // Ao montar, salva o timestamp de fim no localStorage
+
   useEffect(()=>{
-    const existing=localStorage.getItem(endTsKey);
-    if(!existing){
-      localStorage.setItem(endTsKey,Date.now()+seconds*1000);
-    }
+    localStorage.setItem(endTsKey,Date.now()+seconds*1000);
     return()=>localStorage.removeItem(endTsKey);
   },[]);// eslint-disable-line
 
@@ -2181,17 +2178,19 @@ function RestTimer({seconds,onDone,onSkip}){
     return Math.max(0,Math.round((end-Date.now())/1000));
   };
 
-  const[left,setLeft]=useState(calcLeft);
+  const[left,setLeft]=useState(()=>seconds);
   const pct=Math.max(0,left/seconds*100);
   const color=left>60?C.mint:left>30?C.amber:C.coral;
 
   useEffect(()=>{
-    if(left<=0){onDone();return;}
-    const t=setTimeout(()=>setLeft(calcLeft()),500);
-    return()=>clearTimeout(t);
-  },[left]);// eslint-disable-line
+    const iv=setInterval(()=>{
+      const l=calcLeft();
+      setLeft(l);
+      if(l<=0){clearInterval(iv);onDone();}
+    },500);
+    return()=>clearInterval(iv);
+  },[]);// eslint-disable-line
 
-  // Quando usuário ajusta tempo, atualiza o endTs
   function adjustTime(delta){
     const end=parseInt(localStorage.getItem(endTsKey)||"0");
     const newEnd=end+delta*1000;
@@ -2199,7 +2198,6 @@ function RestTimer({seconds,onDone,onSkip}){
     setLeft(Math.max(0,Math.round((newEnd-Date.now())/1000)));
   }
 
-  // Ao voltar para o app (visibilitychange), recalcula
   useEffect(()=>{
     const handler=()=>setLeft(calcLeft());
     document.addEventListener("visibilitychange",handler);
