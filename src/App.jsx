@@ -3515,7 +3515,6 @@ function ProgressDetailScreen({onBack,onNavigate}){
   const[selGroupFilter,setSelGroupFilter]=useState("Todos");
   const[selEx,setSelEx]=useState("");
 
-  // Carrega exercícios e define seleção inicial
   useEffect(()=>{
     refreshDerivedData();
     const exs=Object.keys(HIST).sort((a,b)=>(HIST[b]?.length||0)-(HIST[a]?.length||0));
@@ -3530,36 +3529,46 @@ function ProgressDetailScreen({onBack,onNavigate}){
     return["Todos",...known,...rest,...(set.has("Outros")?["Outros"]:[])];
   })();
   const filteredEx=selGroupFilter==="Todos"?allEx:allEx.filter(ex=>(EX_GROUP[ex]||"Outros")===selGroupFilter);
-
   const hist=(selEx&&HIST[selEx])||[];
   const gc=GC[EX_GROUP[selEx]]||C.blueXL;
 
-  const nPts={all:999,"1a":12,"3m":6,"1m":4}[range]||6;
-  const filtered=[...hist].slice(0,nPts).reverse();
+  // Dados para o gráfico de barras — cada sessão é uma barra
+  const nPts={all:999,"1a":24,"3m":12,"1m":6}[range]||12;
+  const sessions=[...hist].slice(0,nPts).reverse();
 
-  const chartData=(()=>{
-    try{
-      return filtered.map(s=>{
-        const sets=s.sets||[];
-        const wSets=sets.filter(ss=>ss&&ss.w>0);
-        const y=mode==="carga"
-          ?(wSets.length>0?wSets.reduce((a,ss)=>ss.w>a?ss.w:a,0):0)
-          :(wSets.filter(ss=>ss.r>0).length>0?wSets.filter(ss=>ss.r>0).reduce((a,ss)=>{ const v=orm(ss.w,ss.r); return v>a?v:a; },0):0);
-        return{x:s.d,y:y||0};
-      }).filter(d=>d.y>0);
-    }catch(e){return[];}
-  })();
+  const barData=sessions.map(s=>{
+    const sets=s.sets||[];
+    const wSets=sets.filter(ss=>ss&&ss.w>0);
+    const y=mode==="carga"
+      ?(wSets.length>0?wSets.reduce((a,ss)=>ss.w>a?ss.w:a,0):0)
+      :(wSets.filter(ss=>ss.r>0).length>0?wSets.filter(ss=>ss.r>0).reduce((a,ss)=>{const v=orm(ss.w,ss.r);return v>a?v:a;},0):0);
+    return{x:s.d,y:y||0};
+  }).filter(d=>d.y>0);
 
-  const maxY=chartData.length>0?chartData.reduce((a,d)=>d.y>a?d.y:a,0):1;
-  const minY=chartData.length>0?chartData.reduce((a,d)=>d.y<a?d.y:a,maxY):0;
-  const W=400,H=160,PAD=12;
-  const px=(i)=>chartData.length>1?i*(W-PAD*2)/(chartData.length-1)+PAD:W/2;
-  const py=(v)=>H-PAD-((v-minY)/((maxY-minY)||1))*(H-PAD*2);
-
-  const best=chartData.reduce((a,d)=>d.y>a?d.y:a,0);
-  const last=chartData[chartData.length-1]?.y||0;
-  const prev=chartData[chartData.length-2]?.y||last;
+  const maxY=barData.length>0?barData.reduce((a,d)=>d.y>a?d.y:a,0):1;
+  const last=barData[barData.length-1]?.y||0;
+  const prev=barData[barData.length-2]?.y||0;
   const delta=prev>0?Math.round((last-prev)/prev*100):0;
+  const best=barData.reduce((a,d)=>d.y>a?d.y:a,0);
+
+  // Comparativo de período
+  const allSessForEx=[...hist];
+  const now=new Date();
+  const dayMs=86400000;
+  const periodDays={all:9999,"1a":365,"3m":91,"1m":30}[range]||91;
+  const cutoff=new Date(now-periodDays*dayMs).toISOString().slice(0,10);
+  const prevCutoff=new Date(now-periodDays*2*dayMs).toISOString().slice(0,10);
+  const periodSess=allSessForEx.filter(s=>s.d>=cutoff);
+  const prevSess=allSessForEx.filter(s=>s.d>=prevCutoff&&s.d<cutoff);
+  const getBest=(arr)=>arr.reduce((a,s)=>{
+    const v=mode==="carga"
+      ?(s.sets||[]).filter(ss=>ss.w>0).reduce((b,ss)=>ss.w>b?ss.w:b,0)
+      :(s.sets||[]).filter(ss=>ss.w>0&&ss.r>0).reduce((b,ss)=>{const v=orm(ss.w,ss.r);return v>b?v:b;},0);
+    return v>a?v:a;
+  },0);
+  const periodBest=getBest(periodSess);
+  const prevBest=getBest(prevSess);
+  const periodDelta=prevBest>0?Math.round((periodBest-prevBest)/prevBest*100):0;
 
   const repRecords={};
   hist.forEach(s=>(s.sets||[]).forEach(set=>{
@@ -3595,13 +3604,55 @@ function ProgressDetailScreen({onBack,onNavigate}){
           ))}
         </div>
 
-        {/* Selected exercise name */}
-        <div style={{marginBottom:12}}>
+        {/* Exercise title */}
+        <div style={{marginBottom:14}}>
           <div style={{fontSize:11,fontWeight:700,color:gc,textTransform:"uppercase",letterSpacing:"0.08em"}}>{EX_GROUP[selEx]||"Exercício"}</div>
-          <div style={{fontSize:18,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>{selEx}</div>
+          <div style={{fontSize:22,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>{selEx}</div>
         </div>
 
-        {/* KPIs */}
+        {/* Main chart card — igual ao Volume & Progresso */}
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:14}}>
+          {/* KPI + período */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
+            <div>
+              <div style={{fontSize:36,fontWeight:900,color:C.text,letterSpacing:"-2px",lineHeight:1}}>{periodBest>0?periodBest+"kg":"—"}</div>
+              {periodDelta!==0&&<div style={{fontSize:12,fontWeight:700,color:periodDelta>0?C.mint:C.coral,marginTop:2}}>{periodDelta>0?"↑":"↓"}{Math.abs(periodDelta)}% vs anterior</div>}
+            </div>
+            <div style={{display:"flex",gap:4}}>
+              {[{k:"1m",l:"1M"},{k:"3m",l:"3M"},{k:"1a",l:"Ano"},{k:"all",l:"Tudo"}].map(r=>(
+                <button key={r.k} onClick={()=>setRange(r.k)} style={{padding:"4px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:range===r.k?gc:"transparent",border:"1px solid "+(range===r.k?gc:C.border),color:range===r.k?"#fff":C.sub}}>{r.l}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* Bar chart */}
+          <div style={{display:"flex",gap:2,height:110,alignItems:"flex-end",marginBottom:6,marginTop:12}}>
+            {barData.map((d,i)=>{
+              const pct=d.y/maxY;
+              const isLast=i===barData.length-1;
+              return(<div key={i} style={{flex:1,display:"flex",alignItems:"flex-end",height:"100%"}}>
+                <div style={{width:"100%",height:Math.max(pct*106,3),background:isLast?gc:gc+"44",borderRadius:"3px 3px 0 0",transition:"height 0.3s"}}/>
+              </div>);
+            })}
+          </div>
+
+          {/* Axis labels */}
+          {barData.length>0&&(
+            <div style={{display:"flex",justifyContent:"space-between"}}>
+              <span style={{fontSize:9,color:C.muted}}>{fmtDate(barData[0]?.x)}</span>
+              <span style={{fontSize:9,color:C.muted}}>{fmtDate(barData[barData.length-1]?.x)}</span>
+            </div>
+          )}
+
+          {/* Mode toggle */}
+          <div style={{display:"flex",gap:6,marginTop:10}}>
+            {[{k:"carga",l:"Maior Peso"},{k:"1rm",l:"1RM Est."}].map(m=>(
+              <button key={m.k} onClick={()=>setMode(m.k)} style={{padding:"6px 14px",borderRadius:99,fontSize:11,fontWeight:700,cursor:"pointer",background:mode===m.k?gc+"22":"transparent",border:"1px solid "+(mode===m.k?gc+"66":C.border),color:mode===m.k?gc:C.sub}}>{m.l}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* Stats row */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
           {[{l:"Último",v:last>0?last+"kg":"—",c:gc},{l:"Recorde",v:best>0?best+"kg":"—",c:C.amber},{l:"Sessões",v:hist.length,c:C.mint}].map(s=>(
             <div key={s.l} style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"12px 10px",textAlign:"center"}}>
@@ -3610,68 +3661,6 @@ function ProgressDetailScreen({onBack,onNavigate}){
             </div>
           ))}
         </div>
-
-        {/* Chart controls */}
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-          <div style={{display:"flex",gap:5}}>
-            {[{k:"carga",l:"Maior Peso"},{k:"1rm",l:"1RM Est."}].map(m=>(
-              <button key={m.k} onClick={()=>setMode(m.k)} style={{padding:"5px 10px",borderRadius:99,fontSize:11,fontWeight:700,cursor:"pointer",background:mode===m.k?gc+"33":"transparent",border:"1px solid "+(mode===m.k?gc+"66":C.border),color:mode===m.k?gc:C.sub}}>{m.l}</button>
-            ))}
-          </div>
-          <div style={{display:"flex",gap:4}}>
-            {[{k:"1m",l:"1M"},{k:"3m",l:"3M"},{k:"1a",l:"Ano"},{k:"all",l:"Tudo"}].map(r=>(
-              <button key={r.k} onClick={()=>setRange(r.k)} style={{padding:"4px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:range===r.k?C.blueXL:"transparent",border:"1px solid "+(range===r.k?C.blueXL:C.border),color:range===r.k?"#fff":C.sub}}>{r.l}</button>
-            ))}
-          </div>
-        </div>
-
-        {/* Line chart */}
-        {chartData.length>0?(
-          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:14}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
-              <div>
-                <div style={{fontSize:26,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{last}kg</div>
-                {delta!==0&&<div style={{fontSize:11,fontWeight:700,color:delta>0?C.mint:C.coral}}>{delta>0?"↑":"↓"}{Math.abs(delta)}% vs anterior</div>}
-              </div>
-              <div style={{textAlign:"right"}}>
-                <div style={{fontSize:10,color:C.muted}}>Recorde</div>
-                <div style={{fontSize:16,fontWeight:800,color:C.amber}}>{best}kg</div>
-              </div>
-            </div>
-            <div style={{position:"relative",marginBottom:8}}>
-              <div style={{position:"absolute",left:0,top:0,bottom:20,width:32,display:"flex",flexDirection:"column",justifyContent:"space-between",pointerEvents:"none"}}>
-                {[maxY,Math.round((maxY+minY)/2),minY].map((v,i)=><span key={i} style={{fontSize:8,color:C.muted}}>{v}kg</span>)}
-              </div>
-              <div style={{marginLeft:36}}>
-                <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{overflow:"visible"}}>
-                  <defs>
-                    <linearGradient id="pdg" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={gc} stopOpacity="0.25"/>
-                      <stop offset="100%" stopColor={gc} stopOpacity="0"/>
-                    </linearGradient>
-                  </defs>
-                  {/* Grid lines */}
-                  {[0,0.5,1].map((f,i)=><line key={i} x1={PAD} y1={PAD+(H-PAD*2)*f} x2={W-PAD} y2={PAD+(H-PAD*2)*f} stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>)}
-                  {/* Area fill */}
-                  {chartData.length>1&&<polygon points={[...chartData.map((d,i)=>`${px(i)},${py(d.y)}`),`${px(chartData.length-1)},${H-PAD}`,`${px(0)},${H-PAD}`].join(" ")} fill="url(#pdg)"/>}
-                  {/* Line */}
-                  <polyline points={chartData.map((d,i)=>`${px(i)},${py(d.y)}`).join(" ")} fill="none" stroke={gc} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  {/* All dots small */}
-                  {chartData.map((d,i)=>(
-                    <circle key={i} cx={px(i)} cy={py(d.y)} r="3" fill={gc} stroke={C.bg} strokeWidth="1.5"/>
-                  ))}
-                  {/* First & last value labels only */}
-                  {chartData.length>0&&<text x={px(0)} y={py(chartData[0].y)-8} textAnchor="middle" fontSize="9" fill={C.muted}>{chartData[0].y}kg</text>}
-                  {chartData.length>1&&<text x={px(chartData.length-1)} y={py(chartData[chartData.length-1].y)-8} textAnchor="middle" fontSize="9" fill={gc} fontWeight="700">{chartData[chartData.length-1].y}kg</text>}
-                </svg>
-                <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
-                  <span style={{fontSize:9,color:C.muted}}>{fmtDate(chartData[0]?.x)}</span>
-                  <span style={{fontSize:9,color:C.muted}}>{fmtDate(chartData[chartData.length-1]?.x)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        ):<div style={{textAlign:"center",padding:32,color:C.muted}}>Nenhum dado para este exercício</div>}
 
         {/* Records per rep */}
         {sortedRecs.length>0&&(
@@ -3691,25 +3680,29 @@ function ProgressDetailScreen({onBack,onNavigate}){
         )}
 
         {/* Session history */}
-        <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Histórico</div>
-        {hist.slice(0,10).map((s,i)=>{
-          const bestSet=s.sets.reduce((a,b)=>orm(b.w||0,b.r||0)>orm(a.w||0,a.r||0)?b:a,s.sets[0]||{w:0,r:0});
-          return(
-            <div key={i} style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"12px 16px",marginBottom:8}}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                <div style={{fontSize:13,fontWeight:700,color:C.text}}>{fmtDate(s.d)}</div>
-                <div style={{fontSize:12,fontWeight:700,color:gc}}>{bestSet.w}kg × {bestSet.r}</div>
-              </div>
-              {s.sets.map((set,si)=>(
-                <div key={si} style={{display:"flex",gap:10,padding:"4px 0",borderTop:si>0?"1px solid "+C.border+"33":"none"}}>
-                  <div style={{width:20,fontSize:11,color:C.muted,fontWeight:700}}>{si+1}</div>
-                  <div style={{fontSize:13,color:C.text,fontWeight:600}}>{set.w>0?set.w+"kg":"BW"} × {set.r}</div>
-                  {set.rpe&&<div style={{fontSize:11,color:set.rpe<=7?C.mint:set.rpe<=8.5?C.amber:C.coral,fontWeight:700}}>@{set.rpe}</div>}
+        {hist.length>0&&(
+          <>
+            <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Histórico</div>
+            {hist.slice(0,10).map((s,i)=>{
+              const bestSet=(s.sets||[]).reduce((a,b)=>orm(b.w||0,b.r||0)>orm(a.w||0,a.r||0)?b:a,s.sets?.[0]||{w:0,r:0});
+              return(
+                <div key={i} style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"12px 16px",marginBottom:8}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                    <div style={{fontSize:13,fontWeight:700,color:C.text}}>{fmtDate(s.d)}</div>
+                    <div style={{fontSize:12,fontWeight:700,color:gc}}>{bestSet.w}kg × {bestSet.r}</div>
+                  </div>
+                  {(s.sets||[]).map((set,si)=>(
+                    <div key={si} style={{display:"flex",gap:10,padding:"4px 0",borderTop:si>0?"1px solid "+C.border+"33":"none"}}>
+                      <div style={{width:20,fontSize:11,color:C.muted,fontWeight:700}}>{si+1}</div>
+                      <div style={{fontSize:13,color:C.text,fontWeight:600}}>{set.w>0?set.w+"kg":"BW"} × {set.r}</div>
+                      {set.rpe&&<div style={{fontSize:11,color:set.rpe<=7?C.mint:set.rpe<=8.5?C.amber:C.coral,fontWeight:700}}>@{set.rpe}</div>}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          );
-        })}
+              );
+            })}
+          </>
+        )}
       </div>
     </div>
   );
