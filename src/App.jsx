@@ -2166,24 +2166,45 @@ function RPEModal({onSelect,onSkip}){
 }
 
 function RestTimer({seconds,onDone,onSkip}){
-  const endRef=React.useRef(Date.now()+seconds*1000);
-  const[left,setLeft]=useState(seconds);
+  const endTsKey="carbon_rest_end_ts";
+  // Ao montar, salva o timestamp de fim no localStorage
+  useEffect(()=>{
+    const existing=localStorage.getItem(endTsKey);
+    if(!existing){
+      localStorage.setItem(endTsKey,Date.now()+seconds*1000);
+    }
+    return()=>localStorage.removeItem(endTsKey);
+  },[]);// eslint-disable-line
+
+  const calcLeft=()=>{
+    const end=parseInt(localStorage.getItem(endTsKey)||"0");
+    return Math.max(0,Math.round((end-Date.now())/1000));
+  };
+
+  const[left,setLeft]=useState(calcLeft);
   const pct=Math.max(0,left/seconds*100);
   const color=left>60?C.mint:left>30?C.amber:C.coral;
 
   useEffect(()=>{
-    const iv=setInterval(()=>{
-      const l=Math.max(0,Math.round((endRef.current-Date.now())/1000));
-      setLeft(l);
-      if(l<=0){clearInterval(iv);onDone();}
-    },200);
-    return()=>clearInterval(iv);
-  },[]);// eslint-disable-line
+    if(left<=0){onDone();return;}
+    const t=setTimeout(()=>setLeft(calcLeft()),500);
+    return()=>clearTimeout(t);
+  },[left]);// eslint-disable-line
 
+  // Quando usuário ajusta tempo, atualiza o endTs
   function adjustTime(delta){
-    endRef.current=endRef.current+delta*1000;
-    setLeft(Math.max(0,Math.round((endRef.current-Date.now())/1000)));
+    const end=parseInt(localStorage.getItem(endTsKey)||"0");
+    const newEnd=end+delta*1000;
+    localStorage.setItem(endTsKey,newEnd);
+    setLeft(Math.max(0,Math.round((newEnd-Date.now())/1000)));
   }
+
+  // Ao voltar para o app (visibilitychange), recalcula
+  useEffect(()=>{
+    const handler=()=>setLeft(calcLeft());
+    document.addEventListener("visibilitychange",handler);
+    return()=>document.removeEventListener("visibilitychange",handler);
+  },[]);// eslint-disable-line
   return(
     <div style={{position:"fixed",bottom:"calc(88px + env(safe-area-inset-bottom, 0px))",left:12,right:12,zIndex:200,background:C.surface+"F8",backdropFilter:"blur(20px)",borderRadius:18,border:"1px solid "+color+"66",overflow:"hidden",boxShadow:"0 4px 32px rgba(0,0,0,0.5)"}}>
       <div style={{height:3,background:C.border,width:"100%"}}><div style={{height:"100%",background:color,width:pct+"%",transition:"width 1s linear"}}/></div>
@@ -2416,7 +2437,6 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
   }
 
   function handleEnd(){
-    localStorage.removeItem("carbon_rest_end_ts");
     onEndWorkout();
     setScreen("plans");
     setFinishing(false);
@@ -2654,7 +2674,6 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
         prs:prCount,
         calories:estimatedCalories,
       };
-      localStorage.removeItem("carbon_rest_end_ts");
       saveSession(persistSession);
       onWorkoutSaved&&onWorkoutSaved();
 
