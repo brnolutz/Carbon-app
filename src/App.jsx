@@ -2399,10 +2399,8 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
       try{
         const{data:userData}=await supabase.auth.getUser();
         const uid=userData?.user?.id;
-        if(!uid){alert('SEM UID');return;}
-        const{data,error}=await supabase.from('workout_sessions').select('*').order('date',{ascending:false}).limit(500);
-        if(error){alert('ERRO SUPABASE: '+error.message);return;}
-        alert('SESSOES DO SUPABASE: '+data.length+'\nMais recente: '+data[0]?.date+' '+data[0]?.name+'\nTerra: '+JSON.stringify(data[0]?.exercises?.find(e=>e.name==='Levantamento Terra (Barra)')?.setData?.slice(0,1)));
+        if(!uid) return;
+        const{data}=await supabase.from('workout_sessions').select('*').order('date',{ascending:false}).limit(500);
         if(data&&data.length>0){
           const fromServer=data.map(rowToSession);
           const serverIds=new Set(fromServer.map(s=>s.id));
