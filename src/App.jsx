@@ -1877,9 +1877,7 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
     setShowMenu(false);
   }
 
-  if(selEx) return <ExercicioScreen name={selEx} onBack={()=>setSelEx(null)} onNavigate={onNavigate} key={selEx}/>;
-
-  // EDIT MODE
+  // VIEW MODE — render selEx as overlay, not conditional return (hooks rule)
   if(editing){
     return(
       <div style={{position:"fixed",inset:0,zIndex:9999,background:"#080A0E",overflowY:"auto",paddingTop:52}}>
@@ -1949,6 +1947,8 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
   },[]);
 
   return(
+    <>
+    {selEx&&<ExercicioScreen name={selEx} onBack={()=>setSelEx(null)} onNavigate={onNavigate} key={selEx}/>}
     <div style={{position:"fixed",inset:0,zIndex:9999,background:"#080A0E",display:"flex",flexDirection:"column"}}>
       {/* Header fixo */}
       <div style={{flexShrink:0,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"14px 16px",paddingTop:"calc(14px + env(safe-area-inset-top,0px))"}}>
@@ -2083,6 +2083,7 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
         </div>
       )}
     </div>
+    </>
   );
 }
 
@@ -3159,7 +3160,7 @@ function ExercicioScreen({name,onNavigate,onBack}){
   if(showTop) return <TopExercisesScreen onBack={()=>setShowTop(false)} onSelectEx={name=>{setShowTop(false);onNavigate("exercicio",{name});}}/>;
 
   return(
-    <div style={{position:"fixed",inset:0,zIndex:800,background:"#080A0E",display:"flex",flexDirection:"column",paddingBottom:100,overflowY:"auto"}}>
+    <div style={{position:"fixed",inset:0,zIndex:10000,background:"#080A0E",display:"flex",flexDirection:"column",paddingBottom:100,overflowY:"auto"}}>
       <div style={{position:"sticky",top:0,zIndex:2147483646,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
         <div style={{padding:"10px 16px 0"}}>
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
