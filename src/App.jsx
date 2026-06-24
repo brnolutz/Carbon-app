@@ -3650,10 +3650,7 @@ function ProgressDetailScreen({onBack,onNavigate}){
                   <div style={{flex:1}}>
                     {/* Linhas de grade */}
                     <div style={{position:"relative",height:chartH-16}}>
-                      {[0.25,0.5,0.75,1].map((f,i)=>(
-                        <div key={i} style={{position:"absolute",left:0,right:0,bottom:f*(chartH-16),borderTop:"1px solid rgba(255,255,255,0.05)"}}/>
-                      ))}
-                      {/* Barras */}
+                    {/* Barras */}
                       <div style={{position:"absolute",inset:0,display:"flex",gap:2,alignItems:"flex-end"}}>
                         {barData.map((d,i)=>{
                           const pct=d.y/maxY;
