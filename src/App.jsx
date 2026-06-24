@@ -3632,13 +3632,6 @@ function ProgressDetailScreen({onBack,onNavigate}){
             const chartH=120;
             return(
               <div style={{marginTop:12,marginBottom:6}}>
-                {/* Tooltip */}
-                {selBar!=null&&barData[selBar]&&(
-                  <div style={{background:"rgba(0,0,0,0.85)",border:"1px solid "+gc+"66",borderRadius:10,padding:"6px 12px",marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                    <span style={{fontSize:11,color:C.muted}}>{fmtDate(barData[selBar].x)}</span>
-                    <span style={{fontSize:15,fontWeight:800,color:gc}}>{barData[selBar].y}kg</span>
-                  </div>
-                )}
                 <div style={{display:"flex",gap:6}}>
                   {/* Eixo Y */}
                   <div style={{display:"flex",flexDirection:"column",justifyContent:"space-between",alignItems:"flex-end",height:chartH,paddingBottom:16,flexShrink:0}}>
@@ -3648,20 +3641,37 @@ function ProgressDetailScreen({onBack,onNavigate}){
                   </div>
                   {/* Barras + Eixo X */}
                   <div style={{flex:1}}>
-                    {/* Linhas de grade */}
                     <div style={{position:"relative",height:chartH-16}}>
-                    {/* Barras */}
                       <div style={{position:"absolute",inset:0,display:"flex",gap:2,alignItems:"flex-end"}}>
                         {barData.map((d,i)=>{
                           const pct=d.y/maxY;
                           const isLast=i===barData.length-1;
                           const isSel=selBar===i;
+                          const barH=Math.max(pct*(chartH-16),d.y>0?3:0);
                           return(
                             <div key={i} onClick={()=>setSelBar(isSel?null:i)}
-                              style={{flex:1,display:"flex",alignItems:"flex-end",height:"100%",cursor:"pointer"}}>
+                              style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",height:"100%",cursor:"pointer",position:"relative"}}>
+                              {/* Rótulo inline acima da barra */}
+                              {isSel&&(
+                                <div style={{
+                                  position:"absolute",
+                                  bottom:barH+4,
+                                  left:"50%",transform:"translateX(-50%)",
+                                  background:"rgba(0,0,0,0.92)",
+                                  border:"1px solid "+gc,
+                                  borderRadius:6,
+                                  padding:"3px 6px",
+                                  whiteSpace:"nowrap",
+                                  zIndex:10,
+                                  pointerEvents:"none"
+                                }}>
+                                  <div style={{fontSize:10,fontWeight:800,color:gc}}>{d.y}kg</div>
+                                  <div style={{fontSize:8,color:C.muted}}>{fmtDate(d.x)}</div>
+                                </div>
+                              )}
                               <div style={{
                                 width:"100%",
-                                height:Math.max(pct*(chartH-16),d.y>0?3:0),
+                                height:barH,
                                 background:isSel?gc:(isLast?gc+"CC":gc+"44"),
                                 borderRadius:"3px 3px 0 0",
                                 transition:"all 0.15s",
