@@ -2165,15 +2165,11 @@ function RPEModal({onSelect,onSkip}){
   );
 }
 
-function RestTimer({seconds,onDone,onSkip,restored=false}){
+function RestTimer({seconds,onDone,onSkip}){
   const endTsKey="carbon_rest_end_ts";
 
   useEffect(()=>{
-    if(!restored){
-      // Timer novo: sempre grava endTs fresco
-      localStorage.setItem(endTsKey,Date.now()+seconds*1000);
-    }
-    // Timer restaurado: endTs já está correto no localStorage
+    localStorage.setItem(endTsKey,Date.now()+seconds*1000);
   },[]);// eslint-disable-line
 
   const calcLeft=()=>{
@@ -2352,11 +2348,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
 
   function setScreen(s){_setScreen(s);onSubScreen&&onSubScreen(s);}
   const[screen,_setScreen]=useState(isActive?"active":"plans");
-  const[restTimer,setRestTimer]=useState(()=>{
-    const end=parseInt(localStorage.getItem("carbon_rest_end_ts")||"0");
-    const left=Math.round((end-Date.now())/1000);
-    return left>0?{seconds:left,key:end,restored:true}:null;
-  });
+  const[restTimer,setRestTimer]=useState(null);
   const[rpeModal,setRpeModal]=useState(null);
   const[finishing,setFinishing]=useState(false);
   const[finishedSession,setFinishedSession]=useState(null);
@@ -2440,6 +2432,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
   }
 
   function handleEnd(){
+    localStorage.removeItem("carbon_rest_end_ts");
     onEndWorkout();
     setScreen("plans");
     setFinishing(false);
@@ -2677,6 +2670,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
         prs:prCount,
         calories:estimatedCalories,
       };
+      localStorage.removeItem("carbon_rest_end_ts");
       saveSession(persistSession);
       onWorkoutSaved&&onWorkoutSaved();
 
@@ -2888,7 +2882,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
       </div>
 
       {rpeModal&&<RPEModal onSelect={handleRpeSelect} onSkip={()=>{setRpeModal(null);}}/>}
-      {restTimer&&<RestTimer key={restTimer.key||restTimer.seconds} seconds={restTimer.seconds} restored={restTimer.restored||false} onDone={()=>setRestTimer(null)} onSkip={()=>setRestTimer(null)}/>}
+      {restTimer&&<RestTimer key={restTimer.key||restTimer.seconds} seconds={restTimer.seconds} onDone={()=>setRestTimer(null)} onSkip={()=>setRestTimer(null)}/>}
       {restPickerEi!=null&&<RestTimePickerModal initial={exercises[restPickerEi].rest} onClose={()=>setRestPickerEi(null)} onSelect={(val)=>{setExercises(prev=>prev.map((e,i)=>i!==restPickerEi?e:{...e,rest:val}));setRestPickerEi(null);}}/>}
       <PRToast pr={prToast}/>
       {showGallery&&<ExerciseGallery onAdd={addExercise} onClose={()=>setShowGallery(false)}/>}
