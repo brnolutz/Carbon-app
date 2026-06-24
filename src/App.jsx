@@ -2095,7 +2095,7 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
 function PRToast({pr}){
   if(!pr)return null;
   return(
-    <div style={{position:"fixed",top:56,left:16,right:16,zIndex:9999,display:"flex",justifyContent:"center",pointerEvents:"none"}}>
+    <div style={{position:"fixed",top:"50%",left:16,right:16,zIndex:99999,display:"flex",justifyContent:"center",transform:"translateY(-50%)",pointerEvents:"none"}}>
       <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 16px",borderRadius:99,background:"linear-gradient(135deg,#92400E,#B45309,#F59E0B)",boxShadow:"0 6px 24px rgba(245,158,11,0.45)",animation:"prToastIn 0.35s ease-out"}}>
         <span style={{fontSize:18}}>🏆</span>
         <div>
@@ -2103,7 +2103,7 @@ function PRToast({pr}){
           <div style={{fontSize:10,fontWeight:700,color:"#FEF3C7"}}>{pr.w}kg × {pr.r}</div>
         </div>
       </div>
-      <style>{`@keyframes prToastIn{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}`}</style>
+      <style>{`@keyframes prToastIn{from{transform:scale(0.7);opacity:0}to{transform:scale(1);opacity:1}}`}</style>
     </div>
   );
 }
@@ -2456,7 +2456,14 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
     if(set.done){updateSet(ei,si,"done",false);return;}
     updateSet(ei,si,"done",true);
     const exWarmLen=exTarget.activeSets.filter(s=>s.type==="warmup").length;
-    if(set.type==="work"){setRestTimer(null);setTimeout(()=>setRpeModal({ei,si,rest:exTarget.rest}),700);}
+    if(set.type==="work"){
+      // Inicia o timer imediatamente + abre RPE depois
+      if(exTarget.rest!=null&&exTarget.rest>0){
+        setRestTimer(null);
+        setTimeout(()=>setRestTimer({seconds:exTarget.rest,key:Date.now()}),50);
+      }
+      setTimeout(()=>setRpeModal({ei,si,rest:exTarget.rest}),700);
+    }
     else{setRestTimer(null);setTimeout(()=>setRestTimer({seconds:si===exWarmLen-1?105:60,key:Date.now()}),50);}
   }
 
