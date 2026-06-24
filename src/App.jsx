@@ -3625,24 +3625,67 @@ function ProgressDetailScreen({onBack,onNavigate}){
             </div>
           </div>
 
-          {/* Bar chart */}
-          <div style={{display:"flex",gap:2,height:110,alignItems:"flex-end",marginBottom:6,marginTop:12}}>
-            {barData.map((d,i)=>{
-              const pct=d.y/maxY;
-              const isLast=i===barData.length-1;
-              return(<div key={i} style={{flex:1,display:"flex",alignItems:"flex-end",height:"100%"}}>
-                <div style={{width:"100%",height:Math.max(pct*106,3),background:isLast?gc:gc+"44",borderRadius:"3px 3px 0 0",transition:"height 0.3s"}}/>
-              </div>);
-            })}
-          </div>
-
-          {/* Axis labels */}
-          {barData.length>0&&(
-            <div style={{display:"flex",justifyContent:"space-between"}}>
-              <span style={{fontSize:9,color:C.muted}}>{fmtDate(barData[0]?.x)}</span>
-              <span style={{fontSize:9,color:C.muted}}>{fmtDate(barData[barData.length-1]?.x)}</span>
-            </div>
-          )}
+          {/* Bar chart com eixos e tooltip */}
+          {(()=>{
+            const[selBar,setSelBar]=useState(null);
+            const yTicks=[0,0.25,0.5,0.75,1].map(f=>Math.round(maxY*f));
+            const chartH=120;
+            return(
+              <div style={{marginTop:12,marginBottom:6}}>
+                {/* Tooltip */}
+                {selBar!=null&&barData[selBar]&&(
+                  <div style={{background:"rgba(0,0,0,0.85)",border:"1px solid "+gc+"66",borderRadius:10,padding:"6px 12px",marginBottom:8,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <span style={{fontSize:11,color:C.muted}}>{fmtDate(barData[selBar].x)}</span>
+                    <span style={{fontSize:15,fontWeight:800,color:gc}}>{barData[selBar].y}kg</span>
+                  </div>
+                )}
+                <div style={{display:"flex",gap:6}}>
+                  {/* Eixo Y */}
+                  <div style={{display:"flex",flexDirection:"column",justifyContent:"space-between",alignItems:"flex-end",height:chartH,paddingBottom:16,flexShrink:0}}>
+                    {[yTicks[4],yTicks[3],yTicks[2],yTicks[1],yTicks[0]].map((v,i)=>(
+                      <span key={i} style={{fontSize:8,color:C.muted,lineHeight:1}}>{v>0?v+"kg":""}</span>
+                    ))}
+                  </div>
+                  {/* Barras + Eixo X */}
+                  <div style={{flex:1}}>
+                    {/* Linhas de grade */}
+                    <div style={{position:"relative",height:chartH-16}}>
+                      {[0.25,0.5,0.75,1].map((f,i)=>(
+                        <div key={i} style={{position:"absolute",left:0,right:0,bottom:f*(chartH-16),borderTop:"1px solid rgba(255,255,255,0.05)"}}/>
+                      ))}
+                      {/* Barras */}
+                      <div style={{position:"absolute",inset:0,display:"flex",gap:2,alignItems:"flex-end"}}>
+                        {barData.map((d,i)=>{
+                          const pct=d.y/maxY;
+                          const isLast=i===barData.length-1;
+                          const isSel=selBar===i;
+                          return(
+                            <div key={i} onClick={()=>setSelBar(isSel?null:i)}
+                              style={{flex:1,display:"flex",alignItems:"flex-end",height:"100%",cursor:"pointer"}}>
+                              <div style={{
+                                width:"100%",
+                                height:Math.max(pct*(chartH-16),d.y>0?3:0),
+                                background:isSel?gc:(isLast?gc+"CC":gc+"44"),
+                                borderRadius:"3px 3px 0 0",
+                                transition:"all 0.15s",
+                                boxShadow:isSel?"0 0 8px "+gc+"88":"none"
+                              }}/>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    {/* Eixo X */}
+                    <div style={{display:"flex",justifyContent:"space-between",marginTop:4,height:16}}>
+                      <span style={{fontSize:8,color:C.muted}}>{fmtDate(barData[0]?.x)}</span>
+                      {barData.length>2&&<span style={{fontSize:8,color:C.muted}}>{fmtDate(barData[Math.floor(barData.length/2)]?.x)}</span>}
+                      <span style={{fontSize:8,color:C.muted}}>{fmtDate(barData[barData.length-1]?.x)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Mode toggle */}
           <div style={{display:"flex",gap:6,marginTop:10}}>
