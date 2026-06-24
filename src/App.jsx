@@ -125,7 +125,6 @@ async function saveSession(session){
     }
   }catch(e){console.error(e);alert('Erro crítico ao salvar: '+e.message);}
 }
-}
 function buildWeekly(sessions){
   const weekly={};
   const toLocalKey=(d)=>{
@@ -2051,8 +2050,6 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
           );
         })}
       </div>
-                <svg width="12" height="12" fill="none" stroke={C.muted} strokeWidth="2" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
-              </button>
       {/* ⋯ Menu */}
       {showMenu&&(
         <div style={{position:"fixed",inset:0,zIndex:900,background:"rgba(0,0,0,0.6)",backdropFilter:"blur(4px)"}} onClick={()=>setShowMenu(false)}>
@@ -2867,6 +2864,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
                           ?<button onClick={()=>setExercises(prev=>prev.map((e,i)=>i!==exIdx?e:{...e,activeSets:e.activeSets.filter((_,idx)=>idx!==si)}))} style={{height:24,width:24,borderRadius:6,background:"transparent",border:"none",color:C.coral+"88",fontSize:13,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",padding:0}}>✕</button>
                           :<div style={{width:24}}/>
                         }
+                      </div>
                       {estORM&&!set.done&&!setIsPR&&<div style={{fontSize:8,color:C.muted,paddingLeft:28,paddingTop:1}}>1RM ~{estORM}kg</div>}
                     </div>
                   );
