@@ -2884,8 +2884,8 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
         <button onClick={()=>setFinishing(true)} style={{width:"100%",padding:"16px",background:C.mint,border:"none",borderRadius:14,color:"#fff",fontSize:16,fontWeight:700,cursor:"pointer"}}>Finalizar treino ✓</button>
       </div>
 
-      {rpeModal&&<RPEModal onSelect={handleRpeSelect} onSkip={()=>{const{rest}=rpeModal;setRpeModal(null);if(rest!=null)setRestTimer({seconds:rest});}}/>}
-      {restTimer&&!rpeModal&&<RestTimer key={restTimer.key||restTimer.seconds} seconds={restTimer.seconds} onDone={()=>setRestTimer(null)} onSkip={()=>setRestTimer(null)}/>}
+      {rpeModal&&<RPEModal onSelect={handleRpeSelect} onSkip={()=>{setRpeModal(null);}}/>}
+      {restTimer&&<RestTimer key={restTimer.key||restTimer.seconds} seconds={restTimer.seconds} onDone={()=>setRestTimer(null)} onSkip={()=>setRestTimer(null)}/>}
       {restPickerEi!=null&&<RestTimePickerModal initial={exercises[restPickerEi].rest} onClose={()=>setRestPickerEi(null)} onSelect={(val)=>{setExercises(prev=>prev.map((e,i)=>i!==restPickerEi?e:{...e,rest:val}));setRestPickerEi(null);}}/>}
       <PRToast pr={prToast}/>
       {showGallery&&<ExerciseGallery onAdd={addExercise} onClose={()=>setShowGallery(false)}/>}
