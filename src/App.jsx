@@ -2394,9 +2394,8 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
     if(forceActive&&isActive) setScreen("active");
   },[forceActive]);
 
-  const[cacheReady,setCacheReady]=useState(false);
+  const[cacheReady,setCacheReady]=useState(0);
 
-  // Ao montar com treino ativo: atualiza sets não feitos com histórico real do Supabase
   useEffect(()=>{
     if(!isActive||!plan) return;
     (async()=>{
@@ -2414,8 +2413,6 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
           }
         }
       }catch(e){console.warn('sync failed',e);}
-
-      // Atualiza sets não feitos com histórico real
       setExercises(prev=>prev.map(ex=>{
         const sessions=[..._sessionsCache].sort((a,b)=>b.date.localeCompare(a.date));
         let lastSets=null;
@@ -2431,9 +2428,11 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
         });
         return{...ex,activeSets:updated};
       }));
-      setCacheReady(true);// força re-render do ExerciseHistory
+      setCacheReady(v=>v+1);
     })();
-  },[]);// roda uma vez ao montar
+  },[]);
+
+  async function startPlan(p){
     const exs=await refreshSessionsAndBuild(p);
     onStartWorkout(p,exs);
     setFinishing(false);
