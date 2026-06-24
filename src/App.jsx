@@ -3138,7 +3138,13 @@ function ExercicioScreen({name,onNavigate,onBack}){
 
   const chartData=useMemo(()=>{
     if(!filteredHist.length)return[];
-    return [...filteredHist].reverse().map(s=>({x:s.d,y:chartMode==="carga"?Math.max(...s.sets.map(ss=>ss.w||0)):Math.max(...s.sets.map(ss=>ss.w>0&&ss.r>0?orm(ss.w,ss.r):0))}));
+    return [...filteredHist].reverse().map(s=>{
+      const sets=s.sets||[];
+      const y=chartMode==="carga"
+        ?sets.reduce((a,ss)=>Math.max(a,ss.w||0),0)
+        :sets.reduce((a,ss)=>ss.w>0&&ss.r>0?Math.max(a,orm(ss.w,ss.r)):a,0);
+      return{x:s.d,y};
+    });
   },[filteredHist,chartMode]);
 
   const maxY=Math.max(...chartData.map(d=>d.y),0.01);
