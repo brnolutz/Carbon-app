@@ -2430,7 +2430,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
       }));
       setCacheReady(v=>v+1);
     })();
-  },[]);
+  },[isActive]);
 
   async function startPlan(p){
     const exs=await refreshSessionsAndBuild(p);
