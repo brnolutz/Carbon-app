@@ -5052,411 +5052,189 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
 
   return(
     <div className="screen-root" style={{background:"#080A0E",minHeight:"100vh",paddingTop:52,paddingBottom:120}}>
-      <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",padding:"14px 20px 14px"}}>
-        <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>Meu Corpo</div>
+
+      {/* ── HEADER ── */}
+      <div style={{position:"sticky",top:52,zIndex:9001,background:"rgba(5,6,9,0.98)",backdropFilter:"blur(24px)",padding:"14px 20px"}}>
+        <div style={{fontSize:26,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>Meu Corpo</div>
       </div>
+
       <div style={{padding:"12px 16px 0"}}>
 
-        {/* ── DISTRIBUIÇÃO MUSCULAR + STATS ── */}
-        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:14,marginBottom:10}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
-            <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em"}}>Distribuição Muscular</div>
-            <div style={{display:"flex",gap:4}}>
-              {distPeriods.map(p=>(
-                <button key={p.k} onClick={()=>setDistPeriod(p.k)} style={{padding:"3px 7px",borderRadius:99,fontSize:9,fontWeight:700,cursor:"pointer",background:distPeriod===p.k?C.blueXL:"transparent",border:"1px solid "+(distPeriod===p.k?C.blueXL:C.border),color:distPeriod===p.k?"#fff":C.sub}}>{p.l}</button>
+        {/* ── 1. PESO ── */}
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:12}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+            <div>
+              <div style={{fontSize:11,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4}}>Peso Atual</div>
+              <div style={{display:"flex",alignItems:"baseline",gap:5}}>
+                <span style={{fontSize:40,fontWeight:900,color:C.text,letterSpacing:"-2px"}}>{currentWeight||"—"}</span>
+                <span style={{fontSize:16,color:C.muted}}>kg</span>
+              </div>
+              {W_DATA.length>1&&<div style={{fontSize:12,fontWeight:700,color:(currentWeight-W_DATA[W_DATA.length-2])<=0?C.mint:C.coral,marginTop:2}}>
+                {(currentWeight-W_DATA[W_DATA.length-2])>0?"+":""}{(currentWeight-(W_DATA[W_DATA.length-2]||currentWeight)).toFixed(1)}kg vs anterior
+              </div>}
+            </div>
+            <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
+              <button onClick={()=>{setWeightDraft("");setShowAddWeight(true);}} style={{background:C.blueXL,border:"none",borderRadius:10,padding:"8px 14px",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer"}}>+ Peso</button>
+              <button onClick={()=>{setGoalDraft(String(weightGoal));setEditingGoal(true);}} style={{fontSize:11,color:C.muted,background:"none",border:"none",cursor:"pointer"}}>Meta: {weightGoal}kg ✎</button>
+            </div>
+          </div>
+          <LineChart data={weightChartData} color={C.mint} height={72}/>
+          <div style={{marginTop:10}}>
+            <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+              <span style={{fontSize:10,color:C.muted}}>Início {startWeight}kg</span>
+              <span style={{fontSize:10,color:C.mint,fontWeight:700}}>{weightPct}% do objetivo · Meta {weightGoal}kg</span>
+            </div>
+            <div style={{background:C.surface,borderRadius:6,height:6,overflow:"hidden"}}>
+              <div style={{width:weightPct+"%",height:"100%",background:"linear-gradient(90deg,"+C.blueXL+","+C.mint+")",borderRadius:6,transition:"width 0.6s"}}/>
+            </div>
+          </div>
+        </div>
+
+        {/* ── 2. RECUPERAÇÃO ── */}
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:12}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+            <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em"}}>Recuperação Muscular</div>
+            <div style={{display:"flex",gap:8}}>
+              {[{v:recoveryMuscles.filter(m=>m.pct>=100).length,l:"Prontos",c:C.mint},
+                {v:recoveryMuscles.filter(m=>m.pct>=60&&m.pct<100).length,l:"Rec.",c:C.amber},
+                {v:recoveryMuscles.filter(m=>m.pct<60).length,l:"Fatig.",c:C.coral}
+              ].map(s=>(
+                <div key={s.l} style={{textAlign:"center"}}>
+                  <div style={{fontSize:16,fontWeight:900,color:s.c}}>{s.v}</div>
+                  <div style={{fontSize:8,color:C.muted}}>{s.l}</div>
+                </div>
               ))}
             </div>
           </div>
-          <VolumeSpiderChart volumeByGroup={distVbg} size={Math.min(240,window.innerWidth-80)}/>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginTop:10}}>
-            {distKpis.map(s=>(
-              <div key={s.l} style={{background:C.surface,borderRadius:10,padding:"8px 10px",border:"1px solid "+C.border}}>
-                <div style={{fontSize:9,color:C.sub,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:2}}>{s.l}</div>
-                <div style={{fontSize:16,fontWeight:900,color:C.text}}>{s.v}</div>
-                {s.d!==null&&distCfg.days<9999&&<div style={{fontSize:9,fontWeight:700,color:s.d>=0?C.mint:C.coral,marginTop:1}}>{s.d>=0?"↑":"↓"}{Math.abs(s.d)}% vs anterior</div>}
+          {recoveryMuscles.map(m=>(
+            <div key={m.g} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+              <div style={{fontSize:11,fontWeight:600,color:C.sub,width:70,flexShrink:0}}>{m.g}</div>
+              <div style={{flex:1,height:7,background:C.surface,borderRadius:4,overflow:"hidden"}}>
+                <div style={{height:"100%",width:m.pct+"%",background:m.color,borderRadius:4,transition:"width 0.5s"}}/>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── RECOVERY STATS ROW ── */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:6,marginBottom:10}}>
-          {[{l:"Prontos",v:recoveryMuscles.filter(m=>m.pct===100).length,c:C.mint},{l:"Recuperando",v:recoveryMuscles.filter(m=>m.pct<100&&m.pct>=50).length,c:C.amber},{l:"Fadigados",v:recoveryMuscles.filter(m=>m.pct<50).length,c:C.coral}].map(s=>(
-            <div key={s.l} style={{background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"8px 4px",textAlign:"center"}}>
-              <div style={{fontSize:20,fontWeight:900,color:s.c}}>{s.v}</div>
-              <div style={{fontSize:9,color:C.sub,marginTop:2}}>{s.l}</div>
+              <div style={{fontSize:11,fontWeight:700,color:m.color,width:30,textAlign:"right"}}>{m.pct>=100?"✓":m.pct+"%"}</div>
+              {m.lastDays!=null&&<div style={{fontSize:9,color:C.muted,width:28,textAlign:"right"}}>há {m.lastDays}d</div>}
             </div>
           ))}
+          <div style={{marginTop:8,fontSize:9,color:C.muted,paddingTop:8,borderTop:"1px solid "+C.border}}>Core 36h · Ombros/Braços 48h · Peito 60h · Costas 72h · Pernas 96h</div>
         </div>
 
-        {/* ── MAPA MUSCULAR ── */}
-        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"12px",marginBottom:10}}>
-          <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Mapa Muscular</div>
-          <BodyDiagram muscleHeat={muscleHeat} width={Math.min(300,window.innerWidth-64)} savedCount={savedCount}/>
-          <div style={{display:"flex",justifyContent:"center",gap:12,marginTop:8,flexWrap:"wrap"}}>
-            {[{c:"#3B82F6",o:1,l:"Fatigado"},{c:"#3B82F6",o:0.55,l:"Recuperando"},{c:"#3B82F6",o:0.25,l:"Quase pronto"},{c:C.muted,o:1,l:"Descansado"}].map(item=>(
-              <div key={item.l} style={{display:"flex",alignItems:"center",gap:4}}>
-                <div style={{width:7,height:7,borderRadius:"50%",background:item.c,opacity:item.o,flexShrink:0}}/>
-                <span style={{fontSize:9,color:C.sub}}>{item.l}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── RECOVERY SPIDER ── */}
-        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"12px",marginBottom:10}}>
-          <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:8}}>Recuperação Muscular</div>
-          <SpiderChart muscles={recoveryMuscles} size={200}/>
-        </div>
-
-        {/* ── VOLUME BY MUSCLE (bars) with period selector ── */}
-        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:14}}>
+        {/* ── 3. VOLUME POR GRUPO ── */}
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:12}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
             <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em"}}>Volume por Grupo</div>
-            <div style={{display:"flex",background:C.card,borderRadius:8,padding:2,border:"1px solid "+C.border}}>
+            <div style={{display:"flex",background:C.surface,borderRadius:8,padding:2,border:"1px solid "+C.border}}>
               {["Semana","Mês","Trim.","Ano"].map(p=>(
-                <button key={p} onClick={()=>setPeriod(p)} style={{padding:"4px 8px",borderRadius:6,border:"none",cursor:"pointer",fontSize:10,fontWeight:700,background:period===p?"rgba(255,255,255,0.12)":"transparent",color:period===p?C.text:C.muted}}>{p}</button>
+                <button key={p} onClick={()=>setPeriod(p)} style={{padding:"3px 8px",borderRadius:6,border:"none",cursor:"pointer",fontSize:10,fontWeight:700,background:period===p?"rgba(255,255,255,0.12)":"transparent",color:period===p?C.text:C.muted}}>{p}</button>
               ))}
             </div>
           </div>
           {MUSCLE_GROUPS_ALL.map(g=>{
             const mv=muscleVol[g]||{vol:0,sets:0};
-            const rm=recoveryMuscles.find(m=>m.g===g)||{pct:0,color:C.muted};
             const barPct=maxVol>0?mv.vol/maxVol:0;
-            const setsInRange=mv.sets>=6&&mv.sets<=20;
-            const rangeColor=mv.sets===0?C.muted:setsInRange?C.mint:mv.sets>20?C.coral:C.amber;
+            const setsOk=mv.sets>=6&&mv.sets<=20;
+            const setsColor=mv.sets===0?C.muted:setsOk?C.mint:mv.sets>20?C.coral:C.amber;
             return(
-              <div key={g} style={{marginBottom:11}}>
-                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
-                  <span style={{fontSize:11,fontWeight:700,color:GC[g]||rm.color}}>{g}</span>
-                  <div style={{display:"flex",gap:12,alignItems:"center"}}>
-                    <span style={{fontSize:10,fontWeight:700,color:rangeColor}}>{mv.sets} séries{setsInRange?" ✓":""}</span>
-                    <span style={{fontSize:11,fontWeight:700,color:C.text}}>{mv.vol}t</span>
+              <div key={g} style={{marginBottom:10}}>
+                <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
+                  <span style={{fontSize:12,fontWeight:700,color:GC[g]||C.blueXL}}>{g}</span>
+                  <div style={{display:"flex",gap:10,alignItems:"center"}}>
+                    <span style={{fontSize:10,fontWeight:700,color:setsColor}}>{mv.sets>0?mv.sets+" séries"+(setsOk?" ✓":""):"—"}</span>
+                    <span style={{fontSize:12,fontWeight:700,color:C.text}}>{mv.vol>0?mv.vol+"t":"—"}</span>
                   </div>
                 </div>
-                <div style={{height:6,background:C.card,borderRadius:3,overflow:"hidden"}}>
-                  <div style={{height:"100%",width:(barPct*100)+"%",background:GC[g]||rm.color,borderRadius:3,transition:"width 0.5s"}}/>
-                </div>
-                <div style={{display:"flex",alignItems:"center",gap:6,marginTop:4}}>
-                  <div style={{flex:1,height:3,background:C.card,borderRadius:2,position:"relative"}}>
-                    <div style={{position:"absolute",left:"30%",right:"0%",height:"100%",background:"rgba(16,185,129,0.12)",borderRadius:2}}/>
-                    <div style={{height:"100%",width:Math.min(100,(mv.sets/20)*100)+"%",background:rangeColor+"99",borderRadius:2,position:"relative"}}/>
-                  </div>
-                  <span style={{fontSize:8,color:rangeColor,fontWeight:700,width:60,textAlign:"right",flexShrink:0}}>{mv.sets===0?"sem dados":setsInRange?"na faixa ideal":mv.sets>20?"acima de 20":"abaixo de 6"}</span>
+                <div style={{height:6,background:C.surface,borderRadius:3,overflow:"hidden"}}>
+                  <div style={{height:"100%",width:(barPct*100)+"%",background:GC[g]||C.blueXL,borderRadius:3,transition:"width 0.5s",opacity:0.8}}/>
                 </div>
               </div>
             );
           })}
-          <div style={{marginTop:8,paddingTop:8,borderTop:"1px solid "+C.border,display:"flex",alignItems:"center",gap:10}}>
-            <div style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:6,height:6,borderRadius:1,background:C.mint}}/><span style={{fontSize:9,color:C.muted}}>6–20 séries/sem ideal</span></div>
-            <div style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:6,height:6,borderRadius:1,background:C.amber}}/><span style={{fontSize:9,color:C.muted}}>&lt;6 abaixo</span></div>
-            <div style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:6,height:6,borderRadius:1,background:C.coral}}/><span style={{fontSize:9,color:C.muted}}>&gt;20 excesso</span></div>
+          <div style={{display:"flex",gap:12,marginTop:10,paddingTop:10,borderTop:"1px solid "+C.border}}>
+            {[{c:C.mint,l:"6–20 ideal"},{c:C.amber,l:"<6 abaixo"},{c:C.coral,l:">20 excesso"}].map(i=>(
+              <div key={i.l} style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:6,height:6,borderRadius:"50%",background:i.c}}/><span style={{fontSize:9,color:C.muted}}>{i.l}</span></div>
+            ))}
           </div>
         </div>
 
-        {/* ── RECOVERY STATE BARS ── */}
-        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:14}}>
-          <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Estado de Recuperação</div>
-          {recoveryMuscles.map(m=>(
-            <div key={m.g} style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
-              <div style={{fontSize:11,color:C.sub,width:72,flexShrink:0}}>{m.g}</div>
-              <div style={{flex:1,height:6,background:C.card,borderRadius:3,overflow:"hidden"}}>
-                <div style={{height:"100%",width:m.pct+"%",background:m.color,borderRadius:3}}/>
-              </div>
-              <div style={{fontSize:11,fontWeight:700,color:m.color,width:34,textAlign:"right"}}>{m.pct===100?"✓":m.pct+"%"}</div>
-              {m.lastDays!=null&&<div style={{fontSize:9,color:C.muted,width:36,textAlign:"right"}}>há {m.lastDays}d</div>}
-            </div>
-          ))}
-          <div style={{marginTop:8,paddingTop:8,borderTop:"1px solid "+C.border,fontSize:9,color:C.muted,lineHeight:1.8}}>Core 36h · Ombros/Braços 48h · Peito 60h · Costas/Glúteos 72h · Pernas 96h</div>
-        </div>
-
-        {/* ── PESO ── */}
-        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"18px 18px 14px",marginBottom:14}}>
-          <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:10}}>
-            <div>
-              <div style={{fontSize:11,color:C.sub,fontWeight:700,letterSpacing:1,marginBottom:2}}>PESO ATUAL</div>
-              <div style={{display:"flex",alignItems:"baseline",gap:5}}>
-                <span style={{fontSize:36,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{currentWeight}</span>
-                <span style={{fontSize:14,color:C.sub}}>kg</span>
-              </div>
-            </div>
-            <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:7}}>
-              <div style={{background:C.coral+"22",border:"1px solid "+C.coral+"55",borderRadius:8,padding:"4px 10px",fontSize:11,fontWeight:800,color:C.coral,letterSpacing:1}}>✂ CUTTING</div>
-              <button onClick={()=>{setGoalDraft(String(weightGoal));setEditingGoal(true);}} style={{fontSize:11,color:C.blueXL,fontWeight:600,background:"none",border:"none",cursor:"pointer",padding:0}}>Meta: {weightGoal} kg ✎</button>
-              <button onClick={()=>{setWeightDraft("");setShowAddWeight(true);}} style={{fontSize:11,fontWeight:700,color:"#fff",background:C.blueXL,border:"none",borderRadius:8,padding:"5px 10px",cursor:"pointer"}}>+ Atualizar Peso</button>
-            </div>
-          </div>
-          <div style={{marginBottom:12}}>
-            <LineChart data={weightChartData} color={C.mint} height={72}/>
-          </div>
-          <div>
-            <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
-              <span style={{fontSize:10,color:C.sub}}>Início {startWeight} kg</span>
-              <span style={{fontSize:10,color:C.mint,fontWeight:700}}>Meta {weightGoal} kg</span>
-            </div>
-            <div style={{background:C.surface,borderRadius:6,height:8,overflow:"hidden",marginBottom:4}}>
-              <div style={{width:weightPct+"%",height:"100%",background:"linear-gradient(90deg,"+C.blueXL+","+C.mint+")",borderRadius:6,transition:"width 0.6s ease"}}/>
-            </div>
-            <div style={{display:"flex",justifyContent:"space-between"}}>
-              <span style={{fontSize:10,color:C.sub}}>Perdeu {(startWeight-currentWeight).toFixed(1)} kg</span>
-              <span style={{fontSize:10,color:C.amber,fontWeight:700}}>{weightPct}% do objetivo</span>
-            </div>
-          </div>
-        </div>
-
-        {/* ── VOLUME SPIDER ── */}
-        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"18px 18px 14px",marginBottom:14}}>
-          <div style={{fontSize:13,fontWeight:800,color:C.text,marginBottom:2}}>Volume por Músculo</div>
-          <div style={{fontSize:10,color:C.sub,marginBottom:14}}>Últimos 7 dias — tonelagem total (kg)</div>
-          <VolumeSpiderChart volumeByGroup={volumeByGroup} size={240}/>
-          {Object.keys(volumeByGroup).length===0&&(
-            <div style={{textAlign:"center",color:C.muted,fontSize:11,marginTop:8}}>Nenhum treino nos últimos 7 dias</div>
-          )}
-        </div>
-
-        {/* ── MEDIDAS ── */}
-        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"18px 18px 14px",marginBottom:14}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
-            <div>
-              <div style={{fontSize:13,fontWeight:800,color:C.text}}>Medidas Corporais</div>
-              <div style={{fontSize:10,color:C.sub}}>Evolução ao longo do tempo</div>
-            </div>
-            <button onClick={()=>{setMeasureDraft({...measures});setShowAddMeasure(true);}} style={{background:C.blueM,border:"1px solid "+C.blueL,borderRadius:10,padding:"6px 12px",fontSize:12,fontWeight:700,color:C.text,cursor:"pointer"}}>Atualizar</button>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
-            {MEASURE_FIELDS.map(f=>(
-              <div key={f} style={{background:C.surface,borderRadius:10,padding:"8px 10px"}}>
-                <div style={{fontSize:9,color:C.sub,fontWeight:600,marginBottom:2,letterSpacing:0.5}}>{f.toUpperCase()}</div>
-                <div style={{fontSize:16,fontWeight:800,color:measures[f]?C.text:C.muted}}>{measures[f]||"—"}{measures[f]&&<span style={{fontSize:9,color:C.sub,fontWeight:400,marginLeft:2}}>cm</span>}</div>
+        {/* ── 4. MAPA MUSCULAR ── */}
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:12}}>
+          <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Mapa Muscular</div>
+          <BodyDiagram muscleHeat={muscleHeat} width={Math.min(300,window.innerWidth-64)} savedCount={savedCount}/>
+          <div style={{display:"flex",justifyContent:"center",gap:12,marginTop:8,flexWrap:"wrap"}}>
+            {[{c:"#3B82F6",o:1,l:"Fatigado"},{c:"#3B82F6",o:0.55,l:"Recuperando"},{c:"#3B82F6",o:0.25,l:"Quase pronto"},{c:C.muted,o:1,l:"Descansado"}].map(item=>(
+              <div key={item.l} style={{display:"flex",alignItems:"center",gap:4}}>
+                <div style={{width:7,height:7,borderRadius:"50%",background:item.c,opacity:item.o}}/>
+                <span style={{fontSize:9,color:C.muted}}>{item.l}</span>
               </div>
             ))}
           </div>
-          {measureHistory.length>0&&(
-            <>
-              <div style={{fontSize:10,color:C.sub,fontWeight:700,letterSpacing:1,marginBottom:8}}>EVOLUÇÃO</div>
-              <div style={{display:"flex",gap:5,overflowX:"auto",marginBottom:10,paddingBottom:2}}>
-                {MEASURE_FIELDS.map(f=>(
-                  <button key={f} onClick={()=>setSelMeasure(f)} style={{flexShrink:0,padding:"4px 10px",borderRadius:8,fontSize:10,fontWeight:700,background:selMeasure===f?C.blueM:C.surface,border:"1px solid "+(selMeasure===f?C.blueL:C.border),color:selMeasure===f?C.text:C.sub,cursor:"pointer"}}>{f}</button>
-                ))}
-              </div>
-              {selMeasureChart.length>1?(
-                <LineChart data={selMeasureChart} color={C.blueXL} height={70}/>
-              ):(
-                <div style={{textAlign:"center",color:C.muted,fontSize:11,padding:"14px 0"}}>Registre mais medições para ver o gráfico</div>
-              )}
-            </>
-          )}
-          {measureHistory.length===0&&(
-            <div style={{textAlign:"center",color:C.muted,fontSize:11,padding:"10px 0"}}>Nenhuma medida ainda. Clique em Atualizar para começar!</div>
-          )}
         </div>
+
+        {/* ── 5. MEDIDAS ── */}
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:12}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
+            <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em"}}>Medidas Corporais</div>
+            <button onClick={()=>{setMeasureDraft(measures);setShowAddMeasure(true);}} style={{background:C.blueXL,border:"none",borderRadius:10,padding:"7px 14px",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer"}}>Atualizar</button>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:14}}>
+            {MEASURE_FIELDS.map(f=>(
+              <div key={f} style={{background:C.surface,borderRadius:12,padding:"10px 10px"}}>
+                <div style={{fontSize:9,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:4}}>{f}</div>
+                <div style={{fontSize:18,fontWeight:900,color:measures[f]?C.text:C.muted}}>{measures[f]||"—"}<span style={{fontSize:10,color:C.muted,marginLeft:2}}>{measures[f]?"cm":""}</span></div>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
 
-      {/* GOAL MODAL */}
-      {editingGoal&&(
-        <div style={{position:"fixed",inset:0,zIndex:900,background:"rgba(0,0,0,0.75)",backdropFilter:"blur(8px)",display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
-          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:24,width:"100%",maxWidth:320}}>
-            <div style={{fontSize:15,fontWeight:800,color:C.text,marginBottom:16}}>Meta de Peso</div>
-            <div style={{fontSize:11,color:C.sub,fontWeight:600,marginBottom:6}}>META (kg)</div>
-            <input value={goalDraft} onChange={e=>setGoalDraft(e.target.value)} type="number" step="0.1" style={{width:"100%",boxSizing:"border-box",background:C.surface,border:"1px solid "+C.blueL,borderRadius:10,padding:"10px 12px",fontSize:20,fontWeight:800,color:C.text,outline:"none",marginBottom:18}}/>
+      {/* ── MODALS ── */}
+      {showAddWeight&&(
+        <div style={{position:"fixed",inset:0,zIndex:900,background:"rgba(0,0,0,0.75)",backdropFilter:"blur(8px)",display:"flex",alignItems:"flex-end"}}>
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:"20px 20px 0 0",padding:"24px 20px calc(40px + env(safe-area-inset-bottom,0px))",width:"100%"}}>
+            <div style={{fontSize:16,fontWeight:800,color:C.text,marginBottom:16}}>Atualizar Peso</div>
+            <input type="number" step="0.1" placeholder="Ex: 78.5" value={weightDraft} onChange={e=>setWeightDraft(e.target.value)} style={{width:"100%",boxSizing:"border-box",background:C.surface,border:"1px solid "+C.border,borderRadius:12,padding:"14px 16px",fontSize:24,fontWeight:900,color:C.text,outline:"none",textAlign:"center",marginBottom:16}} autoFocus/>
             <div style={{display:"flex",gap:10}}>
-              <button onClick={()=>setEditingGoal(false)} style={{flex:1,padding:"12px",borderRadius:12,background:C.surface,border:"1px solid "+C.border,color:C.sub,fontWeight:700,cursor:"pointer",fontSize:13}}>Cancelar</button>
-              <button onClick={saveGoal} style={{flex:1,padding:"12px",borderRadius:12,background:C.blueM,border:"1px solid "+C.blueL,color:C.text,fontWeight:800,cursor:"pointer",fontSize:13}}>Salvar</button>
+              <button onClick={()=>setShowAddWeight(false)} style={{flex:1,padding:"13px",borderRadius:12,background:C.surface,border:"1px solid "+C.border,color:C.sub,fontWeight:700,cursor:"pointer"}}>Cancelar</button>
+              <button onClick={async()=>{const v=parseFloat(weightDraft);if(!isNaN(v)&&v>0){await saveWeight(v);refreshDerivedData();setShowAddWeight(false);}}} style={{flex:1,padding:"13px",borderRadius:12,background:C.blueXL,border:"none",color:"#fff",fontWeight:800,cursor:"pointer"}}>Salvar</button>
             </div>
           </div>
         </div>
       )}
-
-      {/* MEASURE MODAL */}
+      {editingGoal&&(
+        <div style={{position:"fixed",inset:0,zIndex:900,background:"rgba(0,0,0,0.75)",backdropFilter:"blur(8px)",display:"flex",alignItems:"flex-end"}}>
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:"20px 20px 0 0",padding:"24px 20px calc(40px + env(safe-area-inset-bottom,0px))",width:"100%"}}>
+            <div style={{fontSize:16,fontWeight:800,color:C.text,marginBottom:16}}>Meta de Peso</div>
+            <input type="number" step="0.1" placeholder="Ex: 74" value={goalDraft} onChange={e=>setGoalDraft(e.target.value)} style={{width:"100%",boxSizing:"border-box",background:C.surface,border:"1px solid "+C.border,borderRadius:12,padding:"14px 16px",fontSize:24,fontWeight:900,color:C.text,outline:"none",textAlign:"center",marginBottom:16}} autoFocus/>
+            <div style={{display:"flex",gap:10}}>
+              <button onClick={()=>setEditingGoal(false)} style={{flex:1,padding:"13px",borderRadius:12,background:C.surface,border:"1px solid "+C.border,color:C.sub,fontWeight:700,cursor:"pointer"}}>Cancelar</button>
+              <button onClick={saveGoal} style={{flex:1,padding:"13px",borderRadius:12,background:C.blueXL,border:"none",color:"#fff",fontWeight:800,cursor:"pointer"}}>Salvar</button>
+            </div>
+          </div>
+        </div>
+      )}
       {showAddMeasure&&(
-        <div style={{position:"fixed",inset:0,zIndex:900,background:"rgba(0,0,0,0.75)",backdropFilter:"blur(8px)",display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
-          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:"20px 20px 0 0",padding:"24px 24px calc(40px + env(safe-area-inset-bottom,0px))",width:"100%",maxWidth:500}}>
-            <div style={{fontSize:15,fontWeight:800,color:C.text,marginBottom:4}}>Atualizar Medidas</div>
-            <div style={{fontSize:11,color:C.sub,marginBottom:20}}>Deixe em branco para manter o valor atual</div>
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:20}}>
+        <div style={{position:"fixed",inset:0,zIndex:900,background:"rgba(0,0,0,0.75)",backdropFilter:"blur(8px)",display:"flex",alignItems:"flex-end"}}>
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:"20px 20px 0 0",padding:"24px 20px calc(40px + env(safe-area-inset-bottom,0px))",width:"100%"}}>
+            <div style={{fontSize:16,fontWeight:800,color:C.text,marginBottom:4}}>Atualizar Medidas</div>
+            <div style={{fontSize:11,color:C.muted,marginBottom:14}}>Deixe em branco para não alterar</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:16}}>
               {MEASURE_FIELDS.map(f=>(
                 <div key={f}>
-                  <div style={{fontSize:10,color:C.sub,fontWeight:600,marginBottom:4}}>{f.toUpperCase()} (cm)</div>
-                  <input value={measureDraft[f]||""} onChange={e=>setMeasureDraft(d=>({...d,[f]:e.target.value}))} type="number" step="0.1" placeholder={measures[f]||"0.0"} style={{width:"100%",boxSizing:"border-box",background:C.surface,border:"1px solid "+C.border,borderRadius:10,padding:"10px 12px",fontSize:16,fontWeight:700,color:C.text,outline:"none"}}/>
+                  <div style={{fontSize:10,color:C.muted,fontWeight:600,marginBottom:4}}>{f.toUpperCase()} (cm)</div>
+                  <input value={measureDraft[f]||""} onChange={e=>setMeasureDraft(d=>({...d,[f]:e.target.value}))} type="number" step="0.1" placeholder="—" style={{width:"100%",boxSizing:"border-box",background:C.surface,border:"1px solid "+C.border,borderRadius:10,padding:"10px 12px",fontSize:16,fontWeight:700,color:C.text,outline:"none"}}/>
                 </div>
               ))}
             </div>
             <div style={{display:"flex",gap:10}}>
-              <button onClick={()=>setShowAddMeasure(false)} style={{flex:1,padding:"13px",borderRadius:12,background:C.surface,border:"1px solid "+C.border,color:C.sub,fontWeight:700,cursor:"pointer",fontSize:13}}>Cancelar</button>
-              <button onClick={saveMeasures} style={{flex:1,padding:"13px",borderRadius:12,background:C.blueM,border:"1px solid "+C.blueL,color:C.text,fontWeight:800,cursor:"pointer",fontSize:13}}>Salvar</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* WEIGHT MODAL */}
-      {showAddWeight&&(
-        <div style={{position:"fixed",inset:0,zIndex:900,background:"rgba(0,0,0,0.75)",backdropFilter:"blur(8px)",display:"flex",alignItems:"flex-end",justifyContent:"center"}}>
-          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:"20px 20px 0 0",padding:"24px 24px calc(40px + env(safe-area-inset-bottom,0px))",width:"100%",maxWidth:500}}>
-            <div style={{fontSize:15,fontWeight:800,color:C.text,marginBottom:4}}>Atualizar Peso</div>
-            <div style={{fontSize:11,color:C.sub,marginBottom:20}}>Peso atual: {currentWeight} kg</div>
-            <div style={{marginBottom:20}}>
-              <div style={{fontSize:10,color:C.sub,fontWeight:600,marginBottom:6}}>NOVO PESO (kg)</div>
-              <input
-                autoFocus
-                value={weightDraft}
-                onChange={e=>setWeightDraft(e.target.value)}
-                type="number"
-                step="0.1"
-                placeholder={String(currentWeight)}
-                style={{width:"100%",boxSizing:"border-box",background:C.surface,border:"1px solid "+C.border,borderRadius:10,padding:"14px 16px",fontSize:24,fontWeight:800,color:C.text,outline:"none",textAlign:"center"}}
-              />
-            </div>
-            <div style={{display:"flex",gap:10}}>
-              <button onClick={()=>setShowAddWeight(false)} style={{flex:1,padding:"13px",borderRadius:12,background:C.surface,border:"1px solid "+C.border,color:C.sub,fontWeight:700,cursor:"pointer",fontSize:13}}>Cancelar</button>
-              <button onClick={()=>{
-                const v=parseFloat(weightDraft);
-                if(!isNaN(v)&&v>0){
-                  const today=new Date().toISOString().slice(0,10);
-                  const newH=[...(loadMeasureHistory()||[]).filter(h=>h.date!==today),{date:today,Peso:v}].sort((a,b)=>a.date.localeCompare(b.date));
-                  saveMeasureHistory(newH);
-                  setMeasureHistory(newH);
-                }
-                setShowAddWeight(false);
-              }} style={{flex:1,padding:"13px",borderRadius:12,background:C.grad,border:"none",color:"#fff",fontWeight:800,cursor:"pointer",fontSize:13}}>Salvar</button>
+              <button onClick={()=>setShowAddMeasure(false)} style={{flex:1,padding:"13px",borderRadius:12,background:C.surface,border:"1px solid "+C.border,color:C.sub,fontWeight:700,cursor:"pointer"}}>Cancelar</button>
+              <button onClick={saveMeasures} style={{flex:1,padding:"13px",borderRadius:12,background:C.blueXL,border:"none",color:"#fff",fontWeight:800,cursor:"pointer"}}>Salvar</button>
             </div>
           </div>
         </div>
       )}
 
       <BottomNav active="corpo" onNavigate={onNavigate}/>
-    </div>
-  );
-}
-
-// ══════════════════════════════════════════════════════════════
-// COACH SCREEN — AI chat with personal trainer
-// ══════════════════════════════════════════════════════════════
-function CoachScreen({onNavigate}){
-  const[messages,setMessages]=useState([{role:"assistant",content:"Olá! Sou o Coach Carbon, seu personal trainer com IA. Posso analisar seus treinos, sugerir exercícios e te ajudar a atingir seus objetivos. Como posso te ajudar hoje?"}]);
-  const[input,setInput]=useState("");
-  const[loading,setLoading]=useState(false);
-  const scrollRef=useRef(null);
-
-  useEffect(()=>{
-    if(scrollRef.current) scrollRef.current.scrollTop=scrollRef.current.scrollHeight;
-  },[messages,loading]);
-
-  function buildSystemPrompt(){
-    const sessions=getAllSessions().slice(0,6);
-    const w=W_DATA[W_DATA.length-1];
-    const ctx=sessions.length>0
-      ?sessions.map(s=>`• ${s.date}: ${s.plan?.name||"Treino"} — ${(s.exercises||[]).length} exercícios, ${Math.round((s.duration||0))}min`).join("\n")
-      :"Nenhum treino registrado ainda.";
-    const prs=USER.prs.map(p=>`${p.name}: ${p.val}kg`).join(", ");
-    return `Você é o Coach Carbon, personal trainer e nutricionista virtual especializado em musculação e emagrecimento. Conhece o atleta:
-
-**Atleta:** ${USER.name}, ${w}kg (meta: 74kg, fase de cutting)
-**PRs:** ${prs}
-**Sequência atual:** ${USER.streak} dias | ${getWeekStats().count}/${USER.weekGoal} treinos esta semana
-
-**Histórico recente:**
-${ctx}
-
-**Instruções:**
-- Responda sempre em português brasileiro
-- Seja direto, motivador e use os dados reais do atleta quando relevante
-- Sugira ajustes baseados no histórico e nos PRs
-- Máximo 3 parágrafos por resposta, a menos que o usuário peça mais detalhes
-- Use formatação simples, sem markdown excessivo`;
-  }
-
-  async function send(){
-    const text=input.trim();
-    if(!text||loading) return;
-    const newMsgs=[...messages,{role:"user",content:text}];
-    setMessages(newMsgs);
-    setInput("");
-    setLoading(true);
-    try{
-      const{data,error}=await supabase.functions.invoke("anthropic-proxy",{
-        body:{
-          model:"claude-sonnet-4-6",
-          max_tokens:1000,
-          system:buildSystemPrompt(),
-          messages:newMsgs.map(m=>({role:m.role,content:m.content}))
-        }
-      });
-      if(error) throw error;
-      const txt = data?.content?.find(b=>b.type==="text")?.text;
-      if(!txt) throw new Error(JSON.stringify(data).slice(0,200));
-      setMessages(m=>[...m,{role:"assistant",content:txt}]);
-    }catch(e){
-      let msg = e.message || String(e);
-      try {
-        if (e.context?.json) {
-          const body = await e.context.json();
-          // Anthropic errors come as { type, error: { type, message } }
-          const inner = body?.error;
-          msg = (typeof inner === "string" ? inner : inner?.message) || body?.message || JSON.stringify(body);
-        }
-      } catch {}
-      setMessages(m=>[...m,{role:"assistant",content:"❌ Erro: "+msg}]);
-    }finally{setLoading(false);}
-  }
-
-  const chips=["Qual músculo treinar hoje?","Dicas para cortar gordura","Monte um treino de costas","Como melhorar meu Supino?","Analise minha semana de treinos"];
-  const showChips=messages.length===1&&!loading;
-
-  return(
-    <div style={{display:"flex",flexDirection:"column",height:"100dvh",paddingTop:52,background:"#080A0E"}}>
-      <style>{`@keyframes fgpulse{0%,100%{opacity:0.3;transform:scale(0.75)}50%{opacity:1;transform:scale(1)}}`}</style>
-
-      {/* Header */}
-      <div style={{flexShrink:0,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",padding:"14px 20px 14px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-        <div>
-          <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>AI Coach</div>
-          <div style={{fontSize:10,fontWeight:600,color:C.blueXL,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Powered by Claude</div>
-        </div>
-      </div>
-
-      {/* Messages area */}
-      <div ref={scrollRef} style={{flex:1,overflowY:"auto",padding:"16px 16px 8px",display:"flex",flexDirection:"column",gap:12}}>
-        {messages.map((m,i)=>(
-          <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",alignItems:"flex-end",gap:8}}>
-            {m.role==="assistant"&&(
-              <div style={{width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#1E40AF,#3B82F6)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginBottom:2}}>
-                <svg width="13" height="13" viewBox="0 0 48 48" fill="none"><polygon points="24,3 41,13 41,35 24,45 7,35 7,13" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><polygon points="24,3 41,13 24,20 7,13" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round" opacity=".5"/></svg>
-              </div>
-            )}
-            <div style={{maxWidth:"78%",background:m.role==="user"?"linear-gradient(135deg,#2563EB,#1D4ED8)":"rgba(255,255,255,0.06)",border:m.role==="user"?"none":"1px solid rgba(255,255,255,0.08)",borderRadius:m.role==="user"?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"10px 14px",fontSize:13,lineHeight:1.6,color:m.role==="user"?"#fff":C.text,whiteSpace:"pre-wrap",wordBreak:"break-word"}}>
-              {m.content}
-            </div>
-          </div>
-        ))}
-        {loading&&(
-          <div style={{display:"flex",alignItems:"flex-end",gap:8}}>
-            <div style={{width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#1E40AF,#3B82F6)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-              <svg width="13" height="13" viewBox="0 0 48 48" fill="none"><polygon points="24,3 41,13 41,35 24,45 7,35 7,13" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/></svg>
-            </div>
-            <div style={{background:"rgba(255,255,255,0.06)",border:"1px solid "+C.border,borderRadius:"18px 18px 18px 4px",padding:"12px 16px",display:"flex",gap:5,alignItems:"center"}}>
-              {[0,1,2].map(j=>(<div key={j} style={{width:7,height:7,borderRadius:"50%",background:C.blueXL,animationName:"fgpulse",animationDuration:"1.2s",animationTimingFunction:"ease-in-out",animationIterationCount:"infinite",animationDelay:`${j*0.18}s`}}/>))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Suggestion chips */}
-      {showChips&&(
-        <div style={{flexShrink:0,padding:"0 16px 10px",display:"flex",gap:8,overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
-          {chips.map(c=>(
-            <button key={c} onClick={()=>setInput(c)} style={{flexShrink:0,background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.22)",borderRadius:20,padding:"7px 13px",fontSize:11,fontWeight:600,color:C.blueXL,cursor:"pointer",whiteSpace:"nowrap"}}>{c}</button>
-          ))}
-        </div>
-      )}
-
-      {/* Input area */}
-      <div style={{flexShrink:0,padding:"8px 12px",paddingBottom:"calc(92px + env(safe-area-inset-bottom,0px))",background:"rgba(10,15,30,0.85)",backdropFilter:"blur(20px)",borderTop:"1px solid rgba(255,255,255,0.06)",display:"flex",gap:8,alignItems:"flex-end"}}>
-        <textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}} placeholder="Pergunte ao seu coach..." rows={1} style={{flex:1,background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:14,padding:"11px 14px",fontSize:16,color:C.text,outline:"none",resize:"none",fontFamily:"inherit",lineHeight:1.45,maxHeight:100,overflowY:"auto"}}/>
-        <button onClick={send} disabled={!input.trim()||loading} style={{width:42,height:42,borderRadius:13,background:input.trim()&&!loading?"linear-gradient(135deg,#3B82F6,#2563EB)":"rgba(255,255,255,0.06)",border:"none",cursor:input.trim()&&!loading?"pointer":"default",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,transition:"background 0.2s",opacity:input.trim()&&!loading?1:0.4}}>↑</button>
-      </div>
-
-      <BottomNav active="coach" onNavigate={onNavigate}/>
     </div>
   );
 }
