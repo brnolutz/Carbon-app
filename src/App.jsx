@@ -2196,7 +2196,7 @@ function RestTimer({seconds,onDone,onSkip}){
 
   useEffect(()=>{
     localStorage.setItem(endTsKey,Date.now()+seconds*1000);
-    return()=>localStorage.removeItem(endTsKey);
+    // Não remove ao desmontar — preserva o endTs para restaurar ao voltar
   },[]);// eslint-disable-line
 
   const calcLeft=()=>{
@@ -2847,8 +2847,14 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
                   <div style={{display:"flex",alignItems:"center",gap:6,flex:1,minWidth:0}}>
                     <div style={{width:6,height:6,borderRadius:"50%",background:GC[exItem.group]||C.blueL,flexShrink:0}}/>
                     <button onClick={()=>{
-                      // Salva timer antes de navegar
-                      if(restTimer) localStorage.setItem("carbon_rest_end_ts", Date.now()+(restTimer.seconds||0)*1000);
+                      // Persiste timer antes de sair da tela
+                      const tsKey="carbon_rest_end_ts";
+                      const existing=parseInt(localStorage.getItem(tsKey)||"0");
+                      const leftExisting=Math.round((existing-Date.now())/1000);
+                      // Se não há endTs válido mas há restTimer em state, salva agora
+                      if(leftExisting<=0&&restTimer){
+                        localStorage.setItem(tsKey, Date.now()+restTimer.seconds*1000);
+                      }
                       onNavigate("exercicio",{name:exItem.name});
                     }} style={{fontSize:13,fontWeight:800,color:allDone?C.mint:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",background:"none",border:"none",padding:0,cursor:"pointer",textAlign:"left"}}>{exItem.name}</button>
                     {allDone&&<span style={{color:C.mint,fontSize:10,flexShrink:0}}>✓</span>}
@@ -2918,7 +2924,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
       </div>
 
       {rpeModal&&<RPEModal onSelect={handleRpeSelect} onSkip={()=>{setRpeModal(null);}}/>}
-      {restTimer&&<RestTimer key={restTimer.key||restTimer.seconds} seconds={restTimer.seconds} onDone={()=>setRestTimer(null)} onSkip={()=>setRestTimer(null)}/>}
+      {restTimer&&<RestTimer key={restTimer.key||restTimer.seconds} seconds={restTimer.seconds} onDone={()=>{localStorage.removeItem("carbon_rest_end_ts");setRestTimer(null);}} onSkip={()=>{localStorage.removeItem("carbon_rest_end_ts");setRestTimer(null);}}/>}
       {restPickerEi!=null&&<RestTimePickerModal initial={exercises[restPickerEi].rest} onClose={()=>setRestPickerEi(null)} onSelect={(val)=>{setExercises(prev=>prev.map((e,i)=>i!==restPickerEi?e:{...e,rest:val}));setRestPickerEi(null);}}/>}
       <PRToast pr={prToast}/>
       {showGallery&&<ExerciseGallery onAdd={addExercise} onClose={()=>setShowGallery(false)}/>}
@@ -3034,7 +3040,7 @@ const EXERCISE_IDS = {
   "Puxada Alta na Polia (Máquina)":                      "0019",
   "Levantamento Terra Romeno (Barra)":                    "0038",
   "Desenvolvimento (Halter)":                             "0323",
-  "Elevação Lateral (Halter)":                            "0330",
+  "Elevação Lateral (Halter)":                            "0328",
   "Elevação Lateral Unilateral (Cabo)":                   "0620",
   "Aberturas Invertidas De Ombro Posterior (Na Máquina)": "0291",
   "Agachamento (Barra)":                                  "0047",
