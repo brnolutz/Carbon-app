@@ -4524,10 +4524,20 @@ function MedicoesScreen({onNavigate}){
   const px=(i)=>chartPts.length>1?i*(W-LPAD-PAD)/(chartPts.length-1)+LPAD:W/2;
   const py=(v)=>H-PAD*2-((v-minY)/(maxY-minY||1))*(H-PAD*3);
   const last=chartPts[chartPts.length-1];
-  const prev=chartPts[chartPts.length-2];
-  const delta=prev&&prev.v>0?+(last?.v-prev.v).toFixed(2):null;
   const unit=sel==="Peso"?"kg":"cm";
-  // Quais pontos mostrar rótulo (não mostrar todos se muitos)
+
+  // Comparativo: média do período atual vs média do período anterior
+  const now=new Date();
+  const dayMs=86400000;
+  const periodDays={"1m":30,"3m":91,"1a":365,"all":9999}[range]||91;
+  const cutoff=new Date(now-periodDays*dayMs).toISOString().slice(0,10);
+  const prevCutoff=new Date(now-periodDays*2*dayMs).toISOString().slice(0,10);
+  const periodPts=fieldData.filter(d=>d.date>=cutoff);
+  const prevPts=fieldData.filter(d=>d.date>=prevCutoff&&d.date<cutoff);
+  const avg=(arr)=>arr.length>0?arr.reduce((a,d)=>a+d.v,0)/arr.length:null;
+  const periodAvg=avg(periodPts);
+  const prevAvg=avg(prevPts);
+  const delta=periodAvg!=null&&prevAvg!=null?+(periodAvg-prevAvg).toFixed(2):null;
   const showLabel=(i)=>chartPts.length<=6||i===0||i===chartPts.length-1||i===Math.floor(chartPts.length/2);
 
   async function saveEntry(){
