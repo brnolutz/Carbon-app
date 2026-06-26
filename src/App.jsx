@@ -1820,6 +1820,60 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
 }
 
 // ── Routine Screen — shown when tapping a plan card ──
+function ExEditCard({ex,i,gc,draft,setDraft,setShowExGallery,totalEx}){
+  const[showMenu,setShowMenu]=useState(false);
+  return(
+    <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,marginBottom:10,overflow:"hidden"}}>
+      <div style={{display:"flex",alignItems:"center",padding:"12px 14px",borderBottom:"1px solid "+C.border,gap:10}}>
+        <div style={{color:C.muted,fontSize:18,flexShrink:0}}>⠿</div>
+        <div style={{flex:1}}>
+          <div style={{fontSize:14,fontWeight:700,color:gc}}>{ex.name}</div>
+          <div style={{fontSize:11,color:C.muted}}>Descanso: {ex.rest>=60?Math.floor(ex.rest/60)+"min"+(ex.rest%60>0?" "+ex.rest%60+"s":""):ex.rest+"s"}</div>
+        </div>
+        <button onClick={()=>setShowMenu(true)} style={{background:"none",border:"none",color:C.sub,fontSize:20,cursor:"pointer",padding:"0 4px",lineHeight:1}}>⋯</button>
+      </div>
+      <div style={{padding:"10px 14px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"28px 1fr 1fr 1fr",gap:6,marginBottom:6}}>
+          {["#","KG","REPS","DESC(min)"].map(h=><div key={h} style={{fontSize:8,fontWeight:700,color:C.muted,letterSpacing:"0.06em",textAlign:"center"}}>{h}</div>)}
+        </div>
+        {(ex.sets||[]).map((s,si)=>(
+          <div key={si} style={{display:"grid",gridTemplateColumns:"28px 1fr 1fr 1fr",gap:6,marginBottom:4,alignItems:"center"}}>
+            <div style={{fontSize:11,fontWeight:700,color:C.muted,textAlign:"center"}}>{si+1}</div>
+            <input type="number" value={s.w||0} min="0" step="0.5"
+              onChange={e=>{const w=parseFloat(e.target.value)||0;setDraft(d=>({...d,exercises:d.exercises.map((ee,ii)=>ii!==i?ee:{...ee,sets:ee.sets.map((ss,ssi)=>ssi!==si?ss:{...ss,w})})}));}}
+              style={{background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"6px 4px",fontSize:13,color:C.text,outline:"none",textAlign:"center",width:"100%",boxSizing:"border-box"}}/>
+            <input type="number" value={s.r||0} min="1"
+              onChange={e=>{const r=parseInt(e.target.value)||1;setDraft(d=>({...d,exercises:d.exercises.map((ee,ii)=>ii!==i?ee:{...ee,sets:ee.sets.map((ss,ssi)=>ssi!==si?ss:{...ss,r})})}));}}
+              style={{background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"6px 4px",fontSize:13,color:C.text,outline:"none",textAlign:"center",width:"100%",boxSizing:"border-box"}}/>
+            <input type="number" value={Math.round((ex.rest||90)/60)} min="0" max="10"
+              onChange={e=>{const min=parseInt(e.target.value)||0;setDraft(d=>({...d,exercises:d.exercises.map((ee,ii)=>ii!==i?ee:{...ee,rest:min*60})}));}}
+              style={{background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"6px 4px",fontSize:13,color:C.text,outline:"none",textAlign:"center",width:"100%",boxSizing:"border-box"}}/>
+          </div>
+        ))}
+        <button onClick={()=>setDraft(d=>({...d,exercises:d.exercises.map((ee,ii)=>ii!==i?ee:{...ee,sets:[...(ee.sets||[]),{w:ex.sets?.[ex.sets.length-1]?.w||0,r:ex.sets?.[ex.sets.length-1]?.r||8}]})}))}
+          style={{width:"100%",padding:"7px",marginTop:4,background:"transparent",border:"1px dashed "+C.border,borderRadius:8,color:C.muted,fontSize:12,cursor:"pointer"}}>+ Adicionar Série</button>
+      </div>
+      {showMenu&&(
+        <div style={{position:"fixed",inset:0,zIndex:10002,background:"rgba(0,0,0,0.6)"}} onClick={()=>setShowMenu(false)}>
+          <div onClick={e=>e.stopPropagation()} style={{position:"absolute",bottom:0,left:0,right:0,background:C.card,borderRadius:"20px 20px 0 0",padding:"20px 0 40px"}}>
+            <div style={{width:36,height:4,borderRadius:2,background:C.border,margin:"0 auto 16px"}}/>
+            {[
+              {icon:"↑",label:"Mover para cima",disabled:i===0,action:()=>setDraft(d=>{const exs=[...d.exercises];[exs[i-1],exs[i]]=[exs[i],exs[i-1]];return{...d,exercises:exs};})},
+              {icon:"↓",label:"Mover para baixo",disabled:i===totalEx-1,action:()=>setDraft(d=>{const exs=[...d.exercises];[exs[i],exs[i+1]]=[exs[i+1],exs[i]];return{...d,exercises:exs};})},
+              {icon:"✕",label:"Remover Exercício",color:C.coral,action:()=>setDraft(d=>({...d,exercises:d.exercises.filter((_,ii)=>ii!==i)}))},
+            ].map(item=>(
+              <button key={item.label} disabled={item.disabled} onClick={()=>{if(!item.disabled){item.action();setShowMenu(false);}}} style={{width:"100%",padding:"16px 24px",background:"none",border:"none",cursor:item.disabled?"default":"pointer",display:"flex",alignItems:"center",gap:16,opacity:item.disabled?0.3:1}}>
+                <span style={{width:24,fontSize:16,color:item.color||C.sub,textAlign:"center"}}>{item.icon}</span>
+                <span style={{fontSize:15,color:item.color||C.text}}>{item.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
   const[chartMode,setChartMode]=useState("vol");
   const[chartRange,setChartRange]=useState("3m");
@@ -1877,58 +1931,31 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
     setShowMenu(false);
   }
 
-  // VIEW MODE — render selEx as overlay, not conditional return (hooks rule)
+  // EDIT MODE
   if(editing){
     return(
-      <div style={{position:"fixed",inset:0,zIndex:9999,background:"#080A0E",overflowY:"auto",paddingTop:52}}>
-        <style>{`body.editing-routine .carbon-global-header{display:none}`}</style>
-        <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"14px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <button onClick={()=>isNew?onClose():setEditing(false)} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-          <div style={{fontSize:15,fontWeight:700,color:C.text}}>{isNew?"Nova Rotina":"Editar Rotina"}</div>
-          <button onClick={handleSave} disabled={saving} style={{padding:"7px 14px",borderRadius:99,background:C.blueXL,border:"none",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",opacity:saving?0.6:1}}>{saving?"Salvando...":"Salvar"}</button>
+      <div style={{position:"fixed",inset:0,zIndex:9999,background:"#080A0E",display:"flex",flexDirection:"column"}}>
+        <div style={{flexShrink:0,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"14px 16px",paddingTop:"calc(14px + env(safe-area-inset-top,0px))"}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+            <button onClick={()=>isNew?onClose():setEditing(false)} style={{fontSize:13,fontWeight:600,color:C.sub,background:"none",border:"none",cursor:"pointer"}}>Cancelar</button>
+            <div style={{fontSize:15,fontWeight:700,color:C.text}}>{isNew?"Nova Rotina":"Editar Rotina"}</div>
+            <button onClick={handleSave} disabled={saving} style={{padding:"7px 16px",borderRadius:99,background:C.blueXL,border:"none",color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",opacity:saving?0.6:1}}>{saving?"Salvando...":"Atualizar"}</button>
+          </div>
         </div>
-        <div style={{padding:"20px 16px 120px"}}>
-          {/* Name */}
-          <div style={{marginBottom:16}}>
-            <div style={{fontSize:10,color:C.sub,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>Nome</div>
-            <input value={draft.label} onChange={e=>setDraft(d=>({...d,label:e.target.value}))} placeholder="Ex: Push, Pull, Legs..." style={{width:"100%",boxSizing:"border-box",background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"12px 16px",fontSize:16,fontWeight:700,color:C.text,outline:"none"}}/>
+        <div style={{flex:1,overflowY:"auto",padding:"16px 16px 100px"}}>
+          <input value={(draft.name||"")+(draft.label?" — "+draft.label:"")} onChange={e=>{const v=e.target.value;const parts=v.split(" — ");setDraft(d=>({...d,name:parts[0]||v,label:parts.slice(1).join(" — ")||""}));}} placeholder="Ex: DIA 1 — PUSH" style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",borderBottom:"1px solid "+C.border,padding:"8px 0",fontSize:22,fontWeight:900,color:C.text,outline:"none",marginBottom:20}}/>
+          <div style={{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap"}}>
+            {["#3B82F6","#10B981","#F59E0B","#EF4444","#A78BFA","#F472B6","#22D3EE","#FB923C"].map(c=>(
+              <button key={c} onClick={()=>setDraft(d=>({...d,color:c}))} style={{width:28,height:28,borderRadius:"50%",background:c,border:draft.color===c?"3px solid #fff":"3px solid transparent",cursor:"pointer"}}/>
+            ))}
           </div>
-          <div style={{marginBottom:16}}>
-            <div style={{fontSize:10,color:C.sub,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>Identificador (DIA 1, etc.)</div>
-            <input value={draft.name} onChange={e=>setDraft(d=>({...d,name:e.target.value}))} placeholder="Ex: DIA 1" style={{width:"100%",boxSizing:"border-box",background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"12px 16px",fontSize:14,color:C.text,outline:"none"}}/>
-          </div>
-          {/* Color picker */}
-          <div style={{marginBottom:20}}>
-            <div style={{fontSize:10,color:C.sub,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:8}}>Cor</div>
-            <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-              {["#3B82F6","#10B981","#F59E0B","#EF4444","#A78BFA","#F472B6","#22D3EE","#FB923C"].map(c=>(
-                <button key={c} onClick={()=>setDraft(d=>({...d,color:c}))} style={{width:32,height:32,borderRadius:"50%",background:c,border:draft.color===c?"3px solid #fff":"3px solid transparent",cursor:"pointer"}}/>
-              ))}
-            </div>
-          </div>
-          {/* Exercises */}
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-            <div style={{fontSize:13,fontWeight:700,color:C.text}}>Exercícios</div>
-            <button onClick={()=>setShowExGallery(true)} style={{fontSize:12,fontWeight:700,color:C.blueXL,background:"none",border:"none",cursor:"pointer"}}>+ Adicionar</button>
-          </div>
-          {draft.exercises.map((ex,i)=>(
-            <div key={i} style={{background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"12px 16px",marginBottom:8,display:"flex",alignItems:"center",gap:10}}>
-              <div style={{flex:1}}>
-                <div style={{fontSize:13,fontWeight:700,color:C.text,marginBottom:4}}>{ex.name}</div>
-                <div style={{display:"flex",gap:6,alignItems:"center"}}>
-                  <input type="number" value={ex.sets?.length||3} onChange={e=>{const n=parseInt(e.target.value)||1;setDraft(d=>({...d,exercises:d.exercises.map((ee,ii)=>ii!==i?ee:{...ee,sets:Array(n).fill({w:ex.sets?.[0]?.w||0,r:ex.sets?.[0]?.r||8})})}));}} style={{width:44,background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"4px 8px",fontSize:12,color:C.text,outline:"none",textAlign:"center"}} min="1" max="10"/>
-                  <span style={{fontSize:11,color:C.sub}}>séries</span>
-                  <span style={{fontSize:11,color:C.muted}}>·</span>
-                  <input type="number" value={ex.sets?.[0]?.r||8} onChange={e=>{const r=parseInt(e.target.value)||1;setDraft(d=>({...d,exercises:d.exercises.map((ee,ii)=>ii!==i?ee:{...ee,sets:(ee.sets||[]).map(s=>({...s,r}))})}))} } style={{width:44,background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"4px 8px",fontSize:12,color:C.text,outline:"none",textAlign:"center"}} min="1"/>
-                  <span style={{fontSize:11,color:C.sub}}>reps</span>
-                  <span style={{fontSize:11,color:C.muted}}>·</span>
-                  <input type="number" value={ex.sets?.[0]?.w||0} onChange={e=>{const w=parseFloat(e.target.value)||0;setDraft(d=>({...d,exercises:d.exercises.map((ee,ii)=>ii!==i?ee:{...ee,sets:(ee.sets||[]).map(s=>({...s,w}))})}))} } style={{width:52,background:C.surface,border:"1px solid "+C.border,borderRadius:8,padding:"4px 8px",fontSize:12,color:C.text,outline:"none",textAlign:"center"}} min="0" step="0.5"/>
-                  <span style={{fontSize:11,color:C.sub}}>kg</span>
-                </div>
-              </div>
-              <button onClick={()=>setDraft(d=>({...d,exercises:d.exercises.filter((_,ii)=>ii!==i)}))} style={{width:28,height:28,borderRadius:"50%",background:"none",border:"none",color:C.coral,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>×</button>
-            </div>
-          ))}
+          {draft.exercises.map((ex,i)=>{
+            const gc=GC[EX_GROUP[ex.name]]||C.blueXL;
+            return(
+              <ExEditCard key={i} ex={ex} i={i} gc={gc} draft={draft} setDraft={setDraft} setShowExGallery={setShowExGallery} totalEx={draft.exercises.length}/>
+            );
+          })}
+          <button onClick={()=>setShowExGallery(true)} style={{width:"100%",padding:"14px",background:"transparent",border:"1px dashed "+C.border,borderRadius:14,color:C.blueXL,fontSize:14,fontWeight:700,cursor:"pointer",marginTop:4}}>+ Adicionar Exercício</button>
         </div>
         {showExGallery&&(
           <ExerciseGallery onAdd={(name,group)=>{
@@ -1939,7 +1966,6 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
       </div>
     );
   }
-
   // VIEW MODE
   useEffect(()=>{
     document.body.classList.add("hide-carbon-header");
