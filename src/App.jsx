@@ -5263,12 +5263,50 @@ function CoachScreen({onNavigate}){
   },[messages,loading]);
 
   function buildSystemPrompt(){
-    const sessions=getAllSessions().slice(0,6);
+    const sessions=getAllSessions().slice(0,10);
     const w=W_DATA[W_DATA.length-1];
+    const weightTrend=W_DATA.length>1?`${W_DATA[0]}kg → ${w}kg (${(w-W_DATA[0]).toFixed(1)}kg total)`:w+"kg";
+
+    // Histórico detalhado com exercícios, séries, cargas e progressão
     const ctx=sessions.length>0
-      ?sessions.map(s=>`• ${s.date}: ${s.plan?.name||"Treino"} — ${(s.exercises||[]).length} exercícios, ${Math.round((s.duration||0))}min`).join("\n")
+      ?sessions.map(s=>{
+          const exStr=(s.exercises||[]).map(e=>{
+            const sets=(e.setData||[]).map(st=>`${st.w||0}kg×${st.r}`).join(", ");
+            return `  - ${e.name}: ${sets}${e.setData?.[0]?.rpe?" @"+e.setData[0].rpe+" RPE":""}`;
+          }).join("\n");
+          return `📅 ${s.date} — ${s.name} (${Math.round(s.duration||0)}min, ${s.totalVol||0}t)\n${exStr}`;
+        }).join("\n\n")
       :"Nenhum treino registrado ainda.";
-    return `Você é o Coach Carbon, personal trainer e nutricionista virtual especializado em musculação e emagrecimento.\n\n**Atleta:** ${w}kg\n**Histórico recente:**\n${ctx}\n\n**Instruções:**\n- Responda sempre em português brasileiro\n- Seja direto e motivador\n- Máximo 3 parágrafos por resposta`;
+
+    // Progressão de carga por exercício (últimas 3 sessões de cada)
+    const progressão=Object.entries(HIST).slice(0,8).map(([ex,hist])=>{
+      const last3=hist.slice(0,3).map(h=>{
+        const best=(h.sets||[]).reduce((a,s)=>s.w>a?s.w:a,0);
+        return `${h.d}: ${best}kg`;
+      }).join(" → ");
+      return `  ${ex}: ${last3}`;
+    }).join("\n");
+
+    const measureStr=_measureHistoryCache.length>0
+      ?`Peso atual: ${w}kg | Tendência: ${weightTrend}\nÚltimas medidas: ${JSON.stringify(_measureHistoryCache[_measureHistoryCache.length-1])}`
+      :`Peso atual: ${w||"—"}kg`;
+
+    return `Você é o Coach Carbon, personal trainer e nutricionista virtual especializado em musculação e emagrecimento. Você TEM ACESSO COMPLETO aos dados do atleta abaixo.
+
+**📊 DADOS DO ATLETA:**
+${measureStr}
+
+**🏋️ HISTÓRICO DETALHADO (últimos 10 treinos):**
+${ctx}
+
+**📈 PROGRESSÃO DE CARGA POR EXERCÍCIO:**
+${progressão}
+
+**Instruções:**
+- Responda SEMPRE em português brasileiro
+- Use os dados reais do atleta nas análises — você TEM esses dados
+- Seja direto, preciso e motivador
+- Máximo 3 parágrafos, use dados concretos quando relevante`;
   }
 
   async function send(){
@@ -5304,11 +5342,11 @@ function CoachScreen({onNavigate}){
       <div ref={scrollRef} style={{flex:1,overflowY:"auto",padding:"16px 16px 8px",display:"flex",flexDirection:"column",gap:12}}>
         {messages.map((m,i)=>(
           <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",alignItems:"flex-end",gap:8}}>
-            {m.role==="assistant"&&<div style={{width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#1E40AF,#3B82F6)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><svg width="13" height="13" viewBox="0 0 48 48" fill="none"><polygon points="24,3 41,13 41,35 24,45 7,35 7,13" fill="none" stroke="#fff" strokeWidth="3" strokeLinejoin="round"/></svg></div>}
+            {m.role==="assistant"&&<div style={{width:28,height:28,borderRadius:"50%",background:"#080A0E",border:"1px solid rgba(255,255,255,0.1)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,overflow:"hidden"}}><img src="/carbon-logo-transparent.png" alt="Carbon" style={{width:20,height:20,objectFit:"contain"}}/></div>}
             <div style={{maxWidth:"78%",background:m.role==="user"?"linear-gradient(135deg,#2563EB,#1D4ED8)":"rgba(255,255,255,0.06)",border:m.role==="user"?"none":"1px solid rgba(255,255,255,0.08)",borderRadius:m.role==="user"?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"10px 14px",fontSize:13,lineHeight:1.6,color:m.role==="user"?"#fff":C.text,whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{m.content}</div>
           </div>
         ))}
-        {loading&&<div style={{display:"flex",alignItems:"flex-end",gap:8}}><div style={{width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#1E40AF,#3B82F6)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><svg width="13" height="13" viewBox="0 0 48 48" fill="none"><polygon points="24,3 41,13 41,35 24,45 7,35 7,13" fill="none" stroke="#fff" strokeWidth="3" strokeLinejoin="round"/></svg></div><div style={{background:"rgba(255,255,255,0.06)",border:"1px solid "+C.border,borderRadius:"18px 18px 18px 4px",padding:"12px 16px",display:"flex",gap:5,alignItems:"center"}}>{[0,1,2].map(j=>(<div key={j} style={{width:7,height:7,borderRadius:"50%",background:C.blueXL,animationName:"fgpulse",animationDuration:"1.2s",animationTimingFunction:"ease-in-out",animationIterationCount:"infinite",animationDelay:`${j*0.18}s`}}/>))}</div></div>}
+        {loading&&<div style={{display:"flex",alignItems:"flex-end",gap:8}}><div style={{width:28,height:28,borderRadius:"50%",background:"#080A0E",border:"1px solid rgba(255,255,255,0.1)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,overflow:"hidden"}}><img src="/carbon-logo-transparent.png" alt="Carbon" style={{width:20,height:20,objectFit:"contain"}}/></div><div style={{background:"rgba(255,255,255,0.06)",border:"1px solid "+C.border,borderRadius:"18px 18px 18px 4px",padding:"12px 16px",display:"flex",gap:5,alignItems:"center"}}>{[0,1,2].map(j=>(<div key={j} style={{width:7,height:7,borderRadius:"50%",background:C.blueXL,animationName:"fgpulse",animationDuration:"1.2s",animationTimingFunction:"ease-in-out",animationIterationCount:"infinite",animationDelay:`${j*0.18}s`}}/>))}</div></div>}
       </div>
       {showChips&&<div style={{flexShrink:0,padding:"0 16px 10px",display:"flex",gap:8,overflowX:"auto"}}>{chips.map(c=>(<button key={c} onClick={()=>setInput(c)} style={{flexShrink:0,background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.22)",borderRadius:20,padding:"7px 13px",fontSize:11,fontWeight:600,color:C.blueXL,cursor:"pointer",whiteSpace:"nowrap"}}>{c}</button>))}</div>}
       <div style={{flexShrink:0,padding:"8px 12px 12px",background:"rgba(10,15,30,0.85)",backdropFilter:"blur(20px)",borderTop:"1px solid rgba(255,255,255,0.06)",display:"flex",gap:8,alignItems:"flex-end"}}>
