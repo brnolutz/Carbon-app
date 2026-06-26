@@ -2121,7 +2121,7 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
 function PRToast({pr}){
   if(!pr)return null;
   return(
-    <div style={{position:"fixed",top:"50%",left:16,right:16,zIndex:99999,display:"flex",justifyContent:"center",transform:"translateY(-50%)",pointerEvents:"none"}}>
+    <div style={{position:"fixed",top:"calc(130px + env(safe-area-inset-top,0px))",left:16,right:16,zIndex:99999,display:"flex",justifyContent:"center",pointerEvents:"none"}}>
       <div style={{display:"flex",alignItems:"center",gap:10,padding:"10px 16px",borderRadius:99,background:"linear-gradient(135deg,#92400E,#B45309,#F59E0B)",boxShadow:"0 6px 24px rgba(245,158,11,0.45)",animation:"prToastIn 0.35s ease-out"}}>
         <span style={{fontSize:18}}>🏆</span>
         <div>
@@ -2377,7 +2377,12 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
 
   function setScreen(s){_setScreen(s);onSubScreen&&onSubScreen(s);}
   const[screen,_setScreen]=useState(isActive?"active":"plans");
-  const[restTimer,setRestTimer]=useState(null);
+  const[restTimer,setRestTimer]=useState(()=>{
+    const end=parseInt(localStorage.getItem("carbon_rest_end_ts")||"0");
+    const left=Math.round((end-Date.now())/1000);
+    if(left>0){localStorage.removeItem("carbon_rest_end_ts");return{seconds:left,key:end};}
+    return null;
+  });
   const[rpeModal,setRpeModal]=useState(null);
   const[finishing,setFinishing]=useState(false);
   const[finishedSession,setFinishedSession]=useState(null);
@@ -2841,7 +2846,11 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                   <div style={{display:"flex",alignItems:"center",gap:6,flex:1,minWidth:0}}>
                     <div style={{width:6,height:6,borderRadius:"50%",background:GC[exItem.group]||C.blueL,flexShrink:0}}/>
-                    <button onClick={()=>onNavigate("exercicio",{name:exItem.name})} style={{fontSize:13,fontWeight:800,color:allDone?C.mint:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",background:"none",border:"none",padding:0,cursor:"pointer",textAlign:"left"}}>{exItem.name}</button>
+                    <button onClick={()=>{
+                      // Salva timer antes de navegar
+                      if(restTimer) localStorage.setItem("carbon_rest_end_ts", Date.now()+(restTimer.seconds||0)*1000);
+                      onNavigate("exercicio",{name:exItem.name});
+                    }} style={{fontSize:13,fontWeight:800,color:allDone?C.mint:C.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",background:"none",border:"none",padding:0,cursor:"pointer",textAlign:"left"}}>{exItem.name}</button>
                     {allDone&&<span style={{color:C.mint,fontSize:10,flexShrink:0}}>✓</span>}
                   </div>
                   <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
@@ -3025,7 +3034,7 @@ const EXERCISE_IDS = {
   "Puxada Alta na Polia (Máquina)":                      "0019",
   "Levantamento Terra Romeno (Barra)":                    "0038",
   "Desenvolvimento (Halter)":                             "0323",
-  "Elevação Lateral (Halter)":                            "0329",
+  "Elevação Lateral (Halter)":                            "0330",
   "Elevação Lateral Unilateral (Cabo)":                   "0620",
   "Aberturas Invertidas De Ombro Posterior (Na Máquina)": "0291",
   "Agachamento (Barra)":                                  "0047",
