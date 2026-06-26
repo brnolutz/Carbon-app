@@ -5343,7 +5343,30 @@ ${progressão}
         {messages.map((m,i)=>(
           <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",alignItems:"flex-end",gap:8}}>
             {m.role==="assistant"&&<div style={{width:28,height:28,borderRadius:"50%",background:"#080A0E",border:"1px solid rgba(255,255,255,0.1)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,overflow:"hidden"}}><img src="/carbon-logo-transparent.png" alt="Carbon" style={{width:20,height:20,objectFit:"contain"}}/></div>}
-            <div style={{maxWidth:"78%",background:m.role==="user"?"linear-gradient(135deg,#2563EB,#1D4ED8)":"rgba(255,255,255,0.06)",border:m.role==="user"?"none":"1px solid rgba(255,255,255,0.08)",borderRadius:m.role==="user"?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"10px 14px",fontSize:13,lineHeight:1.6,color:m.role==="user"?"#fff":C.text,whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{m.content}</div>
+            <div style={{maxWidth:"78%",background:m.role==="user"?"linear-gradient(135deg,#2563EB,#1D4ED8)":"rgba(255,255,255,0.06)",border:m.role==="user"?"none":"1px solid rgba(255,255,255,0.08)",borderRadius:m.role==="user"?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"10px 14px",fontSize:13,lineHeight:1.6,color:m.role==="user"?"#fff":C.text,wordBreak:"break-word"}}>
+                {m.role==="user"
+                  ? m.content
+                  : m.content.split("\n").map((line,li)=>{
+                      // Parse inline markdown: **bold** and *italic*
+                      const parseLine=(txt)=>{
+                        const parts=[];
+                        let rest=txt;
+                        let key=0;
+                        while(rest.length>0){
+                          const bold=rest.match(/^\*\*(.+?)\*\*/);
+                          const italic=rest.match(/^\*(.+?)\*/);
+                          if(bold){parts.push(<strong key={key++} style={{fontWeight:800,color:"#fff"}}>{bold[1]}</strong>);rest=rest.slice(bold[0].length);}
+                          else if(italic){parts.push(<em key={key++} style={{fontStyle:"italic"}}>{italic[1]}</em>);rest=rest.slice(italic[0].length);}
+                          else{const next=rest.search(/\*\*/);const ni=rest.search(/\*[^*]/);const stop=next===-1&&ni===-1?rest.length:Math.min(next===-1?Infinity:next,ni===-1?Infinity:ni);parts.push(<span key={key++}>{rest.slice(0,stop)}</span>);rest=rest.slice(stop);}
+                        }
+                        return parts;
+                      };
+                      if(line.trim()==="") return <div key={li} style={{height:6}}/>;
+                      if(line.startsWith("- ")||line.startsWith("• ")) return <div key={li} style={{display:"flex",gap:6,marginBottom:2}}><span style={{flexShrink:0,marginTop:2}}>•</span><span>{parseLine(line.replace(/^[-•]\s/,""))}</span></div>;
+                      return <div key={li} style={{marginBottom:2}}>{parseLine(line)}</div>;
+                    })
+                }
+              </div>
           </div>
         ))}
         {loading&&<div style={{display:"flex",alignItems:"flex-end",gap:8}}><div style={{width:28,height:28,borderRadius:"50%",background:"#080A0E",border:"1px solid rgba(255,255,255,0.1)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,overflow:"hidden"}}><img src="/carbon-logo-transparent.png" alt="Carbon" style={{width:20,height:20,objectFit:"contain"}}/></div><div style={{background:"rgba(255,255,255,0.06)",border:"1px solid "+C.border,borderRadius:"18px 18px 18px 4px",padding:"12px 16px",display:"flex",gap:5,alignItems:"center"}}>{[0,1,2].map(j=>(<div key={j} style={{width:7,height:7,borderRadius:"50%",background:C.blueXL,animationName:"fgpulse",animationDuration:"1.2s",animationTimingFunction:"ease-in-out",animationIterationCount:"infinite",animationDelay:`${j*0.18}s`}}/>))}</div></div>}
