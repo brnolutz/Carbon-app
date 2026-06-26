@@ -4551,7 +4551,7 @@ function MedicoesScreen({onNavigate}){
   return(
     <div ref={scrollRef} data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0,overflowY:"auto",paddingBottom:120}}>
       {/* Header */}
-      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
+      <div style={{position:"sticky",top:0,zIndex:9001,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
         <div style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <button onClick={()=>onNavigate("home")} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
@@ -4562,54 +4562,90 @@ function MedicoesScreen({onNavigate}){
       </div>
 
       <div style={{padding:"16px 16px 0"}}>
-        {/* Last value + date */}
-        {last&&<div style={{marginBottom:12}}>
-          <div style={{fontSize:32,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{last.v}<span style={{fontSize:14,color:C.sub,marginLeft:4}}>{sel==="Peso"?"kg":"cm"}</span></div>
-          <div style={{display:"flex",alignItems:"center",gap:8,marginTop:2}}>
-            <div style={{fontSize:11,color:C.blueXL}}>{new Date(last.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"numeric",month:"short"})}</div>
-            {delta!==null&&<div style={{fontSize:11,fontWeight:700,color:delta<=0?C.mint:C.coral}}>{delta>0?"+":""}{delta}{sel==="Peso"?"kg":"cm"}</div>}
-            <div style={{marginLeft:"auto",display:"flex",gap:4}}>
-              {["1m","3m","1a","all"].map(r=>(
-                <button key={r} onClick={()=>setRange(r)} style={{padding:"3px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:range===r?C.blueXL:"transparent",border:"1px solid "+(range===r?C.blueXL:C.border),color:range===r?"#fff":C.sub}}>{r==="all"?"Tudo":r==="1a"?"1 ano":r==="3m"?"3 meses":"1 mês"}</button>
+        {/* Main chart card */}
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:16}}>
+          {/* KPI */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
+            <div>
+              {last
+                ? <><div style={{fontSize:36,fontWeight:900,color:C.text,letterSpacing:"-2px",lineHeight:1}}>{last.v}<span style={{fontSize:14,color:C.sub,marginLeft:4}}>{unit}</span></div>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginTop:4}}>
+                      <span style={{fontSize:11,color:C.blueXL}}>{new Date(last.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"numeric",month:"short"})}</span>
+                      {delta!==null&&<span style={{fontSize:12,fontWeight:700,color:delta<=0?C.mint:C.coral}}>{delta>0?"+":""}{delta}{unit}</span>}
+                    </div></>
+                : <div style={{fontSize:14,color:C.muted}}>Sem dados</div>
+              }
+            </div>
+            <div style={{display:"flex",gap:4}}>
+              {[{k:"1m",l:"1M"},{k:"3m",l:"3M"},{k:"1a",l:"Ano"},{k:"all",l:"Tudo"}].map(r=>(
+                <button key={r.k} onClick={()=>setRange(r.k)} style={{padding:"4px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:range===r.k?C.blueXL:"transparent",border:"1px solid "+(range===r.k?C.blueXL:C.border),color:range===r.k?"#fff":C.sub}}>{r.l}</button>
               ))}
             </div>
           </div>
-        </div>}
 
-        {/* Chart */}
-        {chartPts.length>1&&<div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:16}}>
-          <div style={{position:"relative"}}>
-            <div style={{position:"absolute",left:0,top:0,bottom:20,width:40,display:"flex",flexDirection:"column",justifyContent:"space-between",pointerEvents:"none"}}>
-              {[maxY,Math.round((maxY+minY)/2*10)/10,rawMin].map((v,i)=><span key={i} style={{fontSize:8,color:C.muted,lineHeight:1}}>{v}{unit}</span>)}
-            </div>
-            <div style={{marginLeft:44}}>
-              <svg width="100%" height={H+20} viewBox={`0 0 ${W} ${H+20}`} preserveAspectRatio="none" style={{overflow:"visible"}}>
-                <defs><linearGradient id="mg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={gc} stopOpacity="0.3"/><stop offset="100%" stopColor={gc} stopOpacity="0"/></linearGradient></defs>
-                {[0,0.5,1].map((f,i)=><line key={i} x1={LPAD} y1={PAD+(H-PAD*3)*f} x2={W-PAD} y2={PAD+(H-PAD*3)*f} stroke={C.border} strokeWidth="1" strokeDasharray="4,4"/>)}
-                {<polygon points={[...chartPts.map((d,i)=>`${px(i)},${py(d.v)}`),`${px(chartPts.length-1)},${H-PAD}`,`${px(0)},${H-PAD}`].join(" ")} fill="url(#mg)"/>}
-                <polyline points={chartPts.map((d,i)=>`${px(i)},${py(d.v)}`).join(" ")} fill="none" stroke={gc} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                {chartPts.map((d,i)=>(
-                  <g key={i}>
-                    <circle cx={px(i)} cy={py(d.v)} r="3.5" fill={gc} stroke={C.bg} strokeWidth="2"/>
-                    {showLabel(i)&&<text x={px(i)} y={py(d.v)-8} textAnchor="middle" fontSize="9" fill={gc} fontWeight="700">{d.v}{unit}</text>}
-                  </g>
-                ))}
-                {/* Datas no eixo X */}
-                {chartPts.map((d,i)=>showLabel(i)&&(
-                  <text key={i} x={px(i)} y={H+14} textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.3)">
-                    {new Date(d.date+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})}
-                  </text>
-                ))}
-              </svg>
-            </div>
+          {/* Bar chart */}
+          {chartPts.length>0&&(()=>{
+            const barMax=Math.max(...chartPts.map(d=>d.v),0.01);
+            const barMin=Math.min(...chartPts.map(d=>d.v));
+            const barRange=barMax-barMin||1;
+            const yTicks=[barMin,barMin+barRange*0.5,barMax].map(v=>Math.round(v*10)/10);
+            const[selBar,setSelBar]=useState(null);
+            const chartH=110;
+            return(
+              <div style={{marginTop:14,marginBottom:6}}>
+                {/* Tooltip */}
+                {selBar!=null&&chartPts[selBar]&&(
+                  <div style={{background:"rgba(0,0,0,0.9)",border:"1px solid "+C.blueXL+"66",borderRadius:8,padding:"5px 10px",marginBottom:8,display:"flex",justifyContent:"space-between"}}>
+                    <span style={{fontSize:11,color:C.muted}}>{new Date(chartPts[selBar].date+"T12:00:00").toLocaleDateString("pt-BR",{day:"numeric",month:"short"})}</span>
+                    <span style={{fontSize:14,fontWeight:800,color:C.blueXL}}>{chartPts[selBar].v}{unit}</span>
+                  </div>
+                )}
+                <div style={{display:"flex",gap:6}}>
+                  {/* Eixo Y */}
+                  <div style={{display:"flex",flexDirection:"column",justifyContent:"space-between",alignItems:"flex-end",height:chartH+16,paddingBottom:16,flexShrink:0,width:36}}>
+                    {[yTicks[2],yTicks[1],yTicks[0]].map((v,i)=>(
+                      <span key={i} style={{fontSize:8,color:C.muted,lineHeight:1}}>{v}{unit}</span>
+                    ))}
+                  </div>
+                  <div style={{flex:1}}>
+                    <div style={{position:"relative",height:chartH}}>
+                      <div style={{position:"absolute",inset:0,display:"flex",gap:2,alignItems:"flex-end"}}>
+                        {chartPts.map((d,i)=>{
+                          const pct=(d.v-barMin)/(barRange||1);
+                          const isLast=i===chartPts.length-1;
+                          const isSel=selBar===i;
+                          const bH=Math.max(pct*chartH,3);
+                          return(
+                            <div key={i} onClick={()=>setSelBar(isSel?null:i)}
+                              style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",height:"100%",cursor:"pointer",position:"relative"}}>
+                              {isSel&&(
+                                <div style={{position:"absolute",bottom:bH+4,left:"50%",transform:"translateX(-50%)",background:"rgba(0,0,0,0.9)",border:"1px solid "+C.blueXL,borderRadius:6,padding:"2px 5px",whiteSpace:"nowrap",zIndex:10,pointerEvents:"none"}}>
+                                  <div style={{fontSize:10,fontWeight:800,color:C.blueXL}}>{d.v}{unit}</div>
+                                </div>
+                              )}
+                              <div style={{width:"100%",height:bH,background:isSel?C.blueXL:(isLast?C.blueXL+"CC":C.blueXL+"44"),borderRadius:"3px 3px 0 0",transition:"all 0.15s"}}/>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
+                      <span style={{fontSize:8,color:C.muted}}>{new Date(chartPts[0].date+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})}</span>
+                      {chartPts.length>2&&<span style={{fontSize:8,color:C.muted}}>{new Date(chartPts[Math.floor(chartPts.length/2)].date+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})}</span>}
+                      <span style={{fontSize:8,color:C.muted}}>{new Date(chartPts[chartPts.length-1].date+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Field selector */}
+          <div style={{display:"flex",gap:6,overflowX:"auto",marginTop:10,paddingBottom:2}}>
+            {ALL_FIELDS.map(f=>(
+              <button key={f} onClick={()=>setSel(f)} style={{padding:"6px 14px",borderRadius:99,flexShrink:0,cursor:"pointer",background:sel===f?C.blueXL+"33":"transparent",border:"1px solid "+(sel===f?C.blueXL:C.border),color:sel===f?C.blueXL:C.sub,fontSize:12,fontWeight:sel===f?700:500,whiteSpace:"nowrap"}}>{f}</button>
+            ))}
           </div>
-        </div>}
-
-        {/* Field selector */}
-        <div style={{display:"flex",gap:6,overflowX:"auto",marginBottom:16,paddingBottom:4}}>
-          {ALL_FIELDS.map(f=>(
-            <button key={f} onClick={()=>setSel(f)} style={{padding:"6px 14px",borderRadius:99,flexShrink:0,cursor:"pointer",background:sel===f?C.blueXL+"33":"transparent",border:"1px solid "+(sel===f?C.blueXL:C.border),color:sel===f?C.blueXL:C.sub,fontSize:12,fontWeight:sel===f?700:500,whiteSpace:"nowrap"}}>{f}</button>
-          ))}
         </div>
 
         {/* History list */}
