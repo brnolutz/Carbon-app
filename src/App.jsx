@@ -5252,6 +5252,74 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
   );
 }
 
+function CoachScreen({onNavigate}){
+  const[messages,setMessages]=useState([{role:"assistant",content:"Olá! Sou o Coach Carbon, seu personal trainer com IA. Posso analisar seus treinos, sugerir exercícios e te ajudar a atingir seus objetivos. Como posso te ajudar hoje?"}]);
+  const[input,setInput]=useState("");
+  const[loading,setLoading]=useState(false);
+  const scrollRef=useRef(null);
+
+  useEffect(()=>{
+    if(scrollRef.current) scrollRef.current.scrollTop=scrollRef.current.scrollHeight;
+  },[messages,loading]);
+
+  function buildSystemPrompt(){
+    const sessions=getAllSessions().slice(0,6);
+    const w=W_DATA[W_DATA.length-1];
+    const ctx=sessions.length>0
+      ?sessions.map(s=>`• ${s.date}: ${s.plan?.name||"Treino"} — ${(s.exercises||[]).length} exercícios, ${Math.round((s.duration||0))}min`).join("\n")
+      :"Nenhum treino registrado ainda.";
+    return `Você é o Coach Carbon, personal trainer e nutricionista virtual especializado em musculação e emagrecimento.\n\n**Atleta:** ${w}kg\n**Histórico recente:**\n${ctx}\n\n**Instruções:**\n- Responda sempre em português brasileiro\n- Seja direto e motivador\n- Máximo 3 parágrafos por resposta`;
+  }
+
+  async function send(){
+    const text=input.trim();
+    if(!text||loading) return;
+    const newMsgs=[...messages,{role:"user",content:text}];
+    setMessages(newMsgs);
+    setInput("");
+    setLoading(true);
+    try{
+      const{data,error}=await supabase.functions.invoke("anthropic-proxy",{
+        body:{model:"claude-sonnet-4-6",max_tokens:1000,system:buildSystemPrompt(),messages:newMsgs.map(m=>({role:m.role,content:m.content}))}
+      });
+      if(error) throw error;
+      const txt=data?.content?.find(b=>b.type==="text")?.text;
+      if(!txt) throw new Error("Sem resposta");
+      setMessages(m=>[...m,{role:"assistant",content:txt}]);
+    }catch(e){
+      setMessages(m=>[...m,{role:"assistant",content:"❌ Erro: "+e.message}]);
+    }finally{setLoading(false);}
+  }
+
+  const chips=["Qual músculo treinar hoje?","Dicas para cortar gordura","Monte um treino de costas","Como melhorar meu Supino?","Analise minha semana"];
+  const showChips=messages.length===1&&!loading;
+
+  return(
+    <div style={{display:"flex",flexDirection:"column",height:"100dvh",paddingTop:52,background:"#080A0E"}}>
+      <style>{`@keyframes fgpulse{0%,100%{opacity:0.3;transform:scale(0.75)}50%{opacity:1;transform:scale(1)}}`}</style>
+      <div style={{flexShrink:0,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",padding:"14px 20px"}}>
+        <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>AI Coach</div>
+        <div style={{fontSize:10,fontWeight:600,color:C.blueXL,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Powered by Claude</div>
+      </div>
+      <div ref={scrollRef} style={{flex:1,overflowY:"auto",padding:"16px 16px 8px",display:"flex",flexDirection:"column",gap:12}}>
+        {messages.map((m,i)=>(
+          <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",alignItems:"flex-end",gap:8}}>
+            {m.role==="assistant"&&<div style={{width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#1E40AF,#3B82F6)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><svg width="13" height="13" viewBox="0 0 48 48" fill="none"><polygon points="24,3 41,13 41,35 24,45 7,35 7,13" fill="none" stroke="#fff" strokeWidth="3" strokeLinejoin="round"/></svg></div>}
+            <div style={{maxWidth:"78%",background:m.role==="user"?"linear-gradient(135deg,#2563EB,#1D4ED8)":"rgba(255,255,255,0.06)",border:m.role==="user"?"none":"1px solid rgba(255,255,255,0.08)",borderRadius:m.role==="user"?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"10px 14px",fontSize:13,lineHeight:1.6,color:m.role==="user"?"#fff":C.text,whiteSpace:"pre-wrap",wordBreak:"break-word"}}>{m.content}</div>
+          </div>
+        ))}
+        {loading&&<div style={{display:"flex",alignItems:"flex-end",gap:8}}><div style={{width:28,height:28,borderRadius:"50%",background:"linear-gradient(135deg,#1E40AF,#3B82F6)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><svg width="13" height="13" viewBox="0 0 48 48" fill="none"><polygon points="24,3 41,13 41,35 24,45 7,35 7,13" fill="none" stroke="#fff" strokeWidth="3" strokeLinejoin="round"/></svg></div><div style={{background:"rgba(255,255,255,0.06)",border:"1px solid "+C.border,borderRadius:"18px 18px 18px 4px",padding:"12px 16px",display:"flex",gap:5,alignItems:"center"}}>{[0,1,2].map(j=>(<div key={j} style={{width:7,height:7,borderRadius:"50%",background:C.blueXL,animationName:"fgpulse",animationDuration:"1.2s",animationTimingFunction:"ease-in-out",animationIterationCount:"infinite",animationDelay:`${j*0.18}s`}}/>))}</div></div>}
+      </div>
+      {showChips&&<div style={{flexShrink:0,padding:"0 16px 10px",display:"flex",gap:8,overflowX:"auto"}}>{chips.map(c=>(<button key={c} onClick={()=>setInput(c)} style={{flexShrink:0,background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.22)",borderRadius:20,padding:"7px 13px",fontSize:11,fontWeight:600,color:C.blueXL,cursor:"pointer",whiteSpace:"nowrap"}}>{c}</button>))}</div>}
+      <div style={{flexShrink:0,padding:"8px 12px",paddingBottom:"calc(92px + env(safe-area-inset-bottom,0px))",background:"rgba(10,15,30,0.85)",backdropFilter:"blur(20px)",borderTop:"1px solid rgba(255,255,255,0.06)",display:"flex",gap:8,alignItems:"flex-end"}}>
+        <textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}} placeholder="Pergunte ao seu coach..." rows={1} style={{flex:1,background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:14,padding:"11px 14px",fontSize:16,color:C.text,outline:"none",resize:"none",fontFamily:"inherit",lineHeight:1.45,maxHeight:100,overflowY:"auto"}}/>
+        <button onClick={send} disabled={!input.trim()||loading} style={{width:42,height:42,borderRadius:13,background:input.trim()&&!loading?"linear-gradient(135deg,#3B82F6,#2563EB)":"rgba(255,255,255,0.06)",border:"none",cursor:input.trim()&&!loading?"pointer":"default",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,opacity:input.trim()&&!loading?1:0.4}}>↑</button>
+      </div>
+      <BottomNav active="coach" onNavigate={onNavigate}/>
+    </div>
+  );
+}
+
 // ══════════════════════════════════════════════════════════════
 // GLOBAL WORKOUT BAR — persists across all screens
 // ══════════════════════════════════════════════════════════════
