@@ -606,13 +606,15 @@ function GlobalHeader(){
       <style>{`
         .carbon-global-header{
           position:fixed;top:0;left:0;right:0;
-          height:52px;
+          height:calc(52px + env(safe-area-inset-top,0px));
+          padding-top:env(safe-area-inset-top,0px);
           background:rgba(6,8,12,0.96);
           backdrop-filter:blur(20px);
           -webkit-backdrop-filter:blur(20px);
           border-bottom:1px solid rgba(255,255,255,0.06);
           display:flex;align-items:center;justify-content:center;
           z-index:9000;
+          box-sizing:border-box;
         }
         body.hide-carbon-header .carbon-global-header{
           display:none;
@@ -752,7 +754,7 @@ function WorkoutDetail({session,onClose,onDelete}){
   if(selEx) return <ExercicioScreen name={selEx} onBack={()=>setSelEx(null)} onNavigate={()=>setSelEx(null)}/>;
 
   return(
-    <div style={{position:"fixed",inset:0,zIndex:600,background:C.bg,overflowY:"auto",paddingTop:52}}>
+    <div style={{position:"fixed",inset:0,zIndex:600,background:C.bg,overflowY:"auto",paddingTop:"calc(52px + env(safe-area-inset-top,0px))"}}>
       <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"14px 16px 14px"}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onClose} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
@@ -882,7 +884,7 @@ function TopExercisesScreen({onBack,onSelectEx}){
   const maxTimes=topExercises[0]?.times||1;
   return(
     <div className="screen-root" style={{background:"#080A0E",minHeight:"100vh",paddingBottom:100}}>
-      <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",paddingTop:52,padding:"52px 16px 14px"}}>
+      <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",paddingTop:"calc(52px + env(safe-area-inset-top,0px))",padding:"calc(52px + env(safe-area-inset-top,0px)) 16px 14px"}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onBack} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
           <div>
@@ -941,7 +943,7 @@ function ExerciciosBrowserScreen({onNavigate}){
 
   return(
     <div className="screen-root" style={{background:"#080A0E",minHeight:"100vh",paddingBottom:100}}>
-      <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",paddingTop:52,padding:"52px 16px 14px"}}>
+      <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",paddingTop:"calc(52px + env(safe-area-inset-top,0px))",padding:"calc(52px + env(safe-area-inset-top,0px)) 16px 14px"}}>
         <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
           <button onClick={()=>onNavigate("home")} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
           <div style={{fontSize:18,fontWeight:900,color:C.text,letterSpacing:"-0.5px"}}>Exercícios</div>
@@ -1026,7 +1028,7 @@ function DeloadWeekScreen({onBack,onDeloadStarted}){
   }
   return(
     <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",display:"flex",flexDirection:"column"}}>
-      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
+      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:"calc(52px + env(safe-area-inset-top,0px))"}}>
         <div style={{padding:"10px 16px",display:"flex",alignItems:"center",gap:10}}>
           <button onClick={onBack} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
           <div style={{flex:1,fontSize:15,fontWeight:700,color:"#fff"}}>Semana de Deload</div>
@@ -1106,7 +1108,7 @@ function DeloadReportScreen({deload,onClose}){
   const methodLabels={volume:"Redução de Volume",intensity:"Redução de Intensidade",frequency:"Redução de Frequência",technique:"Foco em Técnica"};
   return(
     <div data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",overflowY:"auto",paddingBottom:100}}>
-      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
+      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:"calc(52px + env(safe-area-inset-top,0px))"}}>
         <div style={{padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onClose} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
           <div style={{flex:1,fontSize:16,fontWeight:800,color:"#fff"}}>Relatório de Deload</div>
@@ -1284,7 +1286,7 @@ function MonthlyReportScreen({onBack}){
   return(
     <div ref={scrollRef} data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",overflowY:"auto",paddingBottom:100}}>
       {/* Header */}
-      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
+      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:"calc(52px + env(safe-area-inset-top,0px))"}}>
         <div style={{padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onBack} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
           <div style={{flex:1,fontSize:16,fontWeight:800,color:"#fff"}}>Relatório Mensal</div>
@@ -1463,7 +1465,7 @@ function VolumeDetailScreen({onBack}){
   const py2=(v)=>PT+ch-(v/maxVal)*ch;
   return(
     <div data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingBottom:100,overflowY:"auto"}}>
-      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
+      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:"calc(52px + env(safe-area-inset-top,0px))"}}>
         <div style={{padding:"12px 16px"}}>
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:12}}>
             <button onClick={onBack} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
@@ -1629,7 +1631,7 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
   if(selRoutine) return <RoutineScreen plan={selRoutine} onClose={()=>setSelRoutine(null)} onStart={async()=>{if(nextPlan){const exs=await refreshSessionsAndBuild(nextPlan);onStartWorkout(nextPlan,exs);onNavigate("treino");}setSelRoutine(null);}} onNavigate={onNavigate} onSaved={()=>{}} onDeleted={()=>setSelRoutine(null)}/>;
 
   return(
-    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:52}}>
+    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:"calc(52px + env(safe-area-inset-top,0px))"}}>
 
       {/* ── Banner Deload Ativo ── */}
       {activeDeload&&(
@@ -2314,7 +2316,7 @@ function ExerciseGallery({onAdd,onClose}){
   const[selGroup,setSelGroup]=useState("Peito");
   return(
     <div style={{position:"fixed",inset:0,zIndex:500,background:"#000000EE",backdropFilter:"blur(12px)",display:"flex",flexDirection:"column"}}>
-      <div style={{padding:"52px 16px 16px",borderBottom:"1px solid "+C.border,background:C.surface}}>
+      <div style={{padding:"calc(52px + env(safe-area-inset-top,0px)) 16px 16px",borderBottom:"1px solid "+C.border,background:C.surface}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
           <div style={{fontSize:20,fontWeight:800,color:C.text}}>Adicionar exercício</div>
           <button onClick={onClose} style={{width:34,height:34,borderRadius:99,background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
@@ -2527,7 +2529,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
   if(finishedSession){
     const s=finishedSession;
     return(
-      <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",padding:"52px 20px 120px"}}>
+      <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",padding:"calc(52px + env(safe-area-inset-top,0px)) 20px 120px"}}>
         <div style={{textAlign:"center",marginBottom:28}}>
           <div style={{fontSize:56,marginBottom:10}}>🏆</div>
           <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-1px",marginBottom:4}}>Treino salvo!</div>
@@ -2581,7 +2583,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
     });
     const estimateDur=(p)=>Math.round(p.exercises.reduce((t,e)=>t+(e.sets?.length||3)*(1.5+(e.rest||90)/60),0));
     return(
-      <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",position:"relative",paddingTop:52}}>
+      <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",position:"relative",paddingTop:"calc(52px + env(safe-area-inset-top,0px))"}}>
         <div style={{padding:"0 20px 8px"}}>
           <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>
             {isActive?"Treino Ativo":"Meus Treinos"}
@@ -2723,7 +2725,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
       handleEnd();
     }
     return(
-      <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",padding:"52px 20px 120px"}}>
+      <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",padding:"calc(52px + env(safe-area-inset-top,0px)) 20px 120px"}}>
         <div style={{textAlign:"center",marginBottom:32}}>
           <div style={{fontSize:52,marginBottom:12}}>🏋️</div>
           <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-1px",marginBottom:4}}>Treino concluído!</div>
@@ -2948,7 +2950,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
       )}
       {showReorder&&(
         <div style={{position:"fixed",inset:0,zIndex:500,background:C.bg,display:"flex",flexDirection:"column"}}>
-          <div style={{background:C.surface,padding:"52px 20px 16px",borderBottom:"1px solid "+C.border,textAlign:"center"}}><div style={{fontSize:17,fontWeight:700,color:C.text}}>Reordenar</div></div>
+          <div style={{background:C.surface,padding:"calc(52px + env(safe-area-inset-top,0px)) 20px 16px",borderBottom:"1px solid "+C.border,textAlign:"center"}}><div style={{fontSize:17,fontWeight:700,color:C.text}}>Reordenar</div></div>
           <div style={{flex:1,overflow:"auto",padding:"8px 0"}}>
             {reorderList.map((exItem,i)=>(
               <div key={i} style={{display:"flex",alignItems:"center",gap:12,padding:"12px 20px",borderBottom:"1px solid "+C.border+"44"}}>
@@ -3207,7 +3209,7 @@ function ExercicioScreen({name,onNavigate,onBack,noHideHeader=false}){
 
   return(
     <div style={{position:"fixed",inset:0,zIndex:10000,background:"#080A0E",display:"flex",flexDirection:"column",paddingBottom:100,overflowY:"auto"}}>
-      <div style={{position:"sticky",top:0,zIndex:2147483646,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
+      <div style={{position:"sticky",top:0,zIndex:2147483646,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:"calc(52px + env(safe-area-inset-top,0px))"}}>
         <div style={{padding:"10px 16px 0"}}>
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
             <button onClick={goBack} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
@@ -3484,7 +3486,7 @@ function MuscleDetailScreen({muscles,onBack,onNavigate}){
   const maxVol=Math.max(...Object.values(muscleVol).map(v=>v.vol),1);
 
   return(
-    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",padding:"52px 20px 120px"}}>
+    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",padding:"calc(52px + env(safe-area-inset-top,0px)) 20px 120px"}}>
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
         <button onClick={onBack} style={{width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:C.text,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
         <div style={{fontSize:18,fontWeight:800,color:C.text}}>Distribuição Muscular</div>
@@ -3945,7 +3947,7 @@ function StrengthDetailScreen({onBack}){
   const exDelta=exPrev>0?Math.round((exLast-exPrev)/exPrev*100):0;
 
   return(
-    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",padding:"52px 20px 140px"}}>
+    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",padding:"calc(52px + env(safe-area-inset-top,0px)) 20px 140px"}}>
       <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:20}}>
         <button onClick={onBack} style={{width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:C.text,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
         <div>
@@ -4255,7 +4257,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
 
 
   return(
-    <div ref={scrollRef} data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingTop:52,paddingBottom:120,overflowY:"auto"}}>
+    <div ref={scrollRef} data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingTop:"calc(52px + env(safe-area-inset-top,0px))",paddingBottom:120,overflowY:"auto"}}>
       {calendarEl}
       <style>{`.prog-bar{transition:height 0.4s ease;}`}</style>
       <div style={{padding:"10px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
@@ -4576,7 +4578,7 @@ function MedicoesScreen({onNavigate}){
   return(
     <div ref={scrollRef} data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0,overflowY:"auto",paddingBottom:120}}>
       {/* Header */}
-      <div style={{position:"sticky",top:0,zIndex:9001,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52}}>
+      <div style={{position:"sticky",top:0,zIndex:9001,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:"calc(52px + env(safe-area-inset-top,0px))"}}>
         <div style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <button onClick={()=>onNavigate("home")} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
@@ -4728,7 +4730,7 @@ function CalendarioFullScreen({onNavigate}){
   if(selDetail){
     const daySessions=allSessions.filter(s=>s.date===selDetail);
     return(
-      <div style={{position:"fixed",inset:0,zIndex:900,background:"#080A0E",overflowY:"auto",paddingTop:52}}>
+      <div style={{position:"fixed",inset:0,zIndex:900,background:"#080A0E",overflowY:"auto",paddingTop:"calc(52px + env(safe-area-inset-top,0px))"}}>
         <div style={{padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
           <button onClick={()=>setSelDetail(null)} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
           <div style={{fontSize:16,fontWeight:700,color:C.text}}>{new Date(selDetail+"T12:00:00").toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"})}</div>
@@ -4901,7 +4903,7 @@ function CalendarioFullScreen({onNavigate}){
   return(
     <div data-screen-container="1" className="screen-root" style={{background:"#080A0E",height:"100dvh",display:"flex",flexDirection:"column",paddingTop:0,overflow:"hidden"}}>
       {/* Header fixo */}
-      <div style={{flexShrink:0,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:52,zIndex:50}}>
+      <div style={{flexShrink:0,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:"calc(52px + env(safe-area-inset-top,0px))",zIndex:50}}>
         <div style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <button onClick={()=>onNavigate("home")} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
@@ -5066,7 +5068,7 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
   const distKpis=[{l:"Treinos",v:distCur.count,d:distDiff(distCur.count,distPrev.count)},{l:"Duração",v:distCur.dur>=60?Math.floor(distCur.dur/60)+"h"+(distCur.dur%60>0?" "+distCur.dur%60+"min":""):distCur.dur+"min",d:distDiff(distCur.dur,distPrev.dur)},{l:"Volume",v:distCur.vol.toFixed(1)+"t",d:distDiff(distCur.vol,distPrev.vol)},{l:"Séries",v:distCur.sets,d:distDiff(distCur.sets,distPrev.sets)}];
 
   return(
-    <div className="screen-root" style={{background:"#080A0E",minHeight:"100vh",paddingTop:52,paddingBottom:120}}>
+    <div className="screen-root" style={{background:"#080A0E",minHeight:"100vh",paddingTop:"calc(52px + env(safe-area-inset-top,0px))",paddingBottom:120}}>
 
       {/* ── HEADER ── */}
       <div style={{position:"sticky",top:52,zIndex:9001,background:"rgba(5,6,9,0.98)",backdropFilter:"blur(24px)",padding:"14px 20px"}}>
@@ -5348,7 +5350,7 @@ ${progressão}
   const showChips=messages.length===1&&!loading;
 
   return(
-    <div style={{display:"flex",flexDirection:"column",height:"100dvh",paddingTop:52,paddingBottom:"calc(80px + env(safe-area-inset-bottom,0px))",background:"#080A0E",boxSizing:"border-box"}}>
+    <div style={{display:"flex",flexDirection:"column",height:"100dvh",paddingTop:"calc(52px + env(safe-area-inset-top,0px))",paddingBottom:"calc(80px + env(safe-area-inset-bottom,0px))",background:"#080A0E",boxSizing:"border-box"}}>
       <style>{`@keyframes fgpulse{0%,100%{opacity:0.3;transform:scale(0.75)}50%{opacity:1;transform:scale(1)}}`}</style>
       <div style={{flexShrink:0,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",padding:"14px 20px"}}>
         <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>AI Coach</div>
