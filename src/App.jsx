@@ -5119,7 +5119,20 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
           <div style={{marginTop:8,fontSize:9,color:C.muted,paddingTop:8,borderTop:"1px solid "+C.border}}>Core 36h · Ombros/Braços 48h · Peito 60h · Costas 72h · Pernas 96h</div>
         </div>
 
-        {/* ── 3. VOLUME POR GRUPO ── */}
+        {/* ── 3. DISTRIBUIÇÃO MUSCULAR ── */}
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:12}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+            <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em"}}>Distribuição Muscular</div>
+            <div style={{display:"flex",gap:4}}>
+              {distPeriods.map(p=>(
+                <button key={p.k} onClick={()=>setDistPeriod(p.k)} style={{padding:"3px 8px",borderRadius:99,fontSize:9,fontWeight:700,cursor:"pointer",background:distPeriod===p.k?C.blueXL:"transparent",border:"1px solid "+(distPeriod===p.k?C.blueXL:C.border),color:distPeriod===p.k?"#fff":C.sub}}>{p.l}</button>
+              ))}
+            </div>
+          </div>
+          <VolumeSpiderChart volumeByGroup={distVbg} size={Math.min(240,window.innerWidth-80)}/>
+        </div>
+
+        {/* ── 4. VOLUME POR GRUPO ── */}
         <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:12}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
             <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em"}}>Volume por Grupo</div>
