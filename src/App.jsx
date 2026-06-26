@@ -1974,7 +1974,7 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
 
   return(
     <>
-    {selEx&&<ExercicioScreen name={selEx} onBack={()=>setSelEx(null)} onNavigate={onNavigate} key={selEx}/>}
+    {selEx&&<ExercicioScreen name={selEx} onBack={()=>setSelEx(null)} onNavigate={onNavigate} key={selEx} noHideHeader/>}
     <div style={{position:"fixed",inset:0,zIndex:9999,background:"#080A0E",display:"flex",flexDirection:"column"}}>
       {/* Header fixo */}
       <div style={{flexShrink:0,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",borderBottom:"1px solid rgba(255,255,255,0.07)",padding:"14px 16px",paddingTop:"calc(14px + env(safe-area-inset-top,0px))"}}>
@@ -2796,7 +2796,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
 @keyframes prFlash{0%{transform:scale(1);box-shadow:0 0 0 0 #F59E0B00}20%{transform:scale(1.04);box-shadow:0 0 32px 6px #F59E0BCC}100%{transform:scale(1);box-shadow:0 0 12px 2px #F59E0B44}}
 @keyframes prTextBounce{0%{opacity:0;transform:scale(0.8)}60%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
       `}</style>
-      <div style={{position:"sticky",top:0,zIndex:9001,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",padding:"calc(52px + env(safe-area-inset-top,0px) + 8px) 16px 10px"}}>
+      <div style={{position:"sticky",top:0,zIndex:9001,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",padding:"calc(env(safe-area-inset-top,0px) + 8px) 16px 10px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
           <button onClick={()=>{setScreen("plans");onMinimize&&onMinimize();}} style={{width:30,height:30,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="#6B7FA3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -3160,7 +3160,7 @@ function ExerciseSlideshow({exName,color}){
   );
 }
 
-function ExercicioScreen({name,onNavigate,onBack}){
+function ExercicioScreen({name,onNavigate,onBack,noHideHeader=false}){
   const[tab,setTab]=useState("resumo");
   const[chartMode,setChartMode]=useState("carga");
   const[chartRange,setChartRange]=useState("3m");
@@ -3174,9 +3174,9 @@ function ExercicioScreen({name,onNavigate,onBack}){
   const bestORM=allSets.reduce((a,s)=>s.w>0&&s.r>0?Math.max(a,orm(s.w,s.r)):a,0);
 
   useEffect(()=>{
-    document.body.classList.add("hide-carbon-header");
-    return()=>document.body.classList.remove("hide-carbon-header");
-  },[]);
+    if(!noHideHeader)document.body.classList.add("hide-carbon-header");
+    return()=>{if(!noHideHeader)document.body.classList.remove("hide-carbon-header");};
+  },[]);// eslint-disable-line
 
 
 
@@ -3378,8 +3378,8 @@ function HistoricoScreen({onNavigate}){
   if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)} onDelete={async(s)=>{await deleteSession(s,()=>{});setDetail(null);}}/>;
 
   return(
-    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:52}}>
-      <div style={{position:"sticky",top:52,zIndex:50,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",padding:"14px 16px 14px"}}>
+    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0}}>
+      <div style={{position:"sticky",top:0,zIndex:9001,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",padding:"calc(env(safe-area-inset-top,0px) + 14px) 16px 14px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:14}}>
           <div style={{fontSize:28,fontWeight:900,color:"#FFFFFF",letterSpacing:"-0.5px"}}>Histórico</div>
           <div style={{textAlign:"right"}}>
