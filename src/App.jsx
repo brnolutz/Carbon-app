@@ -2350,7 +2350,7 @@ function ExerciseGallery({onAdd,onClose,title="Adicionar exercício"}){
   const[search,setSearch]=useState("");
   const filtered=(ALL_EXERCISES[selGroup]||[]).filter(ex=>!search||ex.toLowerCase().includes(search.toLowerCase()));
   return(
-    <div style={{position:"fixed",inset:0,zIndex:10010,background:"#080A0E",display:"flex",flexDirection:"column",paddingTop:"env(safe-area-inset-top,0px)"}}>
+    <div style={{position:"fixed",inset:0,zIndex:10010,background:"#080A0E",display:"flex",flexDirection:"column",paddingTop:"calc(56px + env(safe-area-inset-top,0px))"}}>
       {/* Header */}
       <div style={{flexShrink:0,padding:"14px 16px 0",background:"#080A0E"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
