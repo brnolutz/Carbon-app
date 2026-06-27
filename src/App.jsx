@@ -5458,8 +5458,33 @@ ${progressão}
             </button>
           </div>
         </div>
-        {/* Nav bar */}
-        <BottomNav active="coach" onNavigate={onNavigate}/>
+        {/* Nav inline (not fixed) */}
+        <div style={{paddingBottom:"env(safe-area-inset-bottom,8px)",paddingLeft:12,paddingRight:12}}>
+          <div style={{background:"rgba(8,10,14,1)",borderRadius:36,border:"1px solid rgba(255,255,255,0.10)",display:"flex",justifyContent:"space-around",alignItems:"center",padding:"6px 8px 8px",marginBottom:8}}>
+            {[
+              {k:"home",l:"Home",i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1H15v-5h-6v5H5a1 1 0 0 1-1-1z" strokeLinejoin="round"/></svg>},
+              {k:"treino",l:"Treino",i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>},
+              {k:"progresso",l:"Progresso",i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><line x1="5" y1="19" x2="19" y2="5"/><polyline points="9 5 19 5 19 15"/></svg>},
+              {k:"corpo",l:"Corpo",i:<svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.6" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>},
+              {k:"coach",l:"Coach",i:<svg width="18" height="18" fill="currentColor" stroke="none" viewBox="0 0 24 24"><path d="M12 2l1.2 7.8L21 12l-7.8 1.2L12 21l-1.2-7.8L3 12l7.8-1.2z"/></svg>},
+            ].map(tab=>{
+              const isActive=tab.k==="coach";
+              return(
+                <button key={tab.k} onClick={()=>onNavigate(tab.k)} style={{background:"none",border:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",padding:0,color:isActive?"#fff":"rgba(255,255,255,0.32)"}}>
+                  {isActive?(
+                    <div style={{background:"rgba(255,255,255,0.13)",border:"1px solid rgba(255,255,255,0.18)",borderRadius:22,padding:"7px 18px 6px",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
+                      {tab.i}<span style={{fontSize:10,fontWeight:700,color:"#fff",whiteSpace:"nowrap"}}>{tab.l}</span>
+                    </div>
+                  ):(
+                    <div style={{padding:"7px 10px 6px",display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
+                      {tab.i}<span style={{fontSize:10,fontWeight:500,color:"rgba(255,255,255,0.32)",whiteSpace:"nowrap"}}>{tab.l}</span>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
     </div>
   );
