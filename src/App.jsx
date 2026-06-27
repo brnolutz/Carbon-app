@@ -1830,7 +1830,66 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
 }
 
 // ── Routine Screen — shown when tapping a plan card ──
-function ExEditCard({ex,i,gc,draft,setDraft,setShowExGallery,totalEx,onReplaceEx}){
+function RoutineBarChart({chartData,chartMode,chartRange,setChartRange,setChartMode,allSessions,sessions,nPts}){
+  const[selBar,setSelBar]=useState(null);
+  const prev=allSessions.slice(-(nPts*2),-nPts);
+  const curVal=v=>chartMode==="vol"?(v.totalVol||0):chartMode==="sets"?(v.totalSets||0):(v.duration||0);
+  const prevAvg=prev.length?prev.reduce((s,p)=>s+curVal(p),0)/prev.length:null;
+  const curAvg=sessions.length?sessions.reduce((s,p)=>s+curVal(p),0)/sessions.length:0;
+  const delta=prevAvg!=null&&prevAvg>0?((curAvg-prevAvg)/prevAvg*100):null;
+  const fmt=v=>chartMode==="vol"?v.toFixed(1)+"t":Math.round(v)+(chartMode==="sets"?" sér":" min");
+  const barMax=Math.max(...chartData.map(d=>d.y),0.01);
+  const BAR_H=90;
+  return(
+    <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:"16px 14px",marginBottom:20}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
+        <div>
+          <div style={{fontSize:9,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:3}}>
+            {chartMode==="vol"?"Volume":chartMode==="sets"?"Séries":"Duração"} · {chartRange==="1m"?"1 Mês":chartRange==="3m"?"3 Meses":chartRange==="1a"?"1 Ano":"Tudo"}
+          </div>
+          <div style={{display:"flex",alignItems:"baseline",gap:6,flexWrap:"wrap"}}>
+            <div style={{fontSize:26,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{fmt(curAvg)}</div>
+            <div style={{fontSize:10,color:C.muted}}>média</div>
+            {delta!=null&&<div style={{fontSize:11,fontWeight:700,color:delta>=0?C.mint:C.coral,background:(delta>=0?C.mint:C.coral)+"18",padding:"2px 7px",borderRadius:99}}>{delta>=0?"+":""}{delta.toFixed(0)}% vs anterior</div>}
+          </div>
+        </div>
+        <div style={{display:"flex",gap:3}}>
+          {["1m","3m","1a","all"].map(r=>(
+            <button key={r} onClick={()=>setChartRange(r)} style={{padding:"4px 8px",borderRadius:99,fontSize:9,fontWeight:700,cursor:"pointer",background:chartRange===r?C.blueXL:"transparent",border:"1px solid "+(chartRange===r?C.blueXL:C.border),color:chartRange===r?"#fff":C.sub}}>{r==="all"?"Tudo":r==="1a"?"Ano":r==="3m"?"3M":"1M"}</button>
+          ))}
+        </div>
+      </div>
+      <div style={{marginTop:14,marginBottom:8}}>
+        <div style={{display:"flex",alignItems:"flex-end",gap:3,height:BAR_H,marginBottom:6}}>
+          {chartData.map((d,i)=>{
+            const h=Math.max(4,(d.y/barMax)*BAR_H);
+            const isSel=selBar===i;
+            const isLast=i===chartData.length-1;
+            return(
+              <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",height:"100%",cursor:"pointer",position:"relative"}} onClick={()=>setSelBar(isSel?null:i)}>
+                {isSel&&(
+                  <div style={{position:"absolute",bottom:h+8,left:"50%",transform:"translateX(-50%)",background:C.blueXL,color:"#fff",fontSize:9,fontWeight:700,padding:"4px 8px",borderRadius:6,whiteSpace:"nowrap",zIndex:10,textAlign:"center",lineHeight:1.4}}>
+                    {fmt(d.y)}<br/><span style={{fontWeight:400,opacity:0.8}}>{d.label}</span>
+                  </div>
+                )}
+                <div style={{width:"100%",height:h,borderRadius:"4px 4px 2px 2px",background:isSel?C.blueXL:isLast?"rgba(59,130,246,0.7)":"rgba(59,130,246,0.25)",transition:"all 0.15s"}}/>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{display:"flex",justifyContent:"space-between"}}>
+          <span style={{fontSize:9,color:C.muted}}>{chartData[0]?.label}</span>
+          <span style={{fontSize:9,color:C.muted}}>{chartData[chartData.length-1]?.label}</span>
+        </div>
+      </div>
+      <div style={{display:"flex",gap:5,marginTop:4}}>
+        {[{k:"vol",l:"Volume"},{k:"sets",l:"Séries"},{k:"dur",l:"Duração"}].map(m=>(
+          <button key={m.k} onClick={()=>setChartMode(m.k)} style={{padding:"5px 12px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:chartMode===m.k?C.blueXL+"22":"transparent",border:"1px solid "+(chartMode===m.k?C.blueXL+"88":C.border),color:chartMode===m.k?C.blueXL:C.sub}}>{m.l}</button>
+        ))}
+      </div>
+    </div>
+  );
+}
   const[showMenu,setShowMenu]=useState(false);
   const[showColorPicker,setShowColorPicker]=useState(false);
   const COLORS=["#3B82F6","#10B981","#F59E0B","#EF4444","#A78BFA","#F472B6","#22D3EE","#FB923C"];
@@ -2020,75 +2079,18 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
         </button>
 
         {/* Chart */}
-        {chartData.length>0&&(()=>{
-          const prev=allSessions.slice(-(nPts*2),-nPts);
-          const prevAvg=prev.length?prev.reduce((s,p)=>s+(chartMode==="vol"?(p.totalVol||0):chartMode==="sets"?(p.totalSets||0):(p.duration||0)),0)/prev.length:null;
-          const curAvg=sessions.reduce((s,p)=>s+(chartMode==="vol"?(p.totalVol||0):chartMode==="sets"?(p.totalSets||0):(p.duration||0)),0)/(sessions.length||1);
-          const delta=prevAvg!=null?((curAvg-prevAvg)/prevAvg*100):null;
-          const unit=chartMode==="vol"?"t":chartMode==="sets"?" séries":" min";
-          const fmt=v=>chartMode==="vol"?v.toFixed(1)+"t":Math.round(v)+(chartMode==="sets"?" sér":" min");
-          return(
-          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:"16px 14px",marginBottom:20}}>
-            {/* Header */}
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
-              <div>
-                <div style={{fontSize:9,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:3}}>
-                  {chartMode==="vol"?"Volume":chartMode==="sets"?"Séries":"Duração"} · {chartRange==="1m"?"1 Mês":chartRange==="3m"?"3 Meses":chartRange==="1a"?"1 Ano":"Tudo"}
-                </div>
-                <div style={{display:"flex",alignItems:"baseline",gap:6}}>
-                  <div style={{fontSize:26,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{fmt(curAvg)}</div>
-                  <div style={{fontSize:10,color:C.muted}}>média</div>
-                  {delta!=null&&<div style={{fontSize:11,fontWeight:700,color:delta>=0?C.mint:C.coral,background:(delta>=0?C.mint:C.coral)+"18",padding:"2px 7px",borderRadius:99}}>{delta>=0?"+":""}{delta.toFixed(0)}% vs anterior</div>}
-                </div>
-              </div>
-              <div style={{display:"flex",gap:3}}>
-                {["1m","3m","1a","all"].map(r=>(
-                  <button key={r} onClick={()=>setChartRange(r)} style={{padding:"4px 8px",borderRadius:99,fontSize:9,fontWeight:700,cursor:"pointer",background:chartRange===r?C.blueXL:"transparent",border:"1px solid "+(chartRange===r?C.blueXL:C.border),color:chartRange===r?"#fff":C.sub}}>{r==="all"?"Tudo":r==="1a"?"Ano":r==="3m"?"3M":"1M"}</button>
-                ))}
-              </div>
-            </div>
-
-            {/* Bar chart with tap tooltip */}
-            {(()=>{
-              const[selBar,setSelBar]=useState(null);
-              const barMax=Math.max(...chartData.map(d=>d.y),0.01);
-              const BAR_H=90;
-              return(
-                <div style={{marginTop:14,marginBottom:8}}>
-                  <div style={{display:"flex",alignItems:"flex-end",gap:3,height:BAR_H,marginBottom:6}}>
-                    {chartData.map((d,i)=>{
-                      const h=Math.max(4,(d.y/barMax)*BAR_H);
-                      const isSel=selBar===i;
-                      const isLast=i===chartData.length-1;
-                      return(
-                        <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",height:"100%",cursor:"pointer",position:"relative"}} onClick={()=>setSelBar(isSel?null:i)}>
-                          {isSel&&(
-                            <div style={{position:"absolute",bottom:h+8,left:"50%",transform:"translateX(-50%)",background:C.blueXL,color:"#fff",fontSize:9,fontWeight:700,padding:"3px 7px",borderRadius:6,whiteSpace:"nowrap",zIndex:10}}>
-                              {fmt(d.y)}<br/><span style={{fontWeight:400,opacity:0.8}}>{d.label}</span>
-                            </div>
-                          )}
-                          <div style={{width:"100%",height:h,borderRadius:"4px 4px 2px 2px",background:isSel?C.blueXL:isLast?"rgba(59,130,246,0.7)":"rgba(59,130,246,0.25)",transition:"all 0.15s"}}/>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div style={{display:"flex",justifyContent:"space-between"}}>
-                    <span style={{fontSize:9,color:C.muted}}>{chartData[0]?.label}</span>
-                    <span style={{fontSize:9,color:C.muted}}>{chartData[chartData.length-1]?.label}</span>
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Mode tabs */}
-            <div style={{display:"flex",gap:5,marginTop:4}}>
-              {[{k:"vol",l:"Volume"},{k:"sets",l:"Séries"},{k:"dur",l:"Duração"}].map(m=>(
-                <button key={m.k} onClick={()=>setChartMode(m.k)} style={{padding:"5px 12px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:chartMode===m.k?C.blueXL+"22":"transparent",border:"1px solid "+(chartMode===m.k?C.blueXL+"88":C.border),color:chartMode===m.k?C.blueXL:C.sub}}>{m.l}</button>
-              ))}
-            </div>
-          </div>
-          );
-        })()}
+        {chartData.length>0&&(
+          <RoutineBarChart
+            chartData={chartData}
+            chartMode={chartMode}
+            chartRange={chartRange}
+            setChartRange={setChartRange}
+            setChartMode={setChartMode}
+            allSessions={allSessions}
+            sessions={sessions}
+            nPts={nPts}
+          />
+        )}
 
         {/* Exercises */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
