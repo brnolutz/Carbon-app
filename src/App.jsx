@@ -5358,9 +5358,9 @@ ${progressão}
   const showChips=messages.length===1&&!loading;
 
   return(
-    <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh",paddingBottom:"calc(80px + env(safe-area-inset-bottom,0px))",background:"#080A0E",boxSizing:"border-box"}}>
+    <div style={{display:"flex",flexDirection:"column",height:"calc(100dvh - var(--header-h, 0px))",background:"#080A0E",boxSizing:"border-box",position:"relative"}}>
       <style>{`@keyframes fgpulse{0%,100%{opacity:0.3;transform:scale(0.75)}50%{opacity:1;transform:scale(1)}}`}</style>
-      <div style={{flexShrink:0,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",padding:"8px 20px 14px"}}>
+      <div style={{flexShrink:0,padding:"8px 20px 12px"}}>
         <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>AI Coach</div>
         <div style={{fontSize:10,fontWeight:600,color:C.blueXL,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Powered by Claude</div>
       </div>
@@ -5372,14 +5372,10 @@ ${progressão}
                 {m.role==="user"
                   ? m.content
                   : m.content.split("\n").map((line,li)=>{
-                      // Parse inline markdown: **bold** and *italic*
                       const parseLine=(txt)=>{
-                        const parts=[];
-                        let rest=txt;
-                        let key=0;
+                        const parts=[];let rest=txt;let key=0;
                         while(rest.length>0){
-                          const bold=rest.match(/^\*\*(.+?)\*\*/);
-                          const italic=rest.match(/^\*(.+?)\*/);
+                          const bold=rest.match(/^\*\*(.+?)\*\*/);const italic=rest.match(/^\*(.+?)\*/);
                           if(bold){parts.push(<strong key={key++} style={{fontWeight:800,color:"#fff"}}>{bold[1]}</strong>);rest=rest.slice(bold[0].length);}
                           else if(italic){parts.push(<em key={key++} style={{fontStyle:"italic"}}>{italic[1]}</em>);rest=rest.slice(italic[0].length);}
                           else{const next=rest.search(/\*\*/);const ni=rest.search(/\*[^*]/);const stop=next===-1&&ni===-1?rest.length:Math.min(next===-1?Infinity:next,ni===-1?Infinity:ni);parts.push(<span key={key++}>{rest.slice(0,stop)}</span>);rest=rest.slice(stop);}
@@ -5397,7 +5393,7 @@ ${progressão}
         {loading&&<div style={{display:"flex",alignItems:"flex-end",gap:8}}><div style={{width:28,height:28,borderRadius:"50%",background:"#080A0E",border:"1px solid rgba(255,255,255,0.1)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,overflow:"hidden"}}><img src="/carbon-logo-transparent.png" alt="Carbon" style={{width:20,height:20,objectFit:"contain"}}/></div><div style={{background:"rgba(255,255,255,0.06)",border:"1px solid "+C.border,borderRadius:"18px 18px 18px 4px",padding:"12px 16px",display:"flex",gap:5,alignItems:"center"}}>{[0,1,2].map(j=>(<div key={j} style={{width:7,height:7,borderRadius:"50%",background:C.blueXL,animationName:"fgpulse",animationDuration:"1.2s",animationTimingFunction:"ease-in-out",animationIterationCount:"infinite",animationDelay:`${j*0.18}s`}}/>))}</div></div>}
       </div>
       {showChips&&<div style={{flexShrink:0,padding:"0 16px 10px",display:"flex",gap:8,overflowX:"auto"}}>{chips.map(c=>(<button key={c} onClick={()=>setInput(c)} style={{flexShrink:0,background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.22)",borderRadius:20,padding:"7px 13px",fontSize:11,fontWeight:600,color:C.blueXL,cursor:"pointer",whiteSpace:"nowrap"}}>{c}</button>))}</div>}
-      <div style={{flexShrink:0,padding:"8px 12px 12px",background:"rgba(10,15,30,0.85)",backdropFilter:"blur(20px)",borderTop:"1px solid rgba(255,255,255,0.06)",display:"flex",gap:8,alignItems:"flex-end"}}>
+      <div style={{flexShrink:0,padding:"8px 12px",background:"rgba(10,15,30,0.85)",backdropFilter:"blur(20px)",borderTop:"1px solid rgba(255,255,255,0.06)",display:"flex",gap:8,alignItems:"flex-end"}}>
         <textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}} placeholder="Pergunte ao seu coach..." rows={1} style={{flex:1,background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:14,padding:"11px 14px",fontSize:16,color:C.text,outline:"none",resize:"none",fontFamily:"inherit",lineHeight:1.45,maxHeight:100,overflowY:"auto"}}/>
         <button onClick={send} disabled={!input.trim()||loading} style={{width:42,height:42,borderRadius:13,background:input.trim()&&!loading?"linear-gradient(135deg,#3B82F6,#2563EB)":"rgba(255,255,255,0.06)",border:"none",cursor:input.trim()&&!loading?"pointer":"default",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,opacity:input.trim()&&!loading?1:0.4}}>↑</button>
       </div>
