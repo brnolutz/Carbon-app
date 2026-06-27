@@ -1941,6 +1941,11 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
     setShowMenu(false);
   }
 
+  useEffect(()=>{
+    document.body.classList.add("hide-carbon-header");
+    return()=>document.body.classList.remove("hide-carbon-header");
+  },[]);
+
   // EDIT MODE
   if(editing){
     return(
@@ -1977,11 +1982,6 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
     );
   }
   // VIEW MODE
-  useEffect(()=>{
-    document.body.classList.add("hide-carbon-header");
-    return()=>document.body.classList.remove("hide-carbon-header");
-  },[]);
-
   return(
     <>
     {selEx&&<ExercicioScreen name={selEx} onBack={()=>setSelEx(null)} onNavigate={onNavigate} key={selEx} noHideHeader/>}
