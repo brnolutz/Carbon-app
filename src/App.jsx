@@ -1830,8 +1830,10 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
 }
 
 // ── Routine Screen — shown when tapping a plan card ──
-function ExEditCard({ex,i,gc,draft,setDraft,setShowExGallery,totalEx}){
+function ExEditCard({ex,i,gc,draft,setDraft,setShowExGallery,totalEx,onReplaceEx}){
   const[showMenu,setShowMenu]=useState(false);
+  const[showColorPicker,setShowColorPicker]=useState(false);
+  const COLORS=["#3B82F6","#10B981","#F59E0B","#EF4444","#A78BFA","#F472B6","#22D3EE","#FB923C"];
   return(
     <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,marginBottom:10,overflow:"hidden"}}>
       <div style={{display:"flex",alignItems:"center",padding:"12px 14px",borderBottom:"1px solid "+C.border,gap:10}}>
@@ -1870,6 +1872,7 @@ function ExEditCard({ex,i,gc,draft,setDraft,setShowExGallery,totalEx}){
             {[
               {icon:"↑",label:"Mover para cima",disabled:i===0,action:()=>setDraft(d=>{const exs=[...d.exercises];[exs[i-1],exs[i]]=[exs[i],exs[i-1]];return{...d,exercises:exs};})},
               {icon:"↓",label:"Mover para baixo",disabled:i===totalEx-1,action:()=>setDraft(d=>{const exs=[...d.exercises];[exs[i],exs[i+1]]=[exs[i+1],exs[i]];return{...d,exercises:exs};})},
+              {icon:"⇄",label:"Substituir exercício",color:C.blueXL,action:()=>{onReplaceEx(i);setShowMenu(false);}},
               {icon:"✕",label:"Remover Exercício",color:C.coral,action:()=>setDraft(d=>({...d,exercises:d.exercises.filter((_,ii)=>ii!==i)}))},
             ].map(item=>(
               <button key={item.label} disabled={item.disabled} onClick={()=>{if(!item.disabled){item.action();setShowMenu(false);}}} style={{width:"100%",padding:"16px 24px",background:"none",border:"none",cursor:item.disabled?"default":"pointer",display:"flex",alignItems:"center",gap:16,opacity:item.disabled?0.3:1}}>
@@ -1894,6 +1897,9 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
   const[saving,setSaving]=useState(false);
   const[showDelConfirm,setShowDelConfirm]=useState(false);
   const[showExGallery,setShowExGallery]=useState(false);
+  const[replaceExIdx,setReplaceExIdx]=useState(null);
+  const[showColorPicker,setShowColorPicker]=useState(false);
+  const COLORS=["#3B82F6","#10B981","#F59E0B","#EF4444","#A78BFA","#F472B6","#22D3EE","#FB923C"];
 
   const isNew=plan.isNew||!plan.id;
 
@@ -1959,24 +1965,41 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
         </div>
         <div style={{flex:1,overflowY:"auto",padding:"16px 16px 100px"}}>
           <input value={(draft.name||"")+(draft.label?" — "+draft.label:"")} onChange={e=>{const v=e.target.value;const parts=v.split(" — ");setDraft(d=>({...d,name:parts[0]||v,label:parts.slice(1).join(" — ")||""}));}} placeholder="Ex: DIA 1 — PUSH" style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",borderBottom:"1px solid "+C.border,padding:"8px 0",fontSize:22,fontWeight:900,color:C.text,outline:"none",marginBottom:20}}/>
-          <div style={{display:"flex",gap:8,marginBottom:20,flexWrap:"wrap"}}>
-            {["#3B82F6","#10B981","#F59E0B","#EF4444","#A78BFA","#F472B6","#22D3EE","#FB923C"].map(c=>(
-              <button key={c} onClick={()=>setDraft(d=>({...d,color:c}))} style={{width:28,height:28,borderRadius:"50%",background:c,border:draft.color===c?"3px solid #fff":"3px solid transparent",cursor:"pointer"}}/>
-            ))}
+
+          {/* Compact color picker */}
+          <div style={{marginBottom:20,position:"relative"}}>
+            <button onClick={()=>setShowColorPicker(v=>!v)} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:C.card,border:"1px solid "+C.border,borderRadius:12,cursor:"pointer",width:"100%"}}>
+              <div style={{width:20,height:20,borderRadius:"50%",background:draft.color||"#3B82F6",flexShrink:0}}/>
+              <span style={{fontSize:13,color:C.text,fontWeight:600,flex:1,textAlign:"left"}}>Cor da rotina</span>
+              <span style={{fontSize:12,color:C.sub}}>{showColorPicker?"▲":"▼"}</span>
+            </button>
+            {showColorPicker&&(
+              <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"14px",zIndex:100,display:"flex",gap:10,flexWrap:"wrap"}}>
+                {COLORS.map(c=>(
+                  <button key={c} onClick={()=>{setDraft(d=>({...d,color:c}));setShowColorPicker(false);}} style={{width:32,height:32,borderRadius:"50%",background:c,border:draft.color===c?"3px solid #fff":"3px solid transparent",cursor:"pointer",boxShadow:draft.color===c?"0 0 0 2px "+c:"none"}}/>
+                ))}
+              </div>
+            )}
           </div>
+
           {draft.exercises.map((ex,i)=>{
             const gc=GC[EX_GROUP[ex.name]]||C.blueXL;
             return(
-              <ExEditCard key={i} ex={ex} i={i} gc={gc} draft={draft} setDraft={setDraft} setShowExGallery={setShowExGallery} totalEx={draft.exercises.length}/>
+              <ExEditCard key={i} ex={ex} i={i} gc={gc} draft={draft} setDraft={setDraft} setShowExGallery={setShowExGallery} totalEx={draft.exercises.length} onReplaceEx={(idx)=>setReplaceExIdx(idx)}/>
             );
           })}
           <button onClick={()=>setShowExGallery(true)} style={{width:"100%",padding:"14px",background:"transparent",border:"1px dashed "+C.border,borderRadius:14,color:C.blueXL,fontSize:14,fontWeight:700,cursor:"pointer",marginTop:4}}>+ Adicionar Exercício</button>
         </div>
-        {showExGallery&&(
+        {(showExGallery||replaceExIdx!==null)&&(
           <ExerciseGallery onAdd={(name,group)=>{
-            setDraft(d=>({...d,exercises:[...d.exercises,{name,group,rest:90,sets:[{w:0,r:8},{w:0,r:8},{w:0,r:8}]}]}));
-            setShowExGallery(false);
-          }} onClose={()=>setShowExGallery(false)}/>
+            if(replaceExIdx!==null){
+              setDraft(d=>({...d,exercises:d.exercises.map((ee,ii)=>ii!==replaceExIdx?ee:{...ee,name,group})}));
+              setReplaceExIdx(null);
+            } else {
+              setDraft(d=>({...d,exercises:[...d.exercises,{name,group,rest:90,sets:[{w:0,r:8},{w:0,r:8},{w:0,r:8}]}]}));
+              setShowExGallery(false);
+            }
+          }} onClose={()=>{setShowExGallery(false);setReplaceExIdx(null);}}/>
         )}
       </div>
     );
