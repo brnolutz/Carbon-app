@@ -4254,54 +4254,6 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   const GlassCard=({children,style={},onClick})=>(
     <div onClick={onClick} style={{background:C.card,backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderRadius:20,border:"1px solid "+C.border,boxShadow:"0 4px 24px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.05)",cursor:onClick?"pointer":undefined,...style}}>{children}</div>
   );
-  const calendarEl = useMemo(()=>{
-    if(!showCalendar) return null;
-    const y=calMonth.getFullYear(),m=calMonth.getMonth();
-    const firstDay=new Date(y,m,1).getDay();
-    const daysInMonth=new Date(y,m+1,0).getDate();
-    const cells=[];
-    for(let i=0;i<firstDay;i++) cells.push(null);
-    for(let d=1;d<=daysInMonth;d++) cells.push(d);
-    return(
-      <div style={{position:"fixed",inset:0,zIndex:800,background:"#080A0E",overflowY:"auto"}}>
-        <div style={{padding:"110px 20px 120px"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:24}}>
-            <button onClick={()=>setShowCalendar(false)} style={{width:36,height:36,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:C.text,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-            <div style={{fontSize:18,fontWeight:800,color:C.text}}>Calendário</div>
-            <div style={{width:36}}/>
-          </div>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-            <button onClick={()=>setCalMonth(d=>{const n=new Date(d);n.setMonth(n.getMonth()-1);return n;})} style={{width:32,height:32,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-            <div style={{fontSize:16,fontWeight:700,color:C.text,textTransform:"capitalize"}}>{calMonth.toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}</div>
-            <button onClick={()=>setCalMonth(d=>{const n=new Date(d);n.setMonth(n.getMonth()+1);return n;})} style={{width:32,height:32,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2,marginBottom:8}}>
-            {["DO","SE","TE","QU","QU","SE","SÁ"].map((d,i)=><div key={i} style={{textAlign:"center",fontSize:10,fontWeight:700,color:C.muted,padding:"6px 0"}}>{d}</div>)}
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4}}>
-            {cells.map((d,i)=>{
-              if(!d) return <div key={i}/>;
-              const ds=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-              const isToday=ds===todayStr;
-              const hasW=workoutDates.has(ds);
-              return(
-                <div key={i} style={{aspectRatio:"1",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,background:hasW?"#3D5AF122":isToday?"linear-gradient(135deg,"+C.blueM+","+C.blueL+")":"rgba(255,255,255,0.03)",border:"1px solid "+(hasW?"#3D5AF166":isToday?C.blueXL+"66":"rgba(255,255,255,0.05)"),position:"relative"}}>
-                  <span style={{fontSize:13,fontWeight:hasW||isToday?700:400,color:hasW?"#3D5AF1":isToday?"#fff":C.muted}}>{d}</span>
-                  {hasW&&<div style={{position:"absolute",bottom:3,width:4,height:4,borderRadius:"50%",background:C.mint}}/>}
-                </div>
-              );
-            })}
-          </div>
-          <div style={{marginTop:20,display:"flex",gap:16,justifyContent:"center"}}>
-            <div style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:10,height:10,borderRadius:3,background:C.mint+"44",border:"1px solid "+C.mint}}/><span style={{fontSize:11,color:C.sub}}>Treino realizado</span></div>
-            <div style={{display:"flex",alignItems:"center",gap:6}}><div style={{width:10,height:10,borderRadius:3,background:"linear-gradient(135deg,"+C.blueM+","+C.blueL+")"}}/><span style={{fontSize:11,color:C.sub}}>Hoje</span></div>
-          </div>
-        </div>
-        <BottomNav active="progresso" onNavigate={(d)=>{setShowCalendar(false);onNavigate(d);}}/>
-      </div>
-    );
-  },[showCalendar,calMonth,workoutDates,todayStr]);
-
   const {rangeData,rangeMaxY,rangeTotal,rangeDelta}=useMemo(()=>{
     refreshDerivedData();
     const weeks=Object.keys(WEEKLY).sort();
@@ -4323,8 +4275,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
 
   return(
     <div ref={scrollRef} data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingBottom:120,overflowY:"auto"}}>
-      {calendarEl}
-      <style>{`.prog-bar{transition:height 0.4s ease;}`}</style>
+            <style>{`.prog-bar{transition:height 0.4s ease;}`}</style>
       <div style={{padding:"8px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>Meu Progresso</div>
         <button onClick={()=>onNavigate("calendario")} style={{width:32,height:32,borderRadius:10,background:C.card,border:"1px solid "+C.border,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
