@@ -5177,11 +5177,11 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
 
         {/* ── 3. DISTRIBUIÇÃO MUSCULAR ── */}
         <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:12}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-            <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em"}}>Distribuição Muscular</div>
-            <div style={{display:"flex",gap:4}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,gap:8}}>
+            <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.06em",flexShrink:0}}>Dist. Muscular</div>
+            <div style={{display:"flex",gap:3,flexShrink:0}}>
               {distPeriods.map(p=>(
-                <button key={p.k} onClick={()=>setDistPeriod(p.k)} style={{padding:"3px 8px",borderRadius:99,fontSize:9,fontWeight:700,cursor:"pointer",background:distPeriod===p.k?C.blueXL:"transparent",border:"1px solid "+(distPeriod===p.k?C.blueXL:C.border),color:distPeriod===p.k?"#fff":C.sub}}>{p.l}</button>
+                <button key={p.k} onClick={()=>setDistPeriod(p.k)} style={{padding:"3px 7px",borderRadius:99,fontSize:9,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap",background:distPeriod===p.k?C.blueXL:"transparent",border:"1px solid "+(distPeriod===p.k?C.blueXL:C.border),color:distPeriod===p.k?"#fff":C.sub}}>{p.l}</button>
               ))}
             </div>
           </div>
