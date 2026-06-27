@@ -1872,7 +1872,7 @@ function RoutineBarChart({chartData,chartMode,chartRange,setChartRange,setChartM
                     {fmt(d.y)}<br/><span style={{fontWeight:400,opacity:0.8}}>{d.label}</span>
                   </div>
                 )}
-                <div style={{width:"100%",height:h,borderRadius:"4px 4px 2px 2px",background:isSel?C.blueXL:isLast?"rgba(59,130,246,0.7)":"rgba(59,130,246,0.25)",transition:"all 0.15s"}}/>
+                <div style={{width:"100%",height:h,borderRadius:"4px 4px 2px 2px",background:isSel?C.blueXL:"rgba(59,130,246,0.35)",transition:"all 0.15s"}}/>
               </div>
             );
           })}
