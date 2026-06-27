@@ -764,7 +764,7 @@ function WorkoutDetail({session,onClose,onDelete}){
 
   return(
     <div style={{position:"fixed",inset:0,zIndex:600,background:C.bg,overflowY:"auto",paddingTop:8}}>
-      <div style={{position:"sticky",top:52,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"14px 16px 14px"}}>
+      <div style={{position:"sticky",top:0,zIndex:10,background:"rgba(6,8,12,0.96)",backdropFilter:"blur(20px)",padding:"14px 16px 14px"}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onClose} style={{width:36,height:36,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:22,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
           <div style={{fontSize:16,fontWeight:700,color:C.text,flex:1}}>Detalhe do Treino</div>
@@ -5079,7 +5079,7 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
     <div className="screen-root" style={{background:"#080A0E",minHeight:"100vh",paddingTop:8,paddingBottom:120}}>
 
       {/* ── HEADER ── */}
-      <div style={{position:"sticky",top:52,zIndex:9001,background:"rgba(5,6,9,0.98)",backdropFilter:"blur(24px)",padding:"14px 20px"}}>
+      <div style={{position:"sticky",top:0,zIndex:9001,background:"rgba(5,6,9,0.98)",backdropFilter:"blur(24px)",padding:"14px 20px"}}>
         <div style={{fontSize:26,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>Meu Corpo</div>
       </div>
 
@@ -5358,7 +5358,7 @@ ${progressão}
   const showChips=messages.length===1&&!loading;
 
   return(
-    <div style={{display:"flex",flexDirection:"column",height:"100dvh",paddingTop:8,paddingBottom:"calc(80px + env(safe-area-inset-bottom,0px))",background:"#080A0E",boxSizing:"border-box"}}>
+    <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh",paddingBottom:"calc(80px + env(safe-area-inset-bottom,0px))",background:"#080A0E",boxSizing:"border-box"}}>
       <style>{`@keyframes fgpulse{0%,100%{opacity:0.3;transform:scale(0.75)}50%{opacity:1;transform:scale(1)}}`}</style>
       <div style={{flexShrink:0,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",padding:"14px 20px"}}>
         <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>AI Coach</div>
