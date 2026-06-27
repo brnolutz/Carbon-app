@@ -4327,7 +4327,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
       <style>{`.prog-bar{transition:height 0.4s ease;}`}</style>
       <div style={{padding:"8px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>Meu Progresso</div>
-        <button onClick={()=>setShowCalendar(true)} style={{width:32,height:32,borderRadius:10,background:C.card,border:"1px solid "+C.border,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
+        <button onClick={()=>onNavigate("calendario")} style={{width:32,height:32,borderRadius:10,background:C.card,border:"1px solid "+C.border,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="3" stroke={C.sub} strokeWidth="1.8"/><path d="M3 9h18M8 2v4M16 2v4" stroke={C.sub} strokeWidth="1.8" strokeLinecap="round"/></svg>
         </button>
       </div>
@@ -4972,10 +4972,10 @@ function CalendarioFullScreen({onNavigate}){
   return(
     <div data-screen-container="1" className="screen-root" style={{background:"#080A0E",height:"100dvh",display:"flex",flexDirection:"column",paddingTop:0,overflow:"hidden"}}>
       {/* Header fixo */}
-      <div style={{flexShrink:0,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:8,zIndex:50}}>
+      <div style={{flexShrink:0,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:16,zIndex:50}}>
         <div style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
-            <button onClick={()=>onNavigate("home")} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+            <button onClick={()=>onNavigate("progresso")} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
             <div style={{fontSize:16,fontWeight:700,color:C.text}}>Calendário</div>
           </div>
           <div style={{display:"flex",background:C.card,borderRadius:10,padding:2,border:"1px solid "+C.border}}>
