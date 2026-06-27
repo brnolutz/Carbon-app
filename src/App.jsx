@@ -1966,22 +1966,6 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
         <div style={{flex:1,overflowY:"auto",padding:"16px 16px 100px"}}>
           <input value={(draft.name||"")+(draft.label?" — "+draft.label:"")} onChange={e=>{const v=e.target.value;const parts=v.split(" — ");setDraft(d=>({...d,name:parts[0]||v,label:parts.slice(1).join(" — ")||""}));}} placeholder="Ex: DIA 1 — PUSH" style={{width:"100%",boxSizing:"border-box",background:"transparent",border:"none",borderBottom:"1px solid "+C.border,padding:"8px 0",fontSize:22,fontWeight:900,color:C.text,outline:"none",marginBottom:20}}/>
 
-          {/* Compact color picker */}
-          <div style={{marginBottom:20,position:"relative"}}>
-            <button onClick={()=>setShowColorPicker(v=>!v)} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 14px",background:C.card,border:"1px solid "+C.border,borderRadius:12,cursor:"pointer",width:"100%"}}>
-              <div style={{width:20,height:20,borderRadius:"50%",background:draft.color||"#3B82F6",flexShrink:0}}/>
-              <span style={{fontSize:13,color:C.text,fontWeight:600,flex:1,textAlign:"left"}}>Cor da rotina</span>
-              <span style={{fontSize:12,color:C.sub}}>{showColorPicker?"▲":"▼"}</span>
-            </button>
-            {showColorPicker&&(
-              <div style={{position:"absolute",top:"calc(100% + 6px)",left:0,right:0,background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"14px",zIndex:100,display:"flex",gap:10,flexWrap:"wrap"}}>
-                {COLORS.map(c=>(
-                  <button key={c} onClick={()=>{setDraft(d=>({...d,color:c}));setShowColorPicker(false);}} style={{width:32,height:32,borderRadius:"50%",background:c,border:draft.color===c?"3px solid #fff":"3px solid transparent",cursor:"pointer",boxShadow:draft.color===c?"0 0 0 2px "+c:"none"}}/>
-                ))}
-              </div>
-            )}
-          </div>
-
           {draft.exercises.map((ex,i)=>{
             const gc=GC[EX_GROUP[ex.name]]||C.blueXL;
             return(
@@ -2036,48 +2020,75 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
         </button>
 
         {/* Chart */}
-        {chartData.length>0&&(
-          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:"14px",marginBottom:20}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+        {chartData.length>0&&(()=>{
+          const prev=allSessions.slice(-(nPts*2),-nPts);
+          const prevAvg=prev.length?prev.reduce((s,p)=>s+(chartMode==="vol"?(p.totalVol||0):chartMode==="sets"?(p.totalSets||0):(p.duration||0)),0)/prev.length:null;
+          const curAvg=sessions.reduce((s,p)=>s+(chartMode==="vol"?(p.totalVol||0):chartMode==="sets"?(p.totalSets||0):(p.duration||0)),0)/(sessions.length||1);
+          const delta=prevAvg!=null?((curAvg-prevAvg)/prevAvg*100):null;
+          const unit=chartMode==="vol"?"t":chartMode==="sets"?" séries":" min";
+          const fmt=v=>chartMode==="vol"?v.toFixed(1)+"t":Math.round(v)+(chartMode==="sets"?" sér":" min");
+          return(
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:"16px 14px",marginBottom:20}}>
+            {/* Header */}
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
               <div>
-                <div style={{fontSize:9,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:4}}>Último treino</div>
-                <div style={{fontSize:24,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{chartData[chartData.length-1]?.y.toFixed(chartMode==="vol"?1:0)}<span style={{fontSize:13,color:C.sub,marginLeft:3}}>{chartMode==="vol"?"t":chartMode==="sets"?" séries":" min"}</span></div>
+                <div style={{fontSize:9,fontWeight:700,color:C.muted,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:3}}>
+                  {chartMode==="vol"?"Volume":chartMode==="sets"?"Séries":"Duração"} · {chartRange==="1m"?"1 Mês":chartRange==="3m"?"3 Meses":chartRange==="1a"?"1 Ano":"Tudo"}
+                </div>
+                <div style={{display:"flex",alignItems:"baseline",gap:6}}>
+                  <div style={{fontSize:26,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{fmt(curAvg)}</div>
+                  <div style={{fontSize:10,color:C.muted}}>média</div>
+                  {delta!=null&&<div style={{fontSize:11,fontWeight:700,color:delta>=0?C.mint:C.coral,background:(delta>=0?C.mint:C.coral)+"18",padding:"2px 7px",borderRadius:99}}>{delta>=0?"+":""}{delta.toFixed(0)}% vs anterior</div>}
+                </div>
               </div>
               <div style={{display:"flex",gap:3}}>
                 {["1m","3m","1a","all"].map(r=>(
-                  <button key={r} onClick={()=>setChartRange(r)} style={{padding:"3px 7px",borderRadius:99,fontSize:9,fontWeight:700,cursor:"pointer",background:chartRange===r?(plan.color||C.blueXL):"transparent",border:"1px solid "+(chartRange===r?(plan.color||C.blueXL):C.border),color:chartRange===r?"#fff":C.sub}}>{r==="all"?"Tudo":r==="1a"?"Ano":r==="3m"?"3M":"1M"}</button>
+                  <button key={r} onClick={()=>setChartRange(r)} style={{padding:"4px 8px",borderRadius:99,fontSize:9,fontWeight:700,cursor:"pointer",background:chartRange===r?C.blueXL:"transparent",border:"1px solid "+(chartRange===r?C.blueXL:C.border),color:chartRange===r?"#fff":C.sub}}>{r==="all"?"Tudo":r==="1a"?"Ano":r==="3m"?"3M":"1M"}</button>
                 ))}
               </div>
             </div>
-            <div style={{position:"relative",marginBottom:10}}>
-              <div style={{position:"absolute",left:0,top:0,bottom:16,width:32,display:"flex",flexDirection:"column",justifyContent:"space-between",pointerEvents:"none"}}>
-                {[maxY,Math.round((maxY+minY)/2),minY].map((v,i)=><span key={i} style={{fontSize:8,color:C.muted,lineHeight:1}}>{chartMode==="vol"?v.toFixed(1)+"t":v}{chartMode==="sets"?" s":chartMode==="dur"?"m":""}</span>)}
-              </div>
-              <div style={{marginLeft:36}}>
-                <svg width="100%" height={100} viewBox={`0 0 ${W} 100`} preserveAspectRatio="none" style={{overflow:"visible"}}>
-                  <defs><linearGradient id="rg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={plan.color||C.blueXL} stopOpacity="0.25"/><stop offset="100%" stopColor={plan.color||C.blueXL} stopOpacity="0"/></linearGradient></defs>
-                  {[0,0.5,1].map((f,i)=><line key={i} x1={PAD} y1={PAD+(100-PAD*2)*f} x2={W-PAD} y2={PAD+(100-PAD*2)*f} stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>)}
-                  {chartData.length>1&&<polygon points={[...chartData.map((d,i)=>`${px2(i)},${py2(d.y)}`),`${px2(chartData.length-1)},${100-PAD}`,`${px2(0)},${100-PAD}`].join(" ")} fill="url(#rg2)"/>}
-                  <polyline points={chartData.map((d,i)=>`${px2(i)},${py2(d.y)}`).join(" ")} fill="none" stroke={plan.color||C.blueXL} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  {chartData.map((d,i)=>(
-                    <circle key={i} cx={px2(i)} cy={py2(d.y)} r="3" fill={plan.color||C.blueXL} stroke={C.bg} strokeWidth="1.5"/>
-                  ))}
-                  {chartData.length>0&&<text x={px2(0)} y={py2(chartData[0].y)-7} textAnchor="middle" fontSize="9" fill={C.muted}>{chartMode==="vol"?chartData[0].y.toFixed(1)+"t":chartData[0].y}</text>}
-                  {chartData.length>1&&<text x={px2(chartData.length-1)} y={py2(chartData[chartData.length-1].y)-7} textAnchor="middle" fontSize="9" fill={plan.color||C.blueXL} fontWeight="700">{chartMode==="vol"?chartData[chartData.length-1].y.toFixed(1)+"t":chartData[chartData.length-1].y}</text>}
-                </svg>
-                <div style={{display:"flex",justifyContent:"space-between",marginTop:4}}>
-                  <span style={{fontSize:9,color:C.muted}}>{chartData[0]?.label}</span>
-                  <span style={{fontSize:9,color:C.muted}}>{chartData[chartData.length-1]?.label}</span>
+
+            {/* Bar chart with tap tooltip */}
+            {(()=>{
+              const[selBar,setSelBar]=useState(null);
+              const barMax=Math.max(...chartData.map(d=>d.y),0.01);
+              const BAR_H=90;
+              return(
+                <div style={{marginTop:14,marginBottom:8}}>
+                  <div style={{display:"flex",alignItems:"flex-end",gap:3,height:BAR_H,marginBottom:6}}>
+                    {chartData.map((d,i)=>{
+                      const h=Math.max(4,(d.y/barMax)*BAR_H);
+                      const isSel=selBar===i;
+                      const isLast=i===chartData.length-1;
+                      return(
+                        <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",height:"100%",cursor:"pointer",position:"relative"}} onClick={()=>setSelBar(isSel?null:i)}>
+                          {isSel&&(
+                            <div style={{position:"absolute",bottom:h+8,left:"50%",transform:"translateX(-50%)",background:C.blueXL,color:"#fff",fontSize:9,fontWeight:700,padding:"3px 7px",borderRadius:6,whiteSpace:"nowrap",zIndex:10}}>
+                              {fmt(d.y)}<br/><span style={{fontWeight:400,opacity:0.8}}>{d.label}</span>
+                            </div>
+                          )}
+                          <div style={{width:"100%",height:h,borderRadius:"4px 4px 2px 2px",background:isSel?C.blueXL:isLast?"rgba(59,130,246,0.7)":"rgba(59,130,246,0.25)",transition:"all 0.15s"}}/>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{display:"flex",justifyContent:"space-between"}}>
+                    <span style={{fontSize:9,color:C.muted}}>{chartData[0]?.label}</span>
+                    <span style={{fontSize:9,color:C.muted}}>{chartData[chartData.length-1]?.label}</span>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div style={{display:"flex",gap:5}}>
+              );
+            })()}
+
+            {/* Mode tabs */}
+            <div style={{display:"flex",gap:5,marginTop:4}}>
               {[{k:"vol",l:"Volume"},{k:"sets",l:"Séries"},{k:"dur",l:"Duração"}].map(m=>(
-                <button key={m.k} onClick={()=>setChartMode(m.k)} style={{padding:"4px 10px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:chartMode===m.k?(plan.color||C.blueXL)+"22":"transparent",border:"1px solid "+(chartMode===m.k?(plan.color||C.blueXL)+"66":C.border),color:chartMode===m.k?(plan.color||C.blueXL):C.sub}}>{m.l}</button>
+                <button key={m.k} onClick={()=>setChartMode(m.k)} style={{padding:"5px 12px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",background:chartMode===m.k?C.blueXL+"22":"transparent",border:"1px solid "+(chartMode===m.k?C.blueXL+"88":C.border),color:chartMode===m.k?C.blueXL:C.sub}}>{m.l}</button>
               ))}
             </div>
           </div>
-        )}
+          );
+        })()}
 
         {/* Exercises */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
