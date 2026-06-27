@@ -5092,7 +5092,7 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
     setMeasureDraft({});
   }
 
-  const distPeriods=[{k:"1m",l:"Este mês",days:30},{k:"3m",l:"3 meses",days:90},{k:"1a",l:"Ano",days:365},{k:"all",l:"Tudo",days:9999}];
+  const distPeriods=[{k:"1m",l:"1 mês",days:30},{k:"3m",l:"3 meses",days:90},{k:"1a",l:"Ano",days:365},{k:"all",l:"Tudo",days:9999}];
   const distCfg=distPeriods.find(p=>p.k===distPeriod)||distPeriods[0];
   const distCutoff=distCfg.days<9999?new Date(Date.now()-distCfg.days*86400000).toISOString().slice(0,10):"2000-01-01";
   const distPrevCutoff=distCfg.days<9999?new Date(Date.now()-distCfg.days*2*86400000).toISOString().slice(0,10):"2000-01-01";
