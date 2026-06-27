@@ -649,7 +649,7 @@ function BottomNav({active,onNavigate}){
     {k:"coach",    l:"Coach",     i:<svg width="18" height="18" fill="currentColor" stroke="none" viewBox="0 0 24 24"><path d="M12 2l1.2 7.8L21 12l-7.8 1.2L12 21l-1.2-7.8L3 12l7.8-1.2z"/></svg>},
   ];
   return(
-    <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,paddingBottom:"env(safe-area-inset-bottom,8px)",paddingLeft:12,paddingRight:12}}>
+    <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,background:"#080A0E",paddingBottom:"env(safe-area-inset-bottom,8px)",paddingLeft:12,paddingRight:12}}>
       <div style={{background:"rgba(8,10,14,1)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderRadius:36,border:"1px solid rgba(255,255,255,0.10)",boxShadow:"0 8px 32px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.08)",display:"flex",justifyContent:"space-around",alignItems:"center",padding:"6px 8px 8px",marginBottom:8}}>
         {tabs.map(tab=>{
           const isActive=tab.k===active;
