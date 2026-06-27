@@ -1631,7 +1631,7 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
   if(selRoutine) return <RoutineScreen plan={selRoutine} onClose={()=>setSelRoutine(null)} onStart={async()=>{if(nextPlan){const exs=await refreshSessionsAndBuild(nextPlan);onStartWorkout(nextPlan,exs);onNavigate("treino");}setSelRoutine(null);}} onNavigate={onNavigate} onSaved={()=>{}} onDeleted={()=>setSelRoutine(null)}/>;
 
   return(
-    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0}}>
+    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:8}}>
       {/* ── Banner Deload Ativo ── */}
       {activeDeload&&(
         <div style={{margin:"12px 16px 0",background:"linear-gradient(135deg,rgba(139,92,246,0.15),rgba(59,130,246,0.1))",border:"1px solid rgba(139,92,246,0.4)",borderRadius:16,padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
