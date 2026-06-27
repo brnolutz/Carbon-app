@@ -1666,16 +1666,21 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
       <div style={{padding:"14px 16px 90px"}}>
 
         {/* ── Next Session card (compact) ── */}
-        {nextPlan&&<div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"12px 16px",marginBottom:10,display:"flex",alignItems:"center",gap:12,cursor:"pointer"}} onClick={()=>setSelRoutine(nextPlan)}>
-          <div style={{flex:1,minWidth:0}}>
-            <div style={{fontSize:9,fontWeight:700,color:C.blueXL,letterSpacing:"0.14em",textTransform:"uppercase",marginBottom:3}}>Next Session</div>
-            <div style={{fontSize:16,fontWeight:800,color:C.text,letterSpacing:"-0.3px",textTransform:"uppercase",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{nextPlan.name} — {nextPlan.label}</div>
-            <div style={{fontSize:10,color:C.sub,marginTop:2}}>~{Math.round(nextPlan.exercises.reduce((t,e)=>t+(e.sets?.length||3)*(1.5+(e.rest||90)/60),0))} min · {nextPlan.exercises.length} exercícios</div>
+        {nextPlan&&<div onClick={()=>setSelRoutine(nextPlan)} style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,overflow:"hidden",marginBottom:10,cursor:"pointer"}}>
+          <div style={{padding:"10px 16px 8px",borderBottom:"1px solid "+C.border}}>
+            <div style={{fontSize:9,fontWeight:700,color:C.blueXL,letterSpacing:"0.16em",textTransform:"uppercase",marginBottom:4}}>Next Session</div>
+            <div style={{fontSize:17,fontWeight:800,color:C.text,letterSpacing:"-0.5px",marginBottom:2,textTransform:"uppercase"}}>{nextPlan.name} — {nextPlan.label}</div>
+            <div style={{fontSize:10,color:C.sub}}>Estimated duration: ~{Math.round(nextPlan.exercises.reduce((t,e)=>t+(e.sets?.length||3)*(1.5+(e.rest||90)/60),0))} min</div>
           </div>
-          <button onClick={async e=>{e.stopPropagation();const exs=await refreshSessionsAndBuild(nextPlan);onStartWorkout(nextPlan,exs);onNavigate("treino");}} style={{flexShrink:0,padding:"10px 18px",background:C.grad,border:"none",borderRadius:12,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:6}}>
-            <svg width="12" height="12" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-            Iniciar
-          </button>
+          <div style={{padding:"8px 16px 12px"}}>
+            <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:10}}>
+              {nextPlan.exercises.slice(0,6).map(ex=><span key={ex.name||ex} style={{padding:"2px 9px",borderRadius:99,background:C.blueL+"15",border:"1px solid "+C.blueL+"30",color:C.blueXL,fontSize:10,fontWeight:600}}>{ex.name||ex}</span>)}
+            </div>
+            <button onClick={async e=>{e.stopPropagation();const exs=await refreshSessionsAndBuild(nextPlan);onStartWorkout(nextPlan,exs);onNavigate("treino");}} style={{width:"100%",padding:"11px",background:C.grad,border:"none",borderRadius:12,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              <svg width="12" height="12" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              Iniciar Treino
+            </button>
+          </div>
         </div>}
 
         {/* ── Stats 2×2 grid ── */}
