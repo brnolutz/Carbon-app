@@ -4869,13 +4869,13 @@ function CalendarioFullScreen({onNavigate}){
   const renderPlurianual=()=>{
     const now=new Date();
     const startYear=2026;
-    const years=Array.from({length:now.getFullYear()-startYear+1},(_,i)=>startYear+i);
+    const years=Array.from({length:3},(_,i)=>startYear+i); // 2026, 2027, 2028
     const dayNames=["D","S","T","Q","Q","S","S"];
     return(
-      <div style={{padding:"0 12px 100px"}}>
+      <div style={{padding:"200px 12px 100px"}}>
         {years.map(y=>{
           const start=new Date(y,0,1);
-          const end=y===now.getFullYear()?now:new Date(y,11,31);
+          const end=y>now.getFullYear()?new Date(y,11,31):y===now.getFullYear()?now:new Date(y,11,31);
           const days=[];
           for(let i=0;i<start.getDay();i++) days.push(null);
           const cur=new Date(start);
