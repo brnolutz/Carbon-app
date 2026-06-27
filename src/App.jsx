@@ -3792,7 +3792,7 @@ function ProgressDetailScreen({onBack,onNavigate}){
                               <div style={{
                                 width:"100%",
                                 height:barH,
-                                background:isSel?gc:(isLast?gc+"CC":gc+"44"),
+                                background:isSel?gc:gc+"44",
                                 borderRadius:"3px 3px 0 0",
                                 transition:"all 0.15s",
                                 boxShadow:isSel?"0 0 8px "+gc+"88":"none"
@@ -4406,7 +4406,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
             {rangeData.map((d,i)=>{
               const pct=d.y/rangeMaxY;
               const isLast=i===rangeData.length-1;
-              return(<div key={i} style={{flex:1,display:"flex",alignItems:"flex-end",height:"100%"}}><div style={{width:"100%",height:Math.max(pct*106,d.y>0?3:0),background:isLast?mc.color:mc.color+"44",borderRadius:"3px 3px 0 0",boxShadow:isLast?"0 0 10px "+mc.color+"66":"none"}}/></div>);
+              return(<div key={i} style={{flex:1,display:"flex",alignItems:"flex-end",height:"100%"}}><div style={{width:"100%",height:Math.max(pct*106,d.y>0?3:0),background:mc.color+"44",borderRadius:"3px 3px 0 0"}}/></div>);
             })}
           </div>
           <div style={{display:"flex",justifyContent:"space-between",marginBottom:10}}>
@@ -4567,7 +4567,7 @@ function BodyDiagram({muscleHeat,width=320,savedCount=0}){
       <img
         src={imgSrc}
         alt="Mapa muscular"
-        style={{width:"100%",height:"100%",objectFit:"contain",display:"block",filter:"sepia(1) saturate(15) hue-rotate(195deg) brightness(1)"}}
+        style={{width:"100%",height:"100%",objectFit:"contain",display:"block",filter:"sepia(1) saturate(8) hue-rotate(195deg) brightness(0.85)"}}
       />
     </div>
   );
@@ -4719,7 +4719,7 @@ function MedicoesScreen({onNavigate}){
                                   <div style={{fontSize:10,fontWeight:800,color:C.blueXL}}>{d.v}{unit}</div>
                                 </div>
                               )}
-                              <div style={{width:"100%",height:bH,background:isSel?C.blueXL:(isLast?C.blueXL+"CC":C.blueXL+"44"),borderRadius:"3px 3px 0 0",transition:"all 0.15s"}}/>
+                              <div style={{width:"100%",height:bH,background:isSel?C.blueXL:C.blueXL+"44",borderRadius:"3px 3px 0 0",transition:"all 0.15s"}}/>
                             </div>
                           );
                         })}
