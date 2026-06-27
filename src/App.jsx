@@ -4872,10 +4872,10 @@ function CalendarioFullScreen({onNavigate}){
     const years=Array.from({length:3},(_,i)=>startYear+i); // 2026, 2027, 2028
     const dayNames=["D","S","T","Q","Q","S","S"];
     return(
-      <div style={{padding:"16px 12px 100px"}}>
+      <div style={{padding:"130px 12px 100px"}}>
         {years.map(y=>{
           const start=new Date(y,0,1);
-          const end=y>now.getFullYear()?new Date(y,11,31):y===now.getFullYear()?now:new Date(y,11,31);
+          const end=new Date(y,11,31); // sempre ano completo
           const days=[];
           for(let i=0;i<start.getDay();i++) days.push(null);
           const cur=new Date(start);
