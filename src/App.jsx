@@ -4794,7 +4794,7 @@ function CalendarioFullScreen({onNavigate}){
             },50);
           }
         }}
-        style={{flex:1,overflowY:"auto",padding:"0 16px 100px"}}
+        style={{padding:"0 16px 100px"}}
       >
         {months.map((monthStart,mi)=>{
           const y=monthStart.getFullYear(),m=monthStart.getMonth();
@@ -4916,9 +4916,9 @@ function CalendarioFullScreen({onNavigate}){
   };
 
   return(
-    <div data-screen-container="1" className="screen-root" style={{background:"#080A0E",height:"100dvh",display:"flex",flexDirection:"column",paddingTop:0,overflow:"hidden"}}>
+    <div data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingBottom:80}}>
       {/* Header fixo */}
-      <div style={{flexShrink:0,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:8,zIndex:50}}>
+      <div style={{position:"sticky",top:0,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:8,zIndex:50}}>
         <div style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <button onClick={()=>onNavigate("progresso")} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
