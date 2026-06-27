@@ -2591,8 +2591,8 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
     });
     const estimateDur=(p)=>Math.round(p.exercises.reduce((t,e)=>t+(e.sets?.length||3)*(1.5+(e.rest||90)/60),0));
     return(
-      <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",position:"relative",paddingTop:8}}>
-        <div style={{padding:"0 20px 8px"}}>
+      <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",position:"relative"}}>
+        <div style={{padding:"8px 20px 8px"}}>
           <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>
             {isActive?"Treino Ativo":"Meus Treinos"}
           </div>
@@ -4265,10 +4265,10 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
 
 
   return(
-    <div ref={scrollRef} data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingTop:8,paddingBottom:120,overflowY:"auto"}}>
+    <div ref={scrollRef} data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",overflowX:"hidden",paddingBottom:120,overflowY:"auto"}}>
       {calendarEl}
       <style>{`.prog-bar{transition:height 0.4s ease;}`}</style>
-      <div style={{padding:"10px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+      <div style={{padding:"8px 16px 6px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>Meu Progresso</div>
         <button onClick={()=>setShowCalendar(true)} style={{width:32,height:32,borderRadius:10,background:C.card,border:"1px solid "+C.border,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="3" stroke={C.sub} strokeWidth="1.8"/><path d="M3 9h18M8 2v4M16 2v4" stroke={C.sub} strokeWidth="1.8" strokeLinecap="round"/></svg>
@@ -5076,10 +5076,10 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
   const distKpis=[{l:"Treinos",v:distCur.count,d:distDiff(distCur.count,distPrev.count)},{l:"Duração",v:distCur.dur>=60?Math.floor(distCur.dur/60)+"h"+(distCur.dur%60>0?" "+distCur.dur%60+"min":""):distCur.dur+"min",d:distDiff(distCur.dur,distPrev.dur)},{l:"Volume",v:distCur.vol.toFixed(1)+"t",d:distDiff(distCur.vol,distPrev.vol)},{l:"Séries",v:distCur.sets,d:distDiff(distCur.sets,distPrev.sets)}];
 
   return(
-    <div className="screen-root" style={{background:"#080A0E",minHeight:"100vh",paddingTop:8,paddingBottom:120}}>
+    <div className="screen-root" style={{background:"#080A0E",minHeight:"100vh",paddingBottom:120}}>
 
       {/* ── HEADER ── */}
-      <div style={{position:"sticky",top:0,zIndex:9001,background:"rgba(5,6,9,0.98)",backdropFilter:"blur(24px)",padding:"14px 20px"}}>
+      <div style={{position:"sticky",top:0,zIndex:9001,background:"rgba(5,6,9,0.98)",backdropFilter:"blur(24px)",padding:"8px 20px 14px"}}>
         <div style={{fontSize:26,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>Meu Corpo</div>
       </div>
 
@@ -5360,7 +5360,7 @@ ${progressão}
   return(
     <div style={{display:"flex",flexDirection:"column",minHeight:"100dvh",paddingBottom:"calc(80px + env(safe-area-inset-bottom,0px))",background:"#080A0E",boxSizing:"border-box"}}>
       <style>{`@keyframes fgpulse{0%,100%{opacity:0.3;transform:scale(0.75)}50%{opacity:1;transform:scale(1)}}`}</style>
-      <div style={{flexShrink:0,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",padding:"14px 20px"}}>
+      <div style={{flexShrink:0,background:"rgba(5,6,9,0.97)",backdropFilter:"blur(24px)",padding:"8px 20px 14px"}}>
         <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>AI Coach</div>
         <div style={{fontSize:10,fontWeight:600,color:C.blueXL,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Powered by Claude</div>
       </div>
