@@ -1755,7 +1755,7 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
                 const pct=(d.y||0)/maxY;
                 const isLast=i===chartData.length-1;
                 return(<div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center"}}>
-                  <div style={{width:"100%",height:Math.max(pct*80,2),background:isLast?activeMode.color:activeMode.color+"40",borderRadius:"2px 2px 0 0"}}/>
+                  <div style={{width:"100%",height:Math.max(pct*80,2),background:activeMode.color+"40",borderRadius:"2px 2px 0 0"}}/>
                 </div>);
               })}
             </div>
