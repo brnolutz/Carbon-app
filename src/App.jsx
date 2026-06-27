@@ -1765,7 +1765,7 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
         </div>
 
         {/* ── Painel ── */}
-        <div style={{fontSize:9,fontWeight:700,color:C.sub,marginBottom:10,textTransform:"uppercase",letterSpacing:"0.12em"}}>Acesso Rápido</div>
+        <div style={{fontSize:9,fontWeight:700,color:C.sub,marginBottom:10,marginTop:16,textTransform:"uppercase",letterSpacing:"0.12em"}}>Acesso Rápido</div>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
           {[
             {dest:"progresso",icon:<svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>,l:"Análise",desc:"Progresso e gráficos"},
