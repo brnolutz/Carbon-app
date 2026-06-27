@@ -1652,32 +1652,32 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
       )}
 
       {/* ── Greeting ── */}
-      <div style={{padding:"14px 20px 0",display:"flex",alignItems:"flex-start",justifyContent:"space-between"}}>
+      <div style={{padding:"8px 20px 0",display:"flex",alignItems:"flex-start",justifyContent:"space-between"}}>
         <div>
-          <div style={{fontSize:11,fontWeight:600,color:C.sub,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:2}}>{getGreeting()},</div>
-          <div style={{fontSize:34,fontWeight:900,color:C.text,letterSpacing:"-1.5px",lineHeight:1}}>{USER.name}<span style={{color:C.blueXL}}>.</span></div>
+          <div style={{fontSize:10,fontWeight:600,color:C.sub,letterSpacing:"0.12em",textTransform:"uppercase",marginBottom:1}}>{getGreeting()},</div>
+          <div style={{fontSize:28,fontWeight:900,color:C.text,letterSpacing:"-1.5px",lineHeight:1}}>{USER.name}<span style={{color:C.blueXL}}>.</span></div>
         </div>
         <div style={{textAlign:"right",paddingTop:4}}>
-          <div style={{fontSize:22,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{FEED.length}</div>
+          <div style={{fontSize:20,fontWeight:900,color:C.text,letterSpacing:"-1px"}}>{FEED.length}</div>
           <div style={{fontSize:9,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em"}}>treinos</div>
         </div>
       </div>
 
-      <div style={{padding:"14px 16px 90px"}}>
+      <div style={{padding:"10px 16px 90px"}}>
 
         {/* ── Next Session card (compact) ── */}
-        {nextPlan&&<div onClick={()=>setSelRoutine(nextPlan)} style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,overflow:"hidden",marginBottom:10,cursor:"pointer"}}>
-          <div style={{padding:"10px 16px 8px",borderBottom:"1px solid "+C.border}}>
-            <div style={{fontSize:9,fontWeight:700,color:C.blueXL,letterSpacing:"0.16em",textTransform:"uppercase",marginBottom:4}}>Next Session</div>
-            <div style={{fontSize:17,fontWeight:800,color:C.text,letterSpacing:"-0.5px",marginBottom:2,textTransform:"uppercase"}}>{nextPlan.name} — {nextPlan.label}</div>
-            <div style={{fontSize:10,color:C.sub}}>Estimated duration: ~{Math.round(nextPlan.exercises.reduce((t,e)=>t+(e.sets?.length||3)*(1.5+(e.rest||90)/60),0))} min</div>
+        {nextPlan&&<div onClick={()=>setSelRoutine(nextPlan)} style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,overflow:"hidden",marginBottom:8,cursor:"pointer"}}>
+          <div style={{padding:"8px 14px 6px",borderBottom:"1px solid "+C.border}}>
+            <div style={{fontSize:8,fontWeight:700,color:C.blueXL,letterSpacing:"0.16em",textTransform:"uppercase",marginBottom:3}}>Next Session</div>
+            <div style={{fontSize:15,fontWeight:800,color:C.text,letterSpacing:"-0.5px",marginBottom:1,textTransform:"uppercase"}}>{nextPlan.name} — {nextPlan.label}</div>
+            <div style={{fontSize:9,color:C.sub}}>Estimated duration: ~{Math.round(nextPlan.exercises.reduce((t,e)=>t+(e.sets?.length||3)*(1.5+(e.rest||90)/60),0))} min</div>
           </div>
-          <div style={{padding:"8px 16px 12px"}}>
-            <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:10}}>
-              {nextPlan.exercises.slice(0,6).map(ex=><span key={ex.name||ex} style={{padding:"2px 9px",borderRadius:99,background:C.blueL+"15",border:"1px solid "+C.blueL+"30",color:C.blueXL,fontSize:10,fontWeight:600}}>{ex.name||ex}</span>)}
+          <div style={{padding:"7px 14px 10px"}}>
+            <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:8}}>
+              {nextPlan.exercises.slice(0,6).map(ex=><span key={ex.name||ex} style={{padding:"2px 8px",borderRadius:99,background:C.blueL+"15",border:"1px solid "+C.blueL+"30",color:C.blueXL,fontSize:9,fontWeight:600}}>{ex.name||ex}</span>)}
             </div>
-            <button onClick={async e=>{e.stopPropagation();const exs=await refreshSessionsAndBuild(nextPlan);onStartWorkout(nextPlan,exs);onNavigate("treino");}} style={{width:"100%",padding:"11px",background:C.grad,border:"none",borderRadius:12,color:"#fff",fontSize:13,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
-              <svg width="12" height="12" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            <button onClick={async e=>{e.stopPropagation();const exs=await refreshSessionsAndBuild(nextPlan);onStartWorkout(nextPlan,exs);onNavigate("treino");}} style={{width:"100%",padding:"9px",background:C.grad,border:"none",borderRadius:11,color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:7}}>
+              <svg width="11" height="11" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
               Iniciar Treino
             </button>
           </div>
