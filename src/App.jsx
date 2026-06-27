@@ -4285,8 +4285,8 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
               const isToday=ds===todayStr;
               const hasW=workoutDates.has(ds);
               return(
-                <div key={i} style={{aspectRatio:"1",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,background:hasW?C.mint+"22":isToday?"linear-gradient(135deg,"+C.blueM+","+C.blueL+")":"rgba(255,255,255,0.03)",border:"1px solid "+(hasW?C.mint+"66":isToday?C.blueXL+"66":"rgba(255,255,255,0.05)"),position:"relative"}}>
-                  <span style={{fontSize:13,fontWeight:hasW||isToday?700:400,color:hasW?C.mint:isToday?"#fff":C.muted}}>{d}</span>
+                <div key={i} style={{aspectRatio:"1",display:"flex",alignItems:"center",justifyContent:"center",borderRadius:12,background:hasW?"#3D5AF122":isToday?"linear-gradient(135deg,"+C.blueM+","+C.blueL+")":"rgba(255,255,255,0.03)",border:"1px solid "+(hasW?"#3D5AF166":isToday?C.blueXL+"66":"rgba(255,255,255,0.05)"),position:"relative"}}>
+                  <span style={{fontSize:13,fontWeight:hasW||isToday?700:400,color:hasW?"#3D5AF1":isToday?"#fff":C.muted}}>{d}</span>
                   {hasW&&<div style={{position:"absolute",bottom:3,width:4,height:4,borderRadius:"50%",background:C.mint}}/>}
                 </div>
               );
@@ -4369,9 +4369,9 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
               const hasW=workoutDates.has(ds);
               return(
                 <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:1}}>
-                  <div style={{fontSize:8,fontWeight:600,color:hasW?C.mint:isToday?C.blueXL:C.muted}}>{dayNames[i]}</div>
-                  <div style={{width:26,height:26,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",background:hasW?"linear-gradient(135deg,"+C.mint+"44,"+C.mint+"22)":isToday?"linear-gradient(135deg,"+C.blueM+","+C.blueL+")":"rgba(255,255,255,0.03)",border:"1px solid "+(hasW?C.mint+"88":isToday?C.blueXL+"66":"rgba(255,255,255,0.05)")}}>
-                    <span style={{fontSize:10,fontWeight:hasW||isToday?800:400,color:hasW?C.mint:isToday?"#fff":C.muted}}>{d.getDate()}</span>
+                  <div style={{fontSize:8,fontWeight:600,color:hasW?"#3D5AF1":isToday?C.blueXL:C.muted}}>{dayNames[i]}</div>
+                  <div style={{width:26,height:26,borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",background:hasW?"linear-gradient(135deg,#3D5AF144,#3D5AF122)":isToday?"linear-gradient(135deg,"+C.blueM+","+C.blueL+")":"rgba(255,255,255,0.03)",border:"1px solid "+(hasW?"#3D5AF188":isToday?C.blueXL+"66":"rgba(255,255,255,0.05)")}}>
+                    <span style={{fontSize:10,fontWeight:hasW||isToday?800:400,color:hasW?"#3D5AF1":isToday?"#fff":C.muted}}>{d.getDate()}</span>
                   </div>
                 </div>
               );
