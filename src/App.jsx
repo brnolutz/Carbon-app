@@ -4868,57 +4868,51 @@ function CalendarioFullScreen({onNavigate}){
   // PLURIANUAL view — GitHub-style heatmap
   const renderPlurianual=()=>{
     const now=new Date();
-    const years=[now.getFullYear()-1,now.getFullYear()];
+    const startYear=2026;
+    const years=Array.from({length:now.getFullYear()-startYear+1},(_,i)=>startYear+i);
     const dayNames=["D","S","T","Q","Q","S","S"];
     return(
       <div style={{padding:"0 12px 100px"}}>
         {years.map(y=>{
-          // Build all days of the year
           const start=new Date(y,0,1);
           const end=y===now.getFullYear()?now:new Date(y,11,31);
           const days=[];
+          for(let i=0;i<start.getDay();i++) days.push(null);
           const cur=new Date(start);
-          // Pad to start on Sunday
-          for(let i=0;i<cur.getDay();i++) days.push(null);
           while(cur<=end){
             const ds=cur.toISOString().slice(0,10);
             days.push({ds,hasW:workoutDates.has(ds),isToday:ds===todayStr});
             cur.setDate(cur.getDate()+1);
           }
-          // Pad to complete last week
           while(days.length%7!==0) days.push(null);
-          // Group into weeks (columns)
           const weeks=[];
           for(let i=0;i<days.length;i+=7) weeks.push(days.slice(i,i+7));
-          // Month labels
           const monthLabels=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
           const monthCols=monthLabels.map((l,mi)=>{
             const firstDay=new Date(y,mi,1);
-            const weekIdx=Math.floor((firstDay-start)/86400000/7+(new Date(y,0,1).getDay()>0?1:0));
-            return{l,col:Math.max(0,weekIdx)};
+            const weekIdx=Math.floor((firstDay-start)/86400000/7+start.getDay()/7);
+            return{l,col:Math.max(0,Math.round(weekIdx))};
           });
           return(
-            <div key={y} style={{marginBottom:28}}>
+            <div key={y} style={{marginBottom:32}}>
               <div style={{fontSize:15,fontWeight:800,color:C.text,marginBottom:8}}>{y}</div>
               {/* Month labels */}
-              <div style={{display:"grid",gridTemplateColumns:`28px repeat(${weeks.length},1fr)`,marginBottom:2}}>
+              <div style={{display:"grid",gridTemplateColumns:`20px repeat(${weeks.length},1fr)`,marginBottom:3}}>
                 <div/>
                 {weeks.map((_,wi)=>{
                   const ml=monthCols.find(m=>m.col===wi);
-                  return <div key={wi} style={{fontSize:7,color:C.muted,textAlign:"center"}}>{ml?ml.l:""}</div>;
+                  return <div key={wi} style={{fontSize:7,color:C.muted,textAlign:"center",overflow:"hidden"}}>{ml?ml.l:""}</div>;
                 })}
               </div>
-              {/* Grid: 7 rows (days) × N cols (weeks) */}
-              <div style={{display:"grid",gridTemplateColumns:`28px repeat(${weeks.length},1fr)`,gap:1}}>
+              {/* 7 rows × N week columns */}
+              <div style={{display:"grid",gridTemplateColumns:`20px repeat(${weeks.length},1fr)`,gridTemplateRows:"repeat(7,1fr)",gap:2}}>
                 {dayNames.map((dn,di)=>(
                   <React.Fragment key={di}>
-                    <div style={{fontSize:7,color:C.muted,display:"flex",alignItems:"center",justifyContent:"flex-end",paddingRight:4}}>{di%2===1?dn:""}</div>
+                    <div style={{fontSize:7,color:C.muted,display:"flex",alignItems:"center",justifyContent:"flex-end",paddingRight:3}}>{di%2===1?dn:""}</div>
                     {weeks.map((week,wi)=>{
                       const cell=week[di];
-                      if(!cell) return <div key={wi} style={{aspectRatio:"1"}}/>;
-                      return(
-                        <div key={wi} style={{aspectRatio:"1",borderRadius:2,background:cell.isToday?"#3B82F6":cell.hasW?"#3D5AF1":"rgba(255,255,255,0.06)"}}/>
-                      );
+                      if(!cell) return <div key={wi} style={{aspectRatio:"1",borderRadius:2}}/>;
+                      return <div key={wi} style={{aspectRatio:"1",borderRadius:2,background:cell.isToday?"#3B82F6":cell.hasW?"#3D5AF1":"rgba(255,255,255,0.06)"}}/>;
                     })}
                   </React.Fragment>
                 ))}
