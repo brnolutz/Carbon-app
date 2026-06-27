@@ -4278,7 +4278,7 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:8}}>
           <GlassCard style={{padding:"8px 12px",display:"flex",alignItems:"center",gap:8}}>
             <div style={{width:32,height:32,borderRadius:10,background:"linear-gradient(135deg,rgba(251,146,60,0.25),rgba(239,68,68,0.15))",border:"1px solid rgba(251,146,60,0.3)",backdropFilter:"blur(8px)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2c0 0-5 4-5 10a5 5 0 0 0 10 0C17 6 12 2 12 2z" fill="rgba(251,146,60,0.9)"/><path d="M12 8c0 0-2.5 2-2.5 5a2.5 2.5 0 0 0 5 0C14.5 10 12 8 12 8z" fill="rgba(255,255,255,0.7)"/></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L13 2Z" fill="rgba(251,146,60,0.95)" stroke="rgba(255,200,100,0.4)" strokeWidth="0.5" strokeLinejoin="round"/></svg>
             </div>
             <div>
               <div style={{fontSize:16,fontWeight:900,color:C.text}}>{thisWeekCount}</div>
