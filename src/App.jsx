@@ -2350,9 +2350,9 @@ function ExerciseGallery({onAdd,onClose,title="Adicionar exercício"}){
   const[search,setSearch]=useState("");
   const filtered=(ALL_EXERCISES[selGroup]||[]).filter(ex=>!search||ex.toLowerCase().includes(search.toLowerCase()));
   return(
-    <div style={{position:"fixed",inset:0,zIndex:10010,background:"#080A0E",display:"flex",flexDirection:"column",paddingTop:"calc(56px + env(safe-area-inset-top,0px))"}}>
+    <div style={{position:"fixed",inset:0,zIndex:10010,background:"#080A0E",display:"flex",flexDirection:"column"}}>
       {/* Header */}
-      <div style={{flexShrink:0,padding:"14px 16px 0",background:"#080A0E"}}>
+      <div style={{flexShrink:0,padding:"calc(env(safe-area-inset-top,20px) + 16px) 16px 0",background:"#080A0E"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
           <div style={{fontSize:20,fontWeight:800,color:C.text}}>{title}</div>
           <button onClick={onClose} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
