@@ -4870,15 +4870,14 @@ function CalendarioFullScreen({onNavigate}){
     const now=new Date();
     const years=[2026,2027,2028];
     const dayNames=["D","S","T","Q","Q","S","S"];
-    const LABEL_W=16;
+    const LABEL_W=14;
     const GAP=2;
     const WEEKS=53;
-    // Calculate cell size to fit exactly 53 weeks in screen width
-    const screenW=Math.min(window.innerWidth,440);
-    const CELL=Math.floor((screenW-24-LABEL_W-GAP*(WEEKS-1))/WEEKS);
+    const screenW=window.innerWidth||390;
+    const CELL=Math.max(5,Math.floor((screenW-28-LABEL_W-GAP*(WEEKS-1))/WEEKS));
 
     return(
-      <div style={{padding:"8px 12px 100px"}}>
+      <div style={{padding:"120px 12px 100px"}}>
         {years.map(y=>{
           const start=new Date(y,0,1);
           const end=new Date(y,11,31);
