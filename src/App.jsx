@@ -1991,7 +1991,9 @@ function RoutineScreen({plan,onClose,onStart,onNavigate,onSaved,onDeleted}){
           <button onClick={()=>setShowExGallery(true)} style={{width:"100%",padding:"14px",background:"transparent",border:"1px dashed "+C.border,borderRadius:14,color:C.blueXL,fontSize:14,fontWeight:700,cursor:"pointer",marginTop:4}}>+ Adicionar Exercício</button>
         </div>
         {(showExGallery||replaceExIdx!==null)&&(
-          <ExerciseGallery onAdd={(name,group)=>{
+          <ExerciseGallery
+            title={replaceExIdx!==null?"Substituir exercício":"Adicionar exercício"}
+            onAdd={(name,group)=>{
             if(replaceExIdx!==null){
               setDraft(d=>({...d,exercises:d.exercises.map((ee,ii)=>ii!==replaceExIdx?ee:{...ee,name,group})}));
               setReplaceExIdx(null);
@@ -2343,26 +2345,44 @@ function ExerciseHistory({exName,currentSets,histData}){
   );
 }
 
-function ExerciseGallery({onAdd,onClose}){
+function ExerciseGallery({onAdd,onClose,title="Adicionar exercício"}){
   const[selGroup,setSelGroup]=useState("Peito");
+  const[search,setSearch]=useState("");
+  const filtered=(ALL_EXERCISES[selGroup]||[]).filter(ex=>!search||ex.toLowerCase().includes(search.toLowerCase()));
   return(
-    <div style={{position:"fixed",inset:0,zIndex:500,background:"#000000EE",backdropFilter:"blur(12px)",display:"flex",flexDirection:"column"}}>
-      <div style={{padding:"8px 16px 16px",borderBottom:"1px solid "+C.border,background:C.surface}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-          <div style={{fontSize:20,fontWeight:800,color:C.text}}>Adicionar exercício</div>
-          <button onClick={onClose} style={{width:34,height:34,borderRadius:99,background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
+    <div style={{position:"fixed",inset:0,zIndex:10010,background:"#080A0E",display:"flex",flexDirection:"column",paddingTop:"env(safe-area-inset-top,0px)"}}>
+      {/* Header */}
+      <div style={{flexShrink:0,padding:"14px 16px 0",background:"#080A0E"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+          <div style={{fontSize:20,fontWeight:800,color:C.text}}>{title}</div>
+          <button onClick={onClose} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>×</button>
         </div>
-        <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:2}}>
-          {Object.keys(ALL_EXERCISES).map(g=><button key={g} onClick={()=>setSelGroup(g)} style={{padding:"5px 14px",borderRadius:99,flexShrink:0,cursor:"pointer",background:selGroup===g?(GC[g]||C.blueL)+"33":C.card,border:"1px solid "+(selGroup===g?(GC[g]||C.blueL)+"66":C.border),color:selGroup===g?(GC[g]||C.blueL):C.sub,fontSize:12,fontWeight:700}}>{g}</button>)}
+        {/* Search */}
+        <div style={{position:"relative",marginBottom:12}}>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Buscar exercício..." style={{width:"100%",boxSizing:"border-box",background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"10px 14px 10px 36px",fontSize:14,color:C.text,outline:"none"}}/>
+          <svg style={{position:"absolute",left:12,top:"50%",transform:"translateY(-50%)",opacity:0.4}} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={C.text} strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </div>
+        {/* Group tabs */}
+        <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:12}}>
+          {Object.keys(ALL_EXERCISES).map(g=>(
+            <button key={g} onClick={()=>{setSelGroup(g);setSearch("");}} style={{padding:"5px 14px",borderRadius:99,flexShrink:0,cursor:"pointer",background:selGroup===g?(GC[g]||C.blueL)+"33":C.card,border:"1px solid "+(selGroup===g?(GC[g]||C.blueL)+"66":C.border),color:selGroup===g?(GC[g]||C.blueL):C.sub,fontSize:12,fontWeight:700}}>{g}</button>
+          ))}
         </div>
       </div>
-      <div style={{flex:1,overflow:"auto",padding:"12px 16px"}}>
-        {(ALL_EXERCISES[selGroup]||[]).map(ex=>{
+      {/* List */}
+      <div style={{flex:1,overflowY:"auto",padding:"0 16px 40px"}}>
+        {filtered.length===0&&<div style={{textAlign:"center",color:C.muted,fontSize:13,marginTop:40}}>Nenhum exercício encontrado</div>}
+        {filtered.map(ex=>{
           const hist=HIST[ex]||[];const lastSess=hist[hist.length-1];const lastStr=lastSess?lastSess.d.slice(5)+" · "+lastSess.sets[0]?.w+"kg":null;
-          return(<button key={ex} onClick={()=>onAdd(ex,selGroup)} style={{width:"100%",textAlign:"left",background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"14px 16px",marginBottom:8,cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-            <div><div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:2}}>{ex}</div><div style={{fontSize:11,color:C.muted}}>{lastStr?"Último: "+lastStr:"Nunca feito"}</div></div>
-            <span style={{color:C.blueXL,fontSize:20,fontWeight:300}}>+</span>
-          </button>);
+          return(
+            <button key={ex} onClick={()=>onAdd(ex,selGroup)} style={{width:"100%",textAlign:"left",background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:"14px 16px",marginBottom:8,cursor:"pointer",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div>
+                <div style={{fontSize:14,fontWeight:700,color:C.text,marginBottom:2}}>{ex}</div>
+                <div style={{fontSize:11,color:C.muted}}>{lastStr?"Último: "+lastStr:"Nunca feito"}</div>
+              </div>
+              <span style={{color:C.blueXL,fontSize:20,fontWeight:300}}>+</span>
+            </button>
+          );
         })}
       </div>
     </div>
