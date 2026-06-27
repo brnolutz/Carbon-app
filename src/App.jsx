@@ -4868,14 +4868,20 @@ function CalendarioFullScreen({onNavigate}){
   // PLURIANUAL view — GitHub-style heatmap
   const renderPlurianual=()=>{
     const now=new Date();
-    const startYear=2026;
-    const years=Array.from({length:3},(_,i)=>startYear+i); // 2026, 2027, 2028
+    const years=[2026,2027,2028];
     const dayNames=["D","S","T","Q","Q","S","S"];
+    const LABEL_W=16;
+    const GAP=2;
+    const WEEKS=53;
+    // Calculate cell size to fit exactly 53 weeks in screen width
+    const screenW=Math.min(window.innerWidth,440);
+    const CELL=Math.floor((screenW-24-LABEL_W-GAP*(WEEKS-1))/WEEKS);
+
     return(
-      <div style={{padding:"130px 12px 100px"}}>
+      <div style={{padding:"8px 12px 100px"}}>
         {years.map(y=>{
           const start=new Date(y,0,1);
-          const end=new Date(y,11,31); // sempre ano completo
+          const end=new Date(y,11,31);
           const days=[];
           for(let i=0;i<start.getDay();i++) days.push(null);
           const cur=new Date(start);
@@ -4887,41 +4893,41 @@ function CalendarioFullScreen({onNavigate}){
           while(days.length%7!==0) days.push(null);
           const weeks=[];
           for(let i=0;i<days.length;i+=7) weeks.push(days.slice(i,i+7));
+          // Pad to 53 weeks
+          while(weeks.length<WEEKS) weeks.push([null,null,null,null,null,null,null]);
+
+          // Month label positions
           const monthLabels=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
           const monthCols=monthLabels.map((l,mi)=>{
             const firstDay=new Date(y,mi,1);
-            const weekIdx=Math.floor((firstDay-start)/86400000/7+start.getDay()/7);
-            return{l,col:Math.max(0,Math.round(weekIdx))};
+            const weekIdx=Math.floor((firstDay-start+start.getDay()*86400000)/86400000/7);
+            return{l,col:Math.max(0,weekIdx)};
           });
-          const CELL=9;
-          const GAP=2;
+
           return(
-            <div key={y} style={{marginBottom:28}}>
-              <div style={{fontSize:15,fontWeight:800,color:C.text,marginBottom:8}}>{y}</div>
-              <div style={{overflowX:"auto",paddingBottom:4}}>
-                {/* Month labels */}
-                <div style={{display:"flex",marginBottom:3,marginLeft:18}}>
-                  {weeks.map((_,wi)=>{
-                    const ml=monthCols.find(m=>m.col===wi);
-                    return <div key={wi} style={{width:CELL+GAP,minWidth:CELL+GAP,fontSize:7,color:C.muted,overflow:"hidden",flexShrink:0}}>{ml?ml.l:""}</div>;
-                  })}
-                </div>
-                <div style={{display:"flex",gap:GAP}}>
-                  {/* Day labels */}
-                  <div style={{display:"flex",flexDirection:"column",gap:GAP,marginRight:2}}>
-                    {dayNames.map((dn,di)=>(
-                      <div key={di} style={{width:14,height:CELL,fontSize:7,color:C.muted,display:"flex",alignItems:"center",justifyContent:"flex-end"}}>{di%2===1?dn:""}</div>
-                    ))}
-                  </div>
-                  {/* Week columns */}
-                  {weeks.map((week,wi)=>(
-                    <div key={wi} style={{display:"flex",flexDirection:"column",gap:GAP,flexShrink:0}}>
-                      {week.map((cell,di)=>(
-                        <div key={di} style={{width:CELL,height:CELL,borderRadius:2,background:!cell?"transparent":cell.isToday?"#3B82F6":cell.hasW?"#3D5AF1":"rgba(255,255,255,0.06)"}}/>
-                      ))}
-                    </div>
+            <div key={y} style={{marginBottom:24}}>
+              <div style={{fontSize:14,fontWeight:800,color:C.text,marginBottom:6}}>{y}</div>
+              {/* Month labels row */}
+              <div style={{display:"flex",marginLeft:LABEL_W+4,marginBottom:2,gap:GAP}}>
+                {weeks.map((_,wi)=>{
+                  const ml=monthCols.find(m=>m.col===wi);
+                  return <div key={wi} style={{width:CELL,minWidth:CELL,fontSize:6,color:C.muted,overflow:"visible",flexShrink:0,whiteSpace:"nowrap"}}>{ml?ml.l:""}</div>;
+                })}
+              </div>
+              {/* Heatmap */}
+              <div style={{display:"flex",gap:GAP}}>
+                <div style={{display:"flex",flexDirection:"column",gap:GAP,width:LABEL_W,flexShrink:0}}>
+                  {dayNames.map((dn,di)=>(
+                    <div key={di} style={{height:CELL,fontSize:6,color:C.muted,display:"flex",alignItems:"center",justifyContent:"flex-end",paddingRight:2}}>{di%2===1?dn:""}</div>
                   ))}
                 </div>
+                {weeks.map((week,wi)=>(
+                  <div key={wi} style={{display:"flex",flexDirection:"column",gap:GAP,flexShrink:0}}>
+                    {week.map((cell,di)=>(
+                      <div key={di} style={{width:CELL,height:CELL,borderRadius:1,background:!cell?"transparent":cell.isToday?"#3B82F6":cell.hasW?"#3D5AF1":"rgba(255,255,255,0.07)"}}/>
+                    ))}
+                  </div>
+                ))}
               </div>
             </div>
           );
