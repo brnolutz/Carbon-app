@@ -4872,7 +4872,7 @@ function CalendarioFullScreen({onNavigate}){
     const years=Array.from({length:3},(_,i)=>startYear+i); // 2026, 2027, 2028
     const dayNames=["D","S","T","Q","Q","S","S"];
     return(
-      <div style={{padding:"200px 12px 100px"}}>
+      <div style={{padding:"160px 12px 100px"}}>
         {years.map(y=>{
           const start=new Date(y,0,1);
           const end=y>now.getFullYear()?new Date(y,11,31):y===now.getFullYear()?now:new Date(y,11,31);
@@ -4893,28 +4893,33 @@ function CalendarioFullScreen({onNavigate}){
             const weekIdx=Math.floor((firstDay-start)/86400000/7+start.getDay()/7);
             return{l,col:Math.max(0,Math.round(weekIdx))};
           });
+          const CELL=9; // fixed cell size in px
+          const GAP=2;
           return(
-            <div key={y} style={{marginBottom:32}}>
+            <div key={y} style={{marginBottom:28}}>
               <div style={{fontSize:15,fontWeight:800,color:C.text,marginBottom:8}}>{y}</div>
               {/* Month labels */}
-              <div style={{display:"grid",gridTemplateColumns:`20px repeat(${weeks.length},1fr)`,marginBottom:3}}>
-                <div/>
+              <div style={{display:"flex",marginBottom:3,marginLeft:20}}>
                 {weeks.map((_,wi)=>{
                   const ml=monthCols.find(m=>m.col===wi);
-                  return <div key={wi} style={{fontSize:7,color:C.muted,textAlign:"center",overflow:"hidden"}}>{ml?ml.l:""}</div>;
+                  return <div key={wi} style={{width:CELL+GAP,fontSize:7,color:C.muted,overflow:"hidden",flexShrink:0}}>{ml?ml.l:""}</div>;
                 })}
               </div>
               {/* 7 rows × N week columns */}
-              <div style={{display:"grid",gridTemplateColumns:`20px repeat(${weeks.length},1fr)`,gridTemplateRows:"repeat(7,1fr)",gap:2}}>
-                {dayNames.map((dn,di)=>(
-                  <React.Fragment key={di}>
-                    <div style={{fontSize:7,color:C.muted,display:"flex",alignItems:"center",justifyContent:"flex-end",paddingRight:3}}>{di%2===1?dn:""}</div>
-                    {weeks.map((week,wi)=>{
-                      const cell=week[di];
-                      if(!cell) return <div key={wi} style={{aspectRatio:"1",borderRadius:2}}/>;
-                      return <div key={wi} style={{aspectRatio:"1",borderRadius:2,background:cell.isToday?"#3B82F6":cell.hasW?"#3D5AF1":"rgba(255,255,255,0.06)"}}/>;
-                    })}
-                  </React.Fragment>
+              <div style={{display:"flex",gap:GAP}}>
+                {/* Day labels */}
+                <div style={{display:"flex",flexDirection:"column",gap:GAP,marginRight:2}}>
+                  {dayNames.map((dn,di)=>(
+                    <div key={di} style={{width:14,height:CELL,fontSize:7,color:C.muted,display:"flex",alignItems:"center",justifyContent:"flex-end"}}>{di%2===1?dn:""}</div>
+                  ))}
+                </div>
+                {/* Week columns */}
+                {weeks.map((week,wi)=>(
+                  <div key={wi} style={{display:"flex",flexDirection:"column",gap:GAP}}>
+                    {week.map((cell,di)=>(
+                      <div key={di} style={{width:CELL,height:CELL,borderRadius:2,background:!cell?"transparent":cell.isToday?"#3B82F6":cell.hasW?"#3D5AF1":"rgba(255,255,255,0.06)"}}/>
+                    ))}
+                  </div>
                 ))}
               </div>
             </div>
