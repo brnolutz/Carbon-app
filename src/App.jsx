@@ -4794,7 +4794,7 @@ function CalendarioFullScreen({onNavigate}){
             },50);
           }
         }}
-        style={{padding:"0 16px 100px"}}
+        style={{padding:"160px 16px 100px"}}
       >
         {months.map((monthStart,mi)=>{
           const y=monthStart.getFullYear(),m=monthStart.getMonth();
@@ -4916,9 +4916,9 @@ function CalendarioFullScreen({onNavigate}){
   };
 
   return(
-    <div data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingBottom:80}}>
+    <div data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh"}}>
       {/* Header fixo */}
-      <div style={{position:"sticky",top:0,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:8,zIndex:50}}>
+      <div style={{position:"fixed",top:"calc(env(safe-area-inset-top,0px) + 38px)",left:0,right:0,background:"#080A0E",zIndex:50}}>
         <div style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <button onClick={()=>onNavigate("progresso")} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
@@ -4930,7 +4930,6 @@ function CalendarioFullScreen({onNavigate}){
             ))}
           </div>
         </div>
-        {/* Cards de streak — fixos abaixo do header */}
         {view==="mes"&&<div style={{display:"flex",gap:8,padding:"0 16px 12px"}}>
           <div style={{flex:1,background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"10px 14px",display:"flex",alignItems:"center",gap:8}}>
             <span style={{fontSize:18}}>🔥️</span>
