@@ -4782,18 +4782,6 @@ function CalendarioFullScreen({onNavigate}){
     }
     return(
       <div
-        ref={el=>{
-          if(el&&!el._scrolled){
-            el._scrolled=true;
-            // Rola para mostrar os últimos 2 meses (penúltimo mês visível)
-            setTimeout(()=>{
-              const items=el.querySelectorAll("[data-month]");
-              if(items.length>=2){
-                items[items.length-2].scrollIntoView({block:"start"});
-              }
-            },50);
-          }
-        }}
         style={{padding:"160px 16px 100px"}}
       >
         {months.map((monthStart,mi)=>{
