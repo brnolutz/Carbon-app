@@ -5368,7 +5368,7 @@ ${progressão}
       </div>
 
       {/* Messages — scrollable, padded so content clears fixed input+nav */}
-      <div ref={scrollRef} style={{flex:1,overflowY:"auto",padding:"0 16px",display:"flex",flexDirection:"column",gap:12,paddingBottom:160}}>
+      <div ref={scrollRef} style={{flex:1,overflowY:"auto",padding:"0 16px",display:"flex",flexDirection:"column",gap:12,paddingBottom:220}}>
         {messages.map((m,i)=>(
           <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",alignItems:"flex-end",gap:8}}>
             {m.role==="assistant"&&<div style={{width:28,height:28,borderRadius:"50%",background:"#080A0E",border:"1px solid rgba(255,255,255,0.1)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,overflow:"hidden"}}><img src="/carbon-logo-transparent.png" alt="Carbon" style={{width:20,height:20,objectFit:"contain"}}/></div>}
@@ -5385,16 +5385,21 @@ ${progressão}
         {loading&&<div style={{display:"flex",alignItems:"flex-end",gap:8}}><div style={{width:28,height:28,borderRadius:"50%",background:"#080A0E",border:"1px solid rgba(255,255,255,0.1)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,overflow:"hidden"}}><img src="/carbon-logo-transparent.png" alt="Carbon" style={{width:20,height:20,objectFit:"contain"}}/></div><div style={{background:"rgba(255,255,255,0.06)",border:"1px solid "+C.border,borderRadius:"18px 18px 18px 4px",padding:"12px 16px",display:"flex",gap:5,alignItems:"center"}}>{[0,1,2].map(j=>(<div key={j} style={{width:7,height:7,borderRadius:"50%",background:C.blueXL,animationName:"fgpulse",animationDuration:"1.2s",animationTimingFunction:"ease-in-out",animationIterationCount:"infinite",animationDelay:`${j*0.18}s`}}/>))}</div></div>}
       </div>
 
-      {/* Fixed bottom: chips + input + nav */}
+      {/* Fixed bottom: input ABOVE nav bar */}
       <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:200}}>
-        {showChips&&<div style={{padding:"0 16px 10px",display:"flex",gap:8,overflowX:"auto",background:"rgba(8,10,14,0.95)",backdropFilter:"blur(20px)"}}>{chips.map(c=>(<button key={c} onClick={()=>setInput(c)} style={{flexShrink:0,background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.22)",borderRadius:20,padding:"7px 13px",fontSize:11,fontWeight:600,color:C.blueXL,cursor:"pointer",whiteSpace:"nowrap"}}>{c}</button>))}</div>}
-        <div style={{padding:"10px 12px 8px",background:"rgba(8,10,14,0.97)",backdropFilter:"blur(24px)",borderTop:"1px solid rgba(255,255,255,0.08)",display:"flex",gap:8,alignItems:"flex-end"}}>
+        {/* Nav bar */}
+        <BottomNav active="coach" onNavigate={onNavigate}/>
+      </div>
+
+      {/* Input bar - sits above the nav bar */}
+      <div style={{position:"fixed",bottom:"calc(88px + env(safe-area-inset-bottom,0px))",left:0,right:0,zIndex:201,background:"rgba(8,10,14,0.97)",backdropFilter:"blur(24px)",borderTop:"1px solid rgba(255,255,255,0.08)",padding:"10px 12px"}}>
+        {showChips&&<div style={{display:"flex",gap:8,overflowX:"auto",marginBottom:10,paddingBottom:2}}>{chips.map(c=>(<button key={c} onClick={()=>setInput(c)} style={{flexShrink:0,background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.22)",borderRadius:20,padding:"7px 13px",fontSize:11,fontWeight:600,color:C.blueXL,cursor:"pointer",whiteSpace:"nowrap"}}>{c}</button>))}</div>}
+        <div style={{display:"flex",gap:10,alignItems:"flex-end"}}>
           <textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}} placeholder="Pergunte ao seu coach..." rows={1} style={{flex:1,background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:22,padding:"12px 16px",fontSize:15,color:C.text,outline:"none",resize:"none",fontFamily:"inherit",lineHeight:1.45,maxHeight:120,overflowY:"auto"}}/>
-          <button onClick={send} disabled={!input.trim()||loading} style={{width:44,height:44,borderRadius:"50%",background:input.trim()&&!loading?"linear-gradient(135deg,#3B82F6,#2563EB)":"rgba(255,255,255,0.08)",border:"none",cursor:input.trim()&&!loading?"pointer":"default",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,opacity:input.trim()&&!loading?1:0.4}}>
+          <button onClick={send} disabled={!input.trim()||loading} style={{width:44,height:44,borderRadius:"50%",background:input.trim()&&!loading?"linear-gradient(135deg,#3B82F6,#2563EB)":"rgba(255,255,255,0.08)",border:"none",cursor:input.trim()&&!loading?"pointer":"default",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,opacity:input.trim()&&!loading?1:0.4}}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
           </button>
         </div>
-        <BottomNav active="coach" onNavigate={onNavigate}/>
       </div>
     </div>
   );
