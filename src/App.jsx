@@ -1684,47 +1684,47 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
         </div>}
 
         {/* ── Stats 2×2 grid ── */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:10}}>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:5,marginBottom:8}}>
           {/* Esta semana */}
-          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"10px 14px"}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-              <svg width="14" height="14" fill="none" stroke={C.blueXL} strokeWidth="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:"8px 12px"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:5}}>
+              <svg width="12" height="12" fill="none" stroke={C.blueXL} strokeWidth="1.8" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </div>
-            <div style={{fontSize:24,fontWeight:900,color:C.text,letterSpacing:"-1px",lineHeight:1}}>{weekWorkouts}<span style={{fontSize:14,color:C.sub,fontWeight:600}}>/{USER.weekGoal}</span></div>
-            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3,marginBottom:6}}>Esta Semana</div>
-            <div style={{background:C.border,borderRadius:99,height:2.5,overflow:"hidden"}}>
+            <div style={{fontSize:20,fontWeight:900,color:C.text,letterSpacing:"-1px",lineHeight:1}}>{weekWorkouts}<span style={{fontSize:12,color:C.sub,fontWeight:600}}>/{USER.weekGoal}</span></div>
+            <div style={{fontSize:8,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3,marginBottom:5}}>Esta Semana</div>
+            <div style={{background:C.border,borderRadius:99,height:2,overflow:"hidden"}}>
               <div style={{width:(weekProgress*100)+"%",height:"100%",background:C.blueXL,borderRadius:99,transition:"width 0.6s ease"}}/>
             </div>
           </div>
 
           {/* Volume */}
-          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"10px 14px"}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-              <svg width="14" height="14" fill="none" stroke={C.blueXL} strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-              {vol7dDelta!==0&&<span style={{fontSize:9,fontWeight:700,color:vol7dDelta>0?C.mint:C.coral,background:(vol7dDelta>0?C.mint:C.coral)+"18",padding:"2px 6px",borderRadius:99}}>{vol7dDelta>0?"+":""}{vol7dDelta}%</span>}
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:"8px 12px"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:5}}>
+              <svg width="12" height="12" fill="none" stroke={C.blueXL} strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+              {vol7dDelta!==0&&<span style={{fontSize:8,fontWeight:700,color:vol7dDelta>0?C.mint:C.coral,background:(vol7dDelta>0?C.mint:C.coral)+"18",padding:"2px 5px",borderRadius:99}}>{vol7dDelta>0?"+":""}{vol7dDelta}%</span>}
             </div>
-            <div style={{fontSize:24,fontWeight:900,color:C.text,letterSpacing:"-1px",lineHeight:1}}>{vol7d}<span style={{fontSize:12,color:C.sub,fontWeight:500,marginLeft:2}}>t</span></div>
-            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Últimos 7 dias</div>
+            <div style={{fontSize:20,fontWeight:900,color:C.text,letterSpacing:"-1px",lineHeight:1}}>{vol7d}<span style={{fontSize:11,color:C.sub,fontWeight:500,marginLeft:2}}>t</span></div>
+            <div style={{fontSize:8,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Últimos 7 dias</div>
           </div>
 
           {/* Streak */}
-          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"10px 14px"}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-              <svg width="14" height="14" fill="none" stroke={C.amber} strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:"8px 12px"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:5}}>
+              <svg width="12" height="12" fill="none" stroke={C.amber} strokeWidth="1.8" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             </div>
-            <div style={{fontSize:24,fontWeight:900,color:C.text,letterSpacing:"-1px",lineHeight:1}}>{dynamicStreak}</div>
-            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Semanas seguidas</div>
+            <div style={{fontSize:20,fontWeight:900,color:C.text,letterSpacing:"-1px",lineHeight:1}}>{dynamicStreak}</div>
+            <div style={{fontSize:8,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Semanas seguidas</div>
           </div>
 
           {/* Peso corporal */}
-          <button onClick={()=>onNavigate("corpo")} style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:"10px 14px",cursor:"pointer",textAlign:"left"}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-              <svg width="14" height="14" fill="none" stroke={C.blueXL} strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M3 21v-1a9 9 0 0 1 18 0v1"/></svg>
-              {wDelta!==0&&<span style={{fontSize:9,fontWeight:700,color:wDeltaColor,background:wDeltaColor+"18",padding:"2px 6px",borderRadius:99}}>{wDelta>0?"+":""}{wDelta}kg</span>}
+          <button onClick={()=>onNavigate("corpo")} style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:"8px 12px",cursor:"pointer",textAlign:"left"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:5}}>
+              <svg width="12" height="12" fill="none" stroke={C.blueXL} strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M3 21v-1a9 9 0 0 1 18 0v1"/></svg>
+              {wDelta!==0&&<span style={{fontSize:8,fontWeight:700,color:wDeltaColor,background:wDeltaColor+"18",padding:"2px 5px",borderRadius:99}}>{wDelta>0?"+":""}{wDelta}kg</span>}
             </div>
-            <div style={{fontSize:20,fontWeight:900,color:C.text,letterSpacing:"-0.5px",lineHeight:1,marginBottom:4}}>{wEnd}<span style={{fontSize:12,color:C.sub,fontWeight:500,marginLeft:2}}>kg</span></div>
-            <Sparkline data={wSlice} color={wDelta<=0?C.mint:C.coral} height={22}/>
-            <div style={{fontSize:9,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:4}}>Bodyweight</div>
+            <div style={{fontSize:18,fontWeight:900,color:C.text,letterSpacing:"-0.5px",lineHeight:1,marginBottom:3}}>{wEnd}<span style={{fontSize:11,color:C.sub,fontWeight:500,marginLeft:2}}>kg</span></div>
+            <Sparkline data={wSlice} color={wDelta<=0?C.mint:C.coral} height={18}/>
+            <div style={{fontSize:8,fontWeight:700,color:C.sub,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Bodyweight</div>
           </button>
         </div>
 
