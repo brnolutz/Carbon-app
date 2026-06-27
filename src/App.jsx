@@ -4567,7 +4567,7 @@ function BodyDiagram({muscleHeat,width=320,savedCount=0}){
       <img
         src={imgSrc}
         alt="Mapa muscular"
-        style={{width:"100%",height:"100%",objectFit:"contain",display:"block",filter:"sepia(1) saturate(5) hue-rotate(195deg) brightness(0.75)"}}
+        style={{width:"100%",height:"100%",objectFit:"contain",display:"block",filter:"sepia(1) saturate(10) hue-rotate(190deg) brightness(0.8)"}}
       />
     </div>
   );
