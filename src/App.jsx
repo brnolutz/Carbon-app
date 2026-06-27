@@ -4783,7 +4783,7 @@ function CalendarioFullScreen({onNavigate}){
     months.reverse();
     return(
       <div
-        style={{padding:"160px 16px 100px"}}
+        style={{padding:"200px 16px 100px"}}
       >
         {months.map((monthStart,mi)=>{
           const y=monthStart.getFullYear(),m=monthStart.getMonth();
@@ -4799,9 +4799,9 @@ function CalendarioFullScreen({onNavigate}){
             return sd.getFullYear()===y&&sd.getMonth()===m;
           });
           return(
-            <div key={mi} data-month={`${y}-${m}`} style={{marginBottom:24}}>
+            <div key={mi} data-month={`${y}-${m}`} style={{marginBottom:16}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                <div style={{fontSize:16,fontWeight:800,color:C.text,textTransform:"capitalize"}}>{monthLabel}</div>
+                <div style={{fontSize:14,fontWeight:800,color:C.text,textTransform:"capitalize"}}>{monthLabel}</div>
                 <div style={{fontSize:11,color:C.sub}}>{monthSessions.length} treinos</div>
               </div>
               <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1,marginBottom:4}}>
@@ -4815,7 +4815,7 @@ function CalendarioFullScreen({onNavigate}){
                   const hasW=workoutDates.has(ds);
                   const daySess=allSessions.filter(s=>s.date===ds);
                   return(
-                    <div key={i} onClick={()=>hasW&&setSelDetail(ds)} style={{aspectRatio:"1",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",borderRadius:8,background:hasW?"rgba(59,130,246,0.2)":isToday?"rgba(59,130,246,0.1)":"rgba(255,255,255,0.02)",border:"1px solid "+(hasW?"rgba(59,130,246,0.5)":isToday?"rgba(59,130,246,0.3)":"transparent"),cursor:hasW?"pointer":"default"}}>
+                    <div key={i} onClick={()=>hasW&&setSelDetail(ds)} style={{aspectRatio:"1",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",borderRadius:6,background:hasW?"rgba(59,130,246,0.2)":isToday?"rgba(59,130,246,0.1)":"rgba(255,255,255,0.02)",border:"1px solid "+(hasW?"rgba(59,130,246,0.5)":isToday?"rgba(59,130,246,0.3)":"transparent"),cursor:hasW?"pointer":"default"}}>
                       <span style={{fontSize:11,fontWeight:hasW||isToday?700:400,color:hasW?C.blueXL:isToday?C.blueXL:C.muted}}>{d}</span>
                       {hasW&&daySess[0]&&<span style={{fontSize:7,color:C.blueXL,lineHeight:1,textAlign:"center",overflow:"hidden",maxWidth:"100%",padding:"0 1px"}}>{daySess[0].name?.split("—")[1]?.trim().slice(0,4)||""}</span>}
                     </div>
