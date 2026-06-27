@@ -210,6 +210,15 @@ async function saveMeasureHistory(h){
 }
 
 function loadWeightGoal(){return _weightGoalCache;}
+async function saveWeight(v){
+  const today=new Date().toISOString().slice(0,10);
+  const h=loadMeasureHistory();
+  const existing=h.find(r=>r.date===today);
+  let newH;
+  if(existing){newH=h.map(r=>r.date===today?{...r,Peso:v}:r);}
+  else{newH=[...h,{date:today,Peso:v}].sort((a,b)=>a.date.localeCompare(b.date));}
+  await saveMeasureHistory(newH);
+}
 async function saveWeightGoal(v){
   _weightGoalCache=v;
   try{
