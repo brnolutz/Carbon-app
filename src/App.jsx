@@ -5358,46 +5358,44 @@ ${progressão}
   const showChips=messages.length===1&&!loading;
 
   return(
-    <div style={{display:"flex",flexDirection:"column",height:"calc(100dvh - var(--header-h, 0px))",background:"#080A0E",boxSizing:"border-box",position:"relative"}}>
+    <div style={{display:"flex",flexDirection:"column",height:"100%",background:"#080A0E"}}>
       <style>{`@keyframes fgpulse{0%,100%{opacity:0.3;transform:scale(0.75)}50%{opacity:1;transform:scale(1)}}`}</style>
+
+      {/* Title */}
       <div style={{flexShrink:0,padding:"8px 20px 12px"}}>
         <div style={{fontSize:26,fontWeight:900,color:"#FFFFFF",letterSpacing:"-1px"}}>AI Coach</div>
         <div style={{fontSize:10,fontWeight:600,color:C.blueXL,letterSpacing:"0.1em",textTransform:"uppercase",marginTop:3}}>Powered by Claude</div>
       </div>
-      <div ref={scrollRef} style={{flex:1,overflowY:"auto",padding:"16px 16px 8px",display:"flex",flexDirection:"column",gap:12}}>
+
+      {/* Messages — scrollable, padded so content clears fixed input+nav */}
+      <div ref={scrollRef} style={{flex:1,overflowY:"auto",padding:"0 16px",display:"flex",flexDirection:"column",gap:12,paddingBottom:160}}>
         {messages.map((m,i)=>(
           <div key={i} style={{display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start",alignItems:"flex-end",gap:8}}>
             {m.role==="assistant"&&<div style={{width:28,height:28,borderRadius:"50%",background:"#080A0E",border:"1px solid rgba(255,255,255,0.1)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,overflow:"hidden"}}><img src="/carbon-logo-transparent.png" alt="Carbon" style={{width:20,height:20,objectFit:"contain"}}/></div>}
             <div style={{maxWidth:"78%",background:m.role==="user"?"linear-gradient(135deg,#2563EB,#1D4ED8)":"rgba(255,255,255,0.06)",border:m.role==="user"?"none":"1px solid rgba(255,255,255,0.08)",borderRadius:m.role==="user"?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"10px 14px",fontSize:13,lineHeight:1.6,color:m.role==="user"?"#fff":C.text,wordBreak:"break-word"}}>
-                {m.role==="user"
-                  ? m.content
-                  : m.content.split("\n").map((line,li)=>{
-                      const parseLine=(txt)=>{
-                        const parts=[];let rest=txt;let key=0;
-                        while(rest.length>0){
-                          const bold=rest.match(/^\*\*(.+?)\*\*/);const italic=rest.match(/^\*(.+?)\*/);
-                          if(bold){parts.push(<strong key={key++} style={{fontWeight:800,color:"#fff"}}>{bold[1]}</strong>);rest=rest.slice(bold[0].length);}
-                          else if(italic){parts.push(<em key={key++} style={{fontStyle:"italic"}}>{italic[1]}</em>);rest=rest.slice(italic[0].length);}
-                          else{const next=rest.search(/\*\*/);const ni=rest.search(/\*[^*]/);const stop=next===-1&&ni===-1?rest.length:Math.min(next===-1?Infinity:next,ni===-1?Infinity:ni);parts.push(<span key={key++}>{rest.slice(0,stop)}</span>);rest=rest.slice(stop);}
-                        }
-                        return parts;
-                      };
-                      if(line.trim()==="") return <div key={li} style={{height:6}}/>;
-                      if(line.startsWith("- ")||line.startsWith("• ")) return <div key={li} style={{display:"flex",gap:6,marginBottom:2}}><span style={{flexShrink:0,marginTop:2}}>•</span><span>{parseLine(line.replace(/^[-•]\s/,""))}</span></div>;
-                      return <div key={li} style={{marginBottom:2}}>{parseLine(line)}</div>;
-                    })
-                }
-              </div>
+              {m.role==="user"?m.content:m.content.split("\n").map((line,li)=>{
+                const parseLine=(txt)=>{const parts=[];let rest=txt;let key=0;while(rest.length>0){const bold=rest.match(/^\*\*(.+?)\*\*/);const italic=rest.match(/^\*(.+?)\*/);if(bold){parts.push(<strong key={key++} style={{fontWeight:800,color:"#fff"}}>{bold[1]}</strong>);rest=rest.slice(bold[0].length);}else if(italic){parts.push(<em key={key++} style={{fontStyle:"italic"}}>{italic[1]}</em>);rest=rest.slice(italic[0].length);}else{const next=rest.search(/\*\*/);const ni=rest.search(/\*[^*]/);const stop=next===-1&&ni===-1?rest.length:Math.min(next===-1?Infinity:next,ni===-1?Infinity:ni);parts.push(<span key={key++}>{rest.slice(0,stop)}</span>);rest=rest.slice(stop);}}return parts;};
+                if(line.trim()==="")return <div key={li} style={{height:6}}/>;
+                if(line.startsWith("- ")||line.startsWith("• "))return <div key={li} style={{display:"flex",gap:6,marginBottom:2}}><span style={{flexShrink:0,marginTop:2}}>•</span><span>{parseLine(line.replace(/^[-•]\s/,""))}</span></div>;
+                return <div key={li} style={{marginBottom:2}}>{parseLine(line)}</div>;
+              })}
+            </div>
           </div>
         ))}
         {loading&&<div style={{display:"flex",alignItems:"flex-end",gap:8}}><div style={{width:28,height:28,borderRadius:"50%",background:"#080A0E",border:"1px solid rgba(255,255,255,0.1)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,overflow:"hidden"}}><img src="/carbon-logo-transparent.png" alt="Carbon" style={{width:20,height:20,objectFit:"contain"}}/></div><div style={{background:"rgba(255,255,255,0.06)",border:"1px solid "+C.border,borderRadius:"18px 18px 18px 4px",padding:"12px 16px",display:"flex",gap:5,alignItems:"center"}}>{[0,1,2].map(j=>(<div key={j} style={{width:7,height:7,borderRadius:"50%",background:C.blueXL,animationName:"fgpulse",animationDuration:"1.2s",animationTimingFunction:"ease-in-out",animationIterationCount:"infinite",animationDelay:`${j*0.18}s`}}/>))}</div></div>}
       </div>
-      {showChips&&<div style={{flexShrink:0,padding:"0 16px 10px",display:"flex",gap:8,overflowX:"auto"}}>{chips.map(c=>(<button key={c} onClick={()=>setInput(c)} style={{flexShrink:0,background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.22)",borderRadius:20,padding:"7px 13px",fontSize:11,fontWeight:600,color:C.blueXL,cursor:"pointer",whiteSpace:"nowrap"}}>{c}</button>))}</div>}
-      <div style={{flexShrink:0,padding:"8px 12px",background:"rgba(10,15,30,0.85)",backdropFilter:"blur(20px)",borderTop:"1px solid rgba(255,255,255,0.06)",display:"flex",gap:8,alignItems:"flex-end"}}>
-        <textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}} placeholder="Pergunte ao seu coach..." rows={1} style={{flex:1,background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:14,padding:"11px 14px",fontSize:16,color:C.text,outline:"none",resize:"none",fontFamily:"inherit",lineHeight:1.45,maxHeight:100,overflowY:"auto"}}/>
-        <button onClick={send} disabled={!input.trim()||loading} style={{width:42,height:42,borderRadius:13,background:input.trim()&&!loading?"linear-gradient(135deg,#3B82F6,#2563EB)":"rgba(255,255,255,0.06)",border:"none",cursor:input.trim()&&!loading?"pointer":"default",color:"#fff",fontSize:20,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,opacity:input.trim()&&!loading?1:0.4}}>↑</button>
+
+      {/* Fixed bottom: chips + input + nav */}
+      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:200}}>
+        {showChips&&<div style={{padding:"0 16px 10px",display:"flex",gap:8,overflowX:"auto",background:"rgba(8,10,14,0.95)",backdropFilter:"blur(20px)"}}>{chips.map(c=>(<button key={c} onClick={()=>setInput(c)} style={{flexShrink:0,background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.22)",borderRadius:20,padding:"7px 13px",fontSize:11,fontWeight:600,color:C.blueXL,cursor:"pointer",whiteSpace:"nowrap"}}>{c}</button>))}</div>}
+        <div style={{padding:"10px 12px 8px",background:"rgba(8,10,14,0.97)",backdropFilter:"blur(24px)",borderTop:"1px solid rgba(255,255,255,0.08)",display:"flex",gap:8,alignItems:"flex-end"}}>
+          <textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}} placeholder="Pergunte ao seu coach..." rows={1} style={{flex:1,background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:22,padding:"12px 16px",fontSize:15,color:C.text,outline:"none",resize:"none",fontFamily:"inherit",lineHeight:1.45,maxHeight:120,overflowY:"auto"}}/>
+          <button onClick={send} disabled={!input.trim()||loading} style={{width:44,height:44,borderRadius:"50%",background:input.trim()&&!loading?"linear-gradient(135deg,#3B82F6,#2563EB)":"rgba(255,255,255,0.08)",border:"none",cursor:input.trim()&&!loading?"pointer":"default",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,opacity:input.trim()&&!loading?1:0.4}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 19V5M5 12l7-7 7 7" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+          </button>
+        </div>
+        <BottomNav active="coach" onNavigate={onNavigate}/>
       </div>
-      <BottomNav active="coach" onNavigate={onNavigate}/>
     </div>
   );
 }
