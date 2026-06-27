@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useLayoutEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo, useLayoutEffect } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@supabase/supabase-js";
 
@@ -4869,33 +4869,59 @@ function CalendarioFullScreen({onNavigate}){
   const renderPlurianual=()=>{
     const now=new Date();
     const years=[now.getFullYear()-1,now.getFullYear()];
+    const dayNames=["D","S","T","Q","Q","S","S"];
     return(
-      <div style={{padding:"0 16px 100px"}}>
+      <div style={{padding:"0 12px 100px"}}>
         {years.map(y=>{
-          const months=Array.from({length:12},(_,m)=>m);
+          // Build all days of the year
+          const start=new Date(y,0,1);
+          const end=y===now.getFullYear()?now:new Date(y,11,31);
+          const days=[];
+          const cur=new Date(start);
+          // Pad to start on Sunday
+          for(let i=0;i<cur.getDay();i++) days.push(null);
+          while(cur<=end){
+            const ds=cur.toISOString().slice(0,10);
+            days.push({ds,hasW:workoutDates.has(ds),isToday:ds===todayStr});
+            cur.setDate(cur.getDate()+1);
+          }
+          // Pad to complete last week
+          while(days.length%7!==0) days.push(null);
+          // Group into weeks (columns)
+          const weeks=[];
+          for(let i=0;i<days.length;i+=7) weeks.push(days.slice(i,i+7));
+          // Month labels
+          const monthLabels=["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+          const monthCols=monthLabels.map((l,mi)=>{
+            const firstDay=new Date(y,mi,1);
+            const weekIdx=Math.floor((firstDay-start)/86400000/7+(new Date(y,0,1).getDay()>0?1:0));
+            return{l,col:Math.max(0,weekIdx)};
+          });
           return(
-            <div key={y} style={{marginBottom:24}}>
-              <div style={{fontSize:16,fontWeight:800,color:C.text,marginBottom:8}}>{y}</div>
-              <div style={{display:"flex",gap:2,alignItems:"flex-start"}}>
-                <div style={{display:"flex",flexDirection:"column",gap:1,marginRight:4}}>
-                  {["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"].map((m,i)=>(
-                    <div key={i} style={{fontSize:8,color:C.muted,height:10,display:"flex",alignItems:"center"}}>{m}</div>
-                  ))}
-                </div>
-                <div style={{flex:1}}>
-                  <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1}}>
-                    {months.map(m=>{
-                      const daysInMonth=new Date(y,m+1,0).getDate();
-                      return Array.from({length:daysInMonth},(_,di)=>{
-                        const d=di+1;
-                        const ds=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-                        const hasW=workoutDates.has(ds);
-                        const isToday=ds===todayStr;
-                        return <div key={ds} style={{aspectRatio:"1",borderRadius:1,background:hasW?"#3B82F6":isToday?"#1E3A8A":"rgba(255,255,255,0.05)"}}/>;
-                      });
+            <div key={y} style={{marginBottom:28}}>
+              <div style={{fontSize:15,fontWeight:800,color:C.text,marginBottom:8}}>{y}</div>
+              {/* Month labels */}
+              <div style={{display:"grid",gridTemplateColumns:`28px repeat(${weeks.length},1fr)`,marginBottom:2}}>
+                <div/>
+                {weeks.map((_,wi)=>{
+                  const ml=monthCols.find(m=>m.col===wi);
+                  return <div key={wi} style={{fontSize:7,color:C.muted,textAlign:"center"}}>{ml?ml.l:""}</div>;
+                })}
+              </div>
+              {/* Grid: 7 rows (days) × N cols (weeks) */}
+              <div style={{display:"grid",gridTemplateColumns:`28px repeat(${weeks.length},1fr)`,gap:1}}>
+                {dayNames.map((dn,di)=>(
+                  <React.Fragment key={di}>
+                    <div style={{fontSize:7,color:C.muted,display:"flex",alignItems:"center",justifyContent:"flex-end",paddingRight:4}}>{di%2===1?dn:""}</div>
+                    {weeks.map((week,wi)=>{
+                      const cell=week[di];
+                      if(!cell) return <div key={wi} style={{aspectRatio:"1"}}/>;
+                      return(
+                        <div key={wi} style={{aspectRatio:"1",borderRadius:2,background:cell.isToday?"#3B82F6":cell.hasW?"#3D5AF1":"rgba(255,255,255,0.06)"}}/>
+                      );
                     })}
-                  </div>
-                </div>
+                  </React.Fragment>
+                ))}
               </div>
             </div>
           );
