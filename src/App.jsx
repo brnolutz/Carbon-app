@@ -4874,10 +4874,12 @@ function CalendarioFullScreen({onNavigate}){
     const GAP=2;
     const WEEKS=53;
     const screenW=window.innerWidth||390;
-    const CELL=Math.max(5,Math.floor((screenW-28-LABEL_W-GAP*(WEEKS-1))/WEEKS));
+    // Use full width minus left padding (12) and label
+    const availW=screenW-12-4-LABEL_W-GAP*WEEKS;
+    const CELL=Math.max(5,Math.floor(availW/WEEKS));
 
     return(
-      <div style={{padding:"120px 12px 100px"}}>
+      <div style={{padding:"8px 4px 100px 12px"}}>
         {years.map(y=>{
           const start=new Date(y,0,1);
           const end=new Date(y,11,31);
