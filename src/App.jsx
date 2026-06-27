@@ -4906,7 +4906,7 @@ function CalendarioFullScreen({onNavigate}){
   return(
     <div data-screen-container="1" className="screen-root" style={{background:"#080A0E",minHeight:"100dvh"}}>
       {/* Header fixo */}
-      <div style={{position:"fixed",top:"calc(env(safe-area-inset-top,0px) + 38px)",left:0,right:0,background:"#080A0E",zIndex:50}}>
+      <div style={{position:"fixed",top:"calc(env(safe-area-inset-top,0px) + 56px)",left:0,right:0,background:"#080A0E",zIndex:50}}>
         <div style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div style={{display:"flex",alignItems:"center",gap:12}}>
             <button onClick={()=>onNavigate("progresso")} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
