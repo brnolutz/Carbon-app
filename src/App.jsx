@@ -650,7 +650,7 @@ function BottomNav({active,onNavigate}){
   ];
   return(
     <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:100,paddingBottom:"env(safe-area-inset-bottom,8px)",paddingLeft:12,paddingRight:12}}>
-      <div style={{background:"rgba(8,10,14,0.45)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderRadius:36,border:"1px solid rgba(255,255,255,0.10)",boxShadow:"0 8px 32px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.08)",display:"flex",justifyContent:"space-around",alignItems:"center",padding:"6px 8px 8px",marginBottom:8}}>
+      <div style={{background:"rgba(8,10,14,1)",backdropFilter:"blur(24px)",WebkitBackdropFilter:"blur(24px)",borderRadius:36,border:"1px solid rgba(255,255,255,0.10)",boxShadow:"0 8px 32px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.08)",display:"flex",justifyContent:"space-around",alignItems:"center",padding:"6px 8px 8px",marginBottom:8}}>
         {tabs.map(tab=>{
           const isActive=tab.k===active;
           return(
@@ -5447,13 +5447,13 @@ ${progressão}
       </div>
 
       {/* Fixed bottom: input ABOVE nav bar */}
-      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:200}}>
+      <div style={{position:"fixed",bottom:0,left:0,right:0,zIndex:200,background:"#080A0E"}}>
         {/* Nav bar */}
         <BottomNav active="coach" onNavigate={onNavigate}/>
       </div>
 
       {/* Input bar - sits above the nav bar */}
-      <div style={{position:"fixed",bottom:"calc(88px + env(safe-area-inset-bottom,0px))",left:0,right:0,zIndex:201,background:"rgba(8,10,14,0.97)",backdropFilter:"blur(24px)",borderTop:"1px solid rgba(255,255,255,0.08)",padding:"10px 12px"}}>
+      <div style={{position:"fixed",bottom:"calc(88px + env(safe-area-inset-bottom,0px))",left:0,right:0,zIndex:201,background:"#080A0E",borderTop:"1px solid rgba(255,255,255,0.08)",padding:"10px 12px"}}>
         {showChips&&<div style={{display:"flex",gap:8,overflowX:"auto",marginBottom:10,paddingBottom:2}}>{chips.map(c=>(<button key={c} onClick={()=>setInput(c)} style={{flexShrink:0,background:"rgba(59,130,246,0.1)",border:"1px solid rgba(59,130,246,0.22)",borderRadius:20,padding:"7px 13px",fontSize:11,fontWeight:600,color:C.blueXL,cursor:"pointer",whiteSpace:"nowrap"}}>{c}</button>))}</div>}
         <div style={{display:"flex",gap:10,alignItems:"flex-end"}}>
           <textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}} placeholder="Pergunte ao seu coach..." rows={1} style={{flex:1,background:"rgba(255,255,255,0.07)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:22,padding:"12px 16px",fontSize:15,color:C.text,outline:"none",resize:"none",fontFamily:"inherit",lineHeight:1.45,maxHeight:120,overflowY:"auto"}}/>
