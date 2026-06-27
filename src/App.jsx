@@ -4277,14 +4277,18 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
       <div style={{padding:"0 16px"}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:8}}>
           <GlassCard style={{padding:"8px 12px",display:"flex",alignItems:"center",gap:8}}>
-            <div style={{fontSize:18}}>🔥️</div>
+            <div style={{width:32,height:32,borderRadius:10,background:"linear-gradient(135deg,rgba(251,146,60,0.25),rgba(239,68,68,0.15))",border:"1px solid rgba(251,146,60,0.3)",backdropFilter:"blur(8px)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2c0 0-5 4-5 10a5 5 0 0 0 10 0C17 6 12 2 12 2z" fill="rgba(251,146,60,0.9)"/><path d="M12 8c0 0-2.5 2-2.5 5a2.5 2.5 0 0 0 5 0C14.5 10 12 8 12 8z" fill="rgba(255,255,255,0.7)"/></svg>
+            </div>
             <div>
               <div style={{fontSize:16,fontWeight:900,color:C.text}}>{thisWeekCount}</div>
               <div style={{fontSize:9,color:C.sub}}>Ofensiva Semanal</div>
             </div>
           </GlassCard>
           <GlassCard style={{padding:"8px 12px",display:"flex",alignItems:"center",gap:8}}>
-            <div style={{fontSize:18}}>🎯️</div>
+            <div style={{width:32,height:32,borderRadius:10,background:"linear-gradient(135deg,rgba(59,130,246,0.25),rgba(139,92,246,0.15))",border:"1px solid rgba(99,102,241,0.3)",backdropFilter:"blur(8px)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="rgba(165,180,252,0.8)" strokeWidth="1.5"/><circle cx="12" cy="12" r="5" stroke="rgba(165,180,252,0.6)" strokeWidth="1.5"/><circle cx="12" cy="12" r="1.5" fill="rgba(99,102,241,1)"/><line x1="12" y1="3" x2="12" y2="1" stroke="rgba(165,180,252,0.8)" strokeWidth="1.5" strokeLinecap="round"/><line x1="15" y1="4" x2="19" y2="1" stroke="rgba(165,180,252,0.8)" strokeWidth="1.5" strokeLinecap="round"/></svg>
+            </div>
             <div>
               <div style={{fontSize:16,fontWeight:900,color:C.text}}>{weeklyStreak}</div>
               <div style={{fontSize:9,color:C.sub}}>Sequência Semanal</div>
