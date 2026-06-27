@@ -4872,7 +4872,7 @@ function CalendarioFullScreen({onNavigate}){
     const years=Array.from({length:3},(_,i)=>startYear+i); // 2026, 2027, 2028
     const dayNames=["D","S","T","Q","Q","S","S"];
     return(
-      <div style={{padding:"160px 12px 100px"}}>
+      <div style={{padding:"16px 12px 100px"}}>
         {years.map(y=>{
           const start=new Date(y,0,1);
           const end=y>now.getFullYear()?new Date(y,11,31):y===now.getFullYear()?now:new Date(y,11,31);
@@ -4893,34 +4893,35 @@ function CalendarioFullScreen({onNavigate}){
             const weekIdx=Math.floor((firstDay-start)/86400000/7+start.getDay()/7);
             return{l,col:Math.max(0,Math.round(weekIdx))};
           });
-          const CELL=9; // fixed cell size in px
+          const CELL=9;
           const GAP=2;
           return(
             <div key={y} style={{marginBottom:28}}>
               <div style={{fontSize:15,fontWeight:800,color:C.text,marginBottom:8}}>{y}</div>
-              {/* Month labels */}
-              <div style={{display:"flex",marginBottom:3,marginLeft:20}}>
-                {weeks.map((_,wi)=>{
-                  const ml=monthCols.find(m=>m.col===wi);
-                  return <div key={wi} style={{width:CELL+GAP,fontSize:7,color:C.muted,overflow:"hidden",flexShrink:0}}>{ml?ml.l:""}</div>;
-                })}
-              </div>
-              {/* 7 rows × N week columns */}
-              <div style={{display:"flex",gap:GAP}}>
-                {/* Day labels */}
-                <div style={{display:"flex",flexDirection:"column",gap:GAP,marginRight:2}}>
-                  {dayNames.map((dn,di)=>(
-                    <div key={di} style={{width:14,height:CELL,fontSize:7,color:C.muted,display:"flex",alignItems:"center",justifyContent:"flex-end"}}>{di%2===1?dn:""}</div>
-                  ))}
+              <div style={{overflowX:"auto",paddingBottom:4}}>
+                {/* Month labels */}
+                <div style={{display:"flex",marginBottom:3,marginLeft:18}}>
+                  {weeks.map((_,wi)=>{
+                    const ml=monthCols.find(m=>m.col===wi);
+                    return <div key={wi} style={{width:CELL+GAP,minWidth:CELL+GAP,fontSize:7,color:C.muted,overflow:"hidden",flexShrink:0}}>{ml?ml.l:""}</div>;
+                  })}
                 </div>
-                {/* Week columns */}
-                {weeks.map((week,wi)=>(
-                  <div key={wi} style={{display:"flex",flexDirection:"column",gap:GAP}}>
-                    {week.map((cell,di)=>(
-                      <div key={di} style={{width:CELL,height:CELL,borderRadius:2,background:!cell?"transparent":cell.isToday?"#3B82F6":cell.hasW?"#3D5AF1":"rgba(255,255,255,0.06)"}}/>
+                <div style={{display:"flex",gap:GAP}}>
+                  {/* Day labels */}
+                  <div style={{display:"flex",flexDirection:"column",gap:GAP,marginRight:2}}>
+                    {dayNames.map((dn,di)=>(
+                      <div key={di} style={{width:14,height:CELL,fontSize:7,color:C.muted,display:"flex",alignItems:"center",justifyContent:"flex-end"}}>{di%2===1?dn:""}</div>
                     ))}
                   </div>
-                ))}
+                  {/* Week columns */}
+                  {weeks.map((week,wi)=>(
+                    <div key={wi} style={{display:"flex",flexDirection:"column",gap:GAP,flexShrink:0}}>
+                      {week.map((cell,di)=>(
+                        <div key={di} style={{width:CELL,height:CELL,borderRadius:2,background:!cell?"transparent":cell.isToday?"#3B82F6":cell.hasW?"#3D5AF1":"rgba(255,255,255,0.06)"}}/>
+                      ))}
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           );
