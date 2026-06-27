@@ -4879,7 +4879,7 @@ function CalendarioFullScreen({onNavigate}){
     const CELL=Math.max(5,Math.floor(availW/WEEKS));
 
     return(
-      <div style={{padding:"8px 4px 100px 12px"}}>
+      <div style={{padding:"54px 4px 100px 12px"}}>
         {years.map(y=>{
           const start=new Date(y,0,1);
           const end=new Date(y,11,31);
