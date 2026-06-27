@@ -1890,6 +1890,7 @@ function RoutineBarChart({chartData,chartMode,chartRange,setChartRange,setChartM
     </div>
   );
 }
+function ExEditCard({ex,i,gc,draft,setDraft,setShowExGallery,totalEx,onReplaceEx}){
   const[showMenu,setShowMenu]=useState(false);
   const[showColorPicker,setShowColorPicker]=useState(false);
   const COLORS=["#3B82F6","#10B981","#F59E0B","#EF4444","#A78BFA","#F472B6","#22D3EE","#FB923C"];
