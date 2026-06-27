@@ -807,7 +807,7 @@ function WorkoutDetail({session,onClose,onDelete}){
             <div><div style={{fontSize:9,color:C.sub,fontWeight:600}}>Recordes</div><div style={{fontSize:16,fontWeight:800,color:C.amber}}>{session.prs||0}</div></div>
           </div>
           <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:10,padding:"8px 10px",display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontSize:16}}>🔥</span>
+            <span style={{fontSize:16}}>🔥️</span>
             <div><div style={{fontSize:9,color:C.sub,fontWeight:600}}>Cal. est.</div><div style={{fontSize:16,fontWeight:800,color:"#60A5FA"}}>~{session.calories!=null?session.calories:Math.round(session.totalSets*18)}</div></div>
           </div>
         </div>
@@ -1024,7 +1024,7 @@ function DeloadWeekScreen({onBack,onDeloadStarted}){
     {k:"volume",l:"Reduzir Volume",d:"Menos séries (−40–60%), mesmo peso",icon:"📉"},
     {k:"intensity",l:"Reduzir Intensidade",d:"Mesmo volume, peso mais leve (60–70%)",icon:"🏋️"},
     {k:"frequency",l:"Reduzir Frequência",d:"Menos dias de treino esta semana",icon:"📅"},
-    {k:"technique",l:"Foco em Técnica",d:"Movimentos lentos e controlados",icon:"🎯"},
+    {k:"technique",l:"Foco em Técnica",d:"Movimentos lentos e controlados",icon:"🎯️"},
   ];
   const story=STORIES[step];
   const endDate=new Date(Date.now()+7*24*60*60*1000).toLocaleDateString("pt-BR",{day:"2-digit",month:"short"});
@@ -1355,7 +1355,7 @@ function MonthlyReportScreen({onBack}){
               <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
                 <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em"}}>Dias de treino</div>
                 {weekStreak>0&&<div style={{display:"flex",alignItems:"center",gap:4,background:"rgba(239,68,68,0.12)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:99,padding:"3px 8px"}}>
-                  <span style={{fontSize:12}}>🔥</span>
+                  <span style={{fontSize:12}}>🔥️</span>
                   <span style={{fontSize:10,fontWeight:700,color:"#EF4444"}}>{weekStreak} sem. seguidas</span>
                 </div>}
               </div>
@@ -2300,7 +2300,7 @@ function ExerciseHistory({exName,currentSets,histData}){
       </button>
       {open&&(
         <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:"0 0 12px 12px",borderTop:"none",padding:"10px 14px"}}>
-          {!hist.length?<div style={{fontSize:11,color:C.muted}}>Primeira vez neste exercício 🎯</div>:
+          {!hist.length?<div style={{fontSize:11,color:C.muted}}>Primeira vez neste exercício 🎯️</div>:
             hist.map((session,i)=>{
               const bestSet=session.sets.reduce((a,b)=>orm(b.w,b.r)>orm(a.w,a.r)?b:a,session.sets[0]);
               const avgRpe=session.sets.filter(s=>s.rpe).length>0?(session.sets.filter(s=>s.rpe).reduce((s,s2)=>s+s2.rpe,0)/session.sets.filter(s=>s.rpe).length).toFixed(1):null;
@@ -4277,14 +4277,14 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
       <div style={{padding:"0 16px"}}>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:8}}>
           <GlassCard style={{padding:"8px 12px",display:"flex",alignItems:"center",gap:8}}>
-            <div style={{fontSize:18}}>🔥</div>
+            <div style={{fontSize:18}}>🔥️</div>
             <div>
               <div style={{fontSize:16,fontWeight:900,color:C.text}}>{thisWeekCount}</div>
               <div style={{fontSize:9,color:C.sub}}>Ofensiva Semanal</div>
             </div>
           </GlassCard>
           <GlassCard style={{padding:"8px 12px",display:"flex",alignItems:"center",gap:8}}>
-            <div style={{fontSize:18}}>🎯</div>
+            <div style={{fontSize:18}}>🎯️</div>
             <div>
               <div style={{fontSize:16,fontWeight:900,color:C.text}}>{weeklyStreak}</div>
               <div style={{fontSize:9,color:C.sub}}>Sequência Semanal</div>
@@ -4926,7 +4926,7 @@ function CalendarioFullScreen({onNavigate}){
         {/* Cards de streak — fixos abaixo do header */}
         {view==="mes"&&<div style={{display:"flex",gap:8,padding:"0 16px 12px"}}>
           <div style={{flex:1,background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"10px 14px",display:"flex",alignItems:"center",gap:8}}>
-            <span style={{fontSize:18}}>🔥</span>
+            <span style={{fontSize:18}}>🔥️</span>
             <div>
               <div style={{fontSize:16,fontWeight:900,color:C.text}}>{(()=>{let s=0;const d=new Date();while(true){const ds=d.toISOString().slice(0,10);if(!workoutDates.has(ds)&&ds!==todayStr)break;if(workoutDates.has(ds))s++;d.setDate(d.getDate()-1);if(s>365)break;}return s;})()}</div>
               <div style={{fontSize:9,color:C.sub}}>dias seguidos</div>
