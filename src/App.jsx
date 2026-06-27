@@ -4740,6 +4740,15 @@ function CalendarioFullScreen({onNavigate}){
   const workoutDates=useMemo(()=>{const s=new Set();getAllSessions().forEach(f=>{if(f.date)s.add(f.date);});return s;},[]);
   const todayStr=new Date().toISOString().slice(0,10);
   const allSessions=getAllSessions();
+  const scrollRef=useRef(null);
+
+  useEffect(()=>{
+    // Scroll to show last 2 months
+    setTimeout(()=>{
+      const items=document.querySelectorAll("[data-month]");
+      if(items.length>=2) items[items.length-2].scrollIntoView({block:"start",behavior:"instant"});
+    },150);
+  },[]);
 
   // Session detail overlay
   if(selDetail){
