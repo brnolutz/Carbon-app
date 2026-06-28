@@ -5130,12 +5130,103 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
               </div>}
             </div>
             <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
-              <button onClick={()=>{setWeightDraft("");setShowAddWeight(true);}} style={{background:C.blueXL,border:"none",borderRadius:10,padding:"8px 14px",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer"}}>+ Peso</button>
+              <button onClick={()=>{setWeightDraft("");setShowAddWeight(true);}} style={{background:"rgba(59,130,246,0.15)",border:"1px solid rgba(59,130,246,0.4)",backdropFilter:"blur(12px)",borderRadius:12,padding:"8px 16px",color:C.blueXL,fontSize:12,fontWeight:700,cursor:"pointer"}}>＋ Registrar peso</button>
               <button onClick={()=>{setGoalDraft(String(weightGoal));setEditingGoal(true);}} style={{fontSize:11,color:C.muted,background:"none",border:"none",cursor:"pointer"}}>Meta: {weightGoal}kg ✎</button>
             </div>
           </div>
-          <LineChart data={weightChartData} color={C.mint} height={72}/>
-          <div style={{marginTop:10}}>
+
+          {/* Chart with projection */}
+          {(()=>{
+            const H=110, PAD={t:8,r:8,b:24,l:36};
+            const allPts=W_DATA.map((y,i)=>({y,i}));
+            if(allPts.length<2) return <LineChart data={weightChartData} color={C.mint} height={72}/>;
+
+            // Linear regression for projection
+            const n=allPts.length;
+            const xm=(n-1)/2, ym=allPts.reduce((s,p)=>s+p.y,0)/n;
+            const num=allPts.reduce((s,p,i)=>s+(i-xm)*(p.y-ym),0);
+            const den=allPts.reduce((s,_,i)=>s+(i-xm)**2,0);
+            const slope=den?num/den:0;
+            const intercept=ym-slope*xm;
+
+            // Project to goal
+            let projPts=[];
+            if(Math.abs(slope)>0.001&&weightGoal){
+              const stepsToGoal=Math.round((weightGoal-intercept)/slope);
+              const projCount=Math.min(Math.max(stepsToGoal-n+1,5),90);
+              for(let i=0;i<projCount;i++) projPts.push({y:intercept+slope*(n+i),i:n+i});
+            }
+
+            const allY=[...allPts,...projPts].map(p=>p.y);
+            if(weightGoal) allY.push(weightGoal);
+            const minY=Math.min(...allY)-1, maxY=Math.max(...allY)+1;
+            const totalPts=n+(projPts.length||0);
+            const W=320;
+            const px=i=>(i/(totalPts-1||1))*(W-PAD.l-PAD.r)+PAD.l;
+            const py=v=>H-PAD.b-((v-minY)/(maxY-minY||1))*(H-PAD.t-PAD.b);
+
+            // Y axis ticks
+            const yTicks=[minY,ym,maxY].map(v=>Math.round(v*2)/2);
+            // X axis: first, middle, last date labels
+            const wDates=measureHistory.filter(h=>h.Peso!=null).map(h=>h.date).sort();
+            const fmtDate=d=>d?new Date(d+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}):"";
+            const xLabels=[
+              {i:0,l:fmtDate(wDates[0])},
+              {i:Math.floor((n-1)/2),l:fmtDate(wDates[Math.floor((wDates.length-1)/2)])},
+              {i:n-1,l:fmtDate(wDates[wDates.length-1])},
+            ];
+
+            const realPath=allPts.map((p,i)=>`${i===0?"M":"L"}${px(p.i).toFixed(1)},${py(p.y).toFixed(1)}`).join(" ");
+            const projPath=projPts.length?[`M${px(n-1).toFixed(1)},${py(allPts[n-1].y).toFixed(1)}`,...projPts.map(p=>`L${px(p.i).toFixed(1)},${py(p.y).toFixed(1)}`)].join(" "):"";
+            const goalY=weightGoal?py(weightGoal):null;
+
+            return(
+              <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{overflow:"visible",marginBottom:4}}>
+                <defs>
+                  <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={C.mint} stopOpacity="0.3"/>
+                    <stop offset="100%" stopColor={C.mint} stopOpacity="0"/>
+                  </linearGradient>
+                  <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#F59E0B" stopOpacity="0.2"/>
+                    <stop offset="100%" stopColor="#F59E0B" stopOpacity="0"/>
+                  </linearGradient>
+                </defs>
+
+                {/* Y axis labels */}
+                {yTicks.map((v,i)=>(
+                  <text key={i} x={PAD.l-4} y={py(v)+4} textAnchor="end" fontSize="8" fill="rgba(255,255,255,0.3)">{v}</text>
+                ))}
+
+                {/* Goal line */}
+                {goalY!=null&&<>
+                  <line x1={PAD.l} y1={goalY} x2={W-PAD.r} y2={goalY} stroke="#F59E0B" strokeWidth="1" strokeDasharray="4 3" opacity="0.5"/>
+                  <text x={W-PAD.r+2} y={goalY+4} fontSize="8" fill="#F59E0B" opacity="0.8">{weightGoal}kg</text>
+                </>}
+
+                {/* Real area */}
+                <path d={realPath+` L${px(n-1).toFixed(1)},${H-PAD.b} L${px(0).toFixed(1)},${H-PAD.b} Z`} fill="url(#wg)"/>
+                {/* Real line */}
+                <path d={realPath} fill="none" stroke={C.mint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                {/* Last real point */}
+                <circle cx={px(n-1)} cy={py(allPts[n-1].y)} r="3" fill={C.mint}/>
+
+                {/* Projection area */}
+                {projPath&&<path d={projPath+` L${px(n-1+(projPts.length-1)).toFixed(1)},${H-PAD.b} L${px(n-1).toFixed(1)},${H-PAD.b} Z`} fill="url(#pg)"/>}
+                {/* Projection line */}
+                {projPath&&<path d={projPath} fill="none" stroke="#F59E0B" strokeWidth="1.5" strokeDasharray="5 3" strokeLinecap="round"/>}
+                {/* Projection end point */}
+                {projPts.length>0&&<circle cx={px(n-1+projPts.length-1)} cy={py(projPts[projPts.length-1].y)} r="3" fill="#F59E0B"/>}
+
+                {/* X axis labels */}
+                {xLabels.map(({i,l})=>(
+                  <text key={i} x={px(i)} y={H-2} textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.3)">{l}</text>
+                ))}
+              </svg>
+            );
+          })()}
+
+          <div style={{marginTop:6}}>
             <div style={{display:"flex",justifyContent:"space-between",marginBottom:4}}>
               <span style={{fontSize:10,color:C.muted}}>Início {startWeight}kg</span>
               <span style={{fontSize:10,color:C.mint,fontWeight:700}}>{weightPct}% do objetivo · Meta {weightGoal}kg</span>
@@ -5144,6 +5235,32 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
               <div style={{width:weightPct+"%",height:"100%",background:"linear-gradient(90deg,"+C.blueXL+","+C.mint+")",borderRadius:6,transition:"width 0.6s"}}/>
             </div>
           </div>
+
+          {/* Projection estimate */}
+          {(()=>{
+            const n=W_DATA.length;
+            if(n<3||!weightGoal) return null;
+            const xm=(n-1)/2,ym=W_DATA.reduce((s,v)=>s+v,0)/n;
+            const num=W_DATA.reduce((s,v,i)=>s+(i-xm)*(v-ym),0);
+            const den=W_DATA.reduce((s,_,i)=>s+(i-xm)**2,0);
+            const slope=den?num/den:0;
+            const intercept=ym-slope*xm;
+            if(Math.abs(slope)<0.001) return null;
+            const stepsToGoal=Math.round((weightGoal-intercept)/slope);
+            const daysLeft=stepsToGoal-n+1;
+            if(daysLeft<1||daysLeft>1000) return null;
+            const eta=new Date(); eta.setDate(eta.getDate()+daysLeft);
+            const etaStr=eta.toLocaleDateString("pt-BR",{day:"numeric",month:"short",year:"numeric"});
+            return(
+              <div style={{marginTop:10,padding:"8px 12px",background:"rgba(245,158,11,0.08)",border:"1px solid rgba(245,158,11,0.2)",borderRadius:10,display:"flex",alignItems:"center",gap:8}}>
+                <span style={{fontSize:16}}>📈</span>
+                <div>
+                  <div style={{fontSize:11,fontWeight:700,color:"#F59E0B"}}>Estimativa para atingir meta</div>
+                  <div style={{fontSize:10,color:C.muted}}>No ritmo atual → <strong style={{color:C.text}}>{etaStr}</strong> ({daysLeft} dias)</div>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* ── 2. DISTRIBUIÇÃO MUSCULAR ── */}
