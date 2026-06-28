@@ -5159,21 +5159,7 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
           <VolumeSpiderChart volumeByGroup={distVbg} size={Math.min(240,window.innerWidth-80)}/>
         </div>
 
-        {/* ── 3. MAPA MUSCULAR ── */}
-        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:12}}>
-          <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Mapa Muscular</div>
-          <BodyDiagram muscleHeat={muscleHeat} width={Math.min(300,window.innerWidth-64)} savedCount={savedCount}/>
-          <div style={{display:"flex",justifyContent:"center",gap:12,marginTop:8,flexWrap:"wrap"}}>
-            {[{c:"#3B82F6",o:1,l:"Fatigado"},{c:"#3B82F6",o:0.55,l:"Recuperando"},{c:"#3B82F6",o:0.25,l:"Quase pronto"},{c:C.muted,o:1,l:"Descansado"}].map(item=>(
-              <div key={item.l} style={{display:"flex",alignItems:"center",gap:4}}>
-                <div style={{width:7,height:7,borderRadius:"50%",background:item.c,opacity:item.o}}/>
-                <span style={{fontSize:9,color:C.muted}}>{item.l}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* ── 4. VOLUME POR GRUPO ── */}
+        {/* ── 3. VOLUME POR GRUPO ── */}
         <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:12}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
             <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em"}}>Volume por Grupo</div>
@@ -5206,6 +5192,20 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
           <div style={{display:"flex",gap:12,marginTop:10,paddingTop:10,borderTop:"1px solid "+C.border}}>
             {[{c:C.mint,l:"6–20 ideal"},{c:C.amber,l:"<6 abaixo"},{c:C.coral,l:">20 excesso"}].map(i=>(
               <div key={i.l} style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:6,height:6,borderRadius:"50%",background:i.c}}/><span style={{fontSize:9,color:C.muted}}>{i.l}</span></div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── 4. MAPA MUSCULAR ── */}
+        <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:12}}>
+          <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Mapa Muscular</div>
+          <BodyDiagram muscleHeat={muscleHeat} width={Math.min(300,window.innerWidth-64)} savedCount={savedCount}/>
+          <div style={{display:"flex",justifyContent:"center",gap:12,marginTop:8,flexWrap:"wrap"}}>
+            {[{c:"#3B82F6",o:1,l:"Fatigado"},{c:"#3B82F6",o:0.55,l:"Recuperando"},{c:"#3B82F6",o:0.25,l:"Quase pronto"},{c:C.muted,o:1,l:"Descansado"}].map(item=>(
+              <div key={item.l} style={{display:"flex",alignItems:"center",gap:4}}>
+                <div style={{width:7,height:7,borderRadius:"50%",background:item.c,opacity:item.o}}/>
+                <span style={{fontSize:9,color:C.muted}}>{item.l}</span>
+              </div>
             ))}
           </div>
         </div>
