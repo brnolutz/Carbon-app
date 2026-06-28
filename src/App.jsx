@@ -3204,11 +3204,11 @@ const EXERCISE_IDS = {
   "Barra Fixa":                                           "0652", // pull-up
   "Remada Inclinada Apoiada No Peito (Halter)":           "0327", // dumbbell incline row
   "Puxada Alta na Polia (Máquina)":                      "0198", // cable pulldown
-  "Levantamento Terra Romeno (Barra)":                    "0044", // barbell good morning (similar)
+  "Levantamento Terra Romeno (Barra)":                    "0085", // barbell romanian deadlift
   "Desenvolvimento (Halter)":                             "0405", // dumbbell seated shoulder press
   "Elevação Lateral (Halter)":                            "0334", // dumbbell lateral raise
   "Elevação Lateral Unilateral (Cabo)":                   "0192", // cable one arm lateral raise
-  "Aberturas Invertidas De Ombro Posterior (Na Máquina)": "0154", // cable cross-over reverse fly
+  "Aberturas Invertidas De Ombro Posterior (Na Máquina)": "0215", // cable seated rear lateral raise
   "Agachamento (Barra)":                                  "0043", // barbell full squat
   "Leg Press 45º (Máquina)":                              "0739", // sled 45° leg press
   "Mesa Flexora (Máquina)":                               "0586", // lever lying leg curl
@@ -3219,7 +3219,7 @@ const EXERCISE_IDS = {
   "Rosca Direta na Barra W":                              "0031", // barbell curl
   "Rosca Scott (Barra)":                                  "0070", // barbell preacher curl
   "Rosca Inclinada (Halter)":                             "0072", // barbell prone incline curl
-  "Rosca Martelo (Halter)":                               "0023", // barbell alternate biceps curl
+  "Rosca Martelo (Halter)":                               "0313", // dumbbell hammer curl
   "Tríceps na Paralela (Com Peso)":                       "0019", // assisted triceps dip
   "Extensão de tríceps acima da cabeça (cabo)":           "0194", // cable overhead triceps extension (rope attachment)
   "Abdominal (Corda)":                                    "0226", // cable standing crunch
