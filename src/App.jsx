@@ -1523,6 +1523,7 @@ function VolumeDetailScreen({onBack}){
 // HOME SCREEN
 // ══════════════════════════════════════════════════════════════
 function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
+  const scrollRef=useRef(null);
   const[detail,setDetail]=useState(null);
   const[selRoutine,setSelRoutine]=useState(null);
   const[chartMode,setChartMode]=useState("vol");
@@ -1534,6 +1535,17 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
   const[showDeloadReport,setShowDeloadReport]=useState(false);
   const[deloadState,setDeloadState]=useState(()=>loadDeload());
   const activeDeload=deloadState?.active?deloadState:null;
+
+  // Re-sync deload state when Supabase data loads (savedCount changes when sessions load)
+  useEffect(()=>{
+    const d=loadDeload();
+    if(d!==deloadState)setDeloadState(d);
+  },[savedCount]);
+  // Also sync on mount after a tick (Supabase may finish loading shortly after render)
+  useEffect(()=>{
+    const t=setTimeout(()=>setDeloadState(loadDeload()),800);
+    return()=>clearTimeout(t);
+  },[]);
 
   async function handleEndDeload(){
     const ended=await endDeload();
@@ -1633,18 +1645,18 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
   const todayStr=new Date().toISOString().slice(0,10);
   const allPlans=loadRoutines().length>0?loadRoutines():PLANS;
 
-  if(showDeload) return <DeloadWeekScreen onBack={()=>setShowDeload(false)} onDeloadStarted={()=>setDeloadState(loadDeload())}/>;
+  if(showDeload) return <DeloadWeekScreen onBack={()=>setShowDeload(false)} onDeloadStarted={()=>{setDeloadState(loadDeload());setTimeout(()=>{if(scrollRef.current)scrollRef.current.scrollTop=0;},50);}}/>;
   if(showReport) return <MonthlyReportScreen onBack={()=>setShowReport(false)}/>;
   if(showDeloadReport&&deloadState) return <DeloadReportScreen deload={deloadState} onClose={()=>{setShowDeloadReport(false);setDeloadState(loadDeload());}}/>;
   if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)} onDelete={async(s)=>{await deleteSession(s,()=>{onSessionDeleted&&onSessionDeleted();});setDetail(null);}}/>;
   if(selRoutine) return <RoutineScreen plan={selRoutine} onClose={()=>setSelRoutine(null)} onStart={async()=>{if(nextPlan){const exs=await refreshSessionsAndBuild(nextPlan);onStartWorkout(nextPlan,exs);onNavigate("treino");}setSelRoutine(null);}} onNavigate={onNavigate} onSaved={()=>{}} onDeleted={()=>setSelRoutine(null)}/>;
 
   return(
-    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:8}}>
+    <div ref={scrollRef} className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:8,overflowY:"auto"}}>
       {/* ── Banner Deload Ativo ── */}
       {activeDeload&&(
         <div style={{margin:"12px 16px 0",background:"linear-gradient(135deg,rgba(139,92,246,0.15),rgba(59,130,246,0.1))",border:"1px solid rgba(139,92,246,0.4)",borderRadius:16,padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
-          <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,rgba(139,92,246,0.25),rgba(59,130,246,0.15))",border:"1px solid rgba(139,92,246,0.4)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+          <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,rgba(139,92,246,0.25),rgba(59,130,246,0.15))",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(196,181,253,0.9)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="7" width="16" height="11" rx="2"/>
               <path d="M18 10h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-2"/>
@@ -1661,7 +1673,7 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
               {" · até "}{new Date(activeDeload.endDate+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"})}
             </div>
           </div>
-          <button onClick={handleEndDeload} style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.5)",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:8,padding:"6px 10px",cursor:"pointer",whiteSpace:"nowrap"}}>Encerrar</button>
+          <button onClick={handleEndDeload} style={{fontSize:11,fontWeight:700,color:"rgba(196,181,253,0.9)",background:"linear-gradient(135deg,rgba(139,92,246,0.25),rgba(99,102,241,0.15))",border:"1px solid rgba(139,92,246,0.35)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",borderRadius:10,padding:"7px 12px",cursor:"pointer",whiteSpace:"nowrap"}}>Encerrar</button>
         </div>
       )}
 
