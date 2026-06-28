@@ -1682,7 +1682,7 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
   const todayStr=new Date().toISOString().slice(0,10);
   const allPlans=loadRoutines().length>0?loadRoutines():PLANS;
 
-  if(showDeload) return <DeloadWeekScreen onBack={()=>setShowDeload(false)} onDeloadStarted={()=>{setDeloadState(loadDeload());setTimeout(()=>{if(scrollRef.current)scrollRef.current.scrollTop=0;},50);}}/>;
+  if(showDeload) return <DeloadWeekScreen onBack={()=>setShowDeload(false)} onDeloadStarted={()=>{setDeloadState(loadDeload());setShowDeload(false);setTimeout(()=>{window.scrollTo(0,0);document.querySelectorAll(".screen-root").forEach(el=>{el.scrollTop=0;});},50);}}/>;
   if(showReport) return <MonthlyReportScreen onBack={()=>setShowReport(false)}/>;
   if(showDeloadReport&&deloadState) return <DeloadReportScreen deload={deloadState} onClose={()=>{setShowDeloadReport(false);setDeloadState(loadDeload());}}/>;
   if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)} onDelete={async(s)=>{await deleteSession(s,()=>{onSessionDeleted&&onSessionDeleted();});setDetail(null);}}/>;
@@ -5885,7 +5885,7 @@ export default function ForgeApp(){
 
   useEffect(()=>{
     if(session){
-      loadAllUserData().then(()=>setDataReady(true)).catch(e=>{console.error(e);setDataReady(true);});
+      loadAllUserData().then(()=>{setDataReady(true);setSavedCount(c=>c+1);}).catch(e=>{console.error(e);setDataReady(true);});
     }
   },[session]);
 
