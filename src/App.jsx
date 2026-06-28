@@ -4606,52 +4606,26 @@ const EX_TO_MUSCLES = {
 };
 
 function BodyDiagram({muscleHeat,width=320,savedCount=0}){
-  const MUSCLE_VIZ_KEY = "863ed60540msha869e2cf0791bd5p1ccf0cjsn2febf3210d99";
-  const BASE = "https://muscle-visualizer-api.p.rapidapi.com";
-  const GROUP_TO_API = {
-    "Peito":       ["PECTORALS"],
-    "Costas":      ["LATISSIMUS DORSI","UPPER BACK","RHOMBOIDS"],
-    "Pernas":      ["QUADRICEPS","HAMSTRINGS"],
-    "Ombros":      ["DELTOIDS"],
-    "Braços":      ["BICEPS","TRICEPS"],
-    "Core":        ["ABS"],
-    "Glúteos":     ["GLUTES"],
-    "Panturrilha": ["CALVES"],
-  };
-  function pctToColor(pct){
-    const v=Math.max(0.1,pct/100);
-    return `rgb(${Math.round(37*v)},${Math.round(99*v)},${Math.round(235*v)})`;
-  }
-  function buildUrl(view){
-    const entries=[];
-    Object.entries(muscleHeat||{}).forEach(([group,pct])=>{
-      if(pct<=0) return;
-      const names=GROUP_TO_API[group];
-      if(!names) return;
-      const color=pctToColor(pct);
-      names.forEach(n=>entries.push(`${n}:${color}`));
-    });
-    if(!entries.length) return null;
-    const params=new URLSearchParams({muscles:entries.join(","),background:"#080A0E",size:"medium",format:"webp",gender:"male",view,"rapidapi-key":MUSCLE_VIZ_KEY});
-    return `${BASE}/api/v1/visualize/heatmap?${params.toString()}`;
-  }
-  const frontUrl=buildUrl("front");
-  const backUrl=buildUrl("back");
-  const[frontErr,setFrontErr]=useState(false);
-  const[backErr,setBackErr]=useState(false);
-  const hasData=Object.values(muscleHeat||{}).some(v=>v>0);
-  if(!hasData) return(<div style={{padding:"24px 0",textAlign:"center",color:"#2A3550",fontSize:12}}>Nenhum treino recente</div>);
+  const H = Math.round(width * (1024/1536));
+
+  // Sempre mostra body-semana-atual.png com filtro azul (frente + costas)
+  // A intensidade do filtro varia conforme o nível de recuperação muscular
+  const avgPct = useMemo(()=>{
+    const vals = Object.values(muscleHeat||{});
+    if(!vals.length) return 50;
+    return vals.reduce((a,b)=>a+b,0)/vals.length;
+  },[muscleHeat]);
+
+  // Quanto mais fatigado (pct baixo), mais intenso o azul
+  const brightness = 0.5 + (avgPct/100)*0.3; // 0.5 → 0.8
+
   return(
-    <div style={{width:"100%"}}>
-      <div style={{display:"flex",gap:8,justifyContent:"center"}}>
-        {!frontErr&&frontUrl&&(<div style={{flex:1,borderRadius:12,overflow:"hidden",background:"#080A0E"}}><img src={frontUrl} alt="Frente" style={{width:"100%",display:"block"}} onError={()=>setFrontErr(true)}/></div>)}
-        {!backErr&&backUrl&&(<div style={{flex:1,borderRadius:12,overflow:"hidden",background:"#080A0E"}}><img src={backUrl} alt="Costas" style={{width:"100%",display:"block"}} onError={()=>setBackErr(true)}/></div>)}
-      </div>
-      <div style={{display:"flex",alignItems:"center",gap:6,marginTop:10,justifyContent:"center"}}>
-        <div style={{fontSize:9,color:"#4A5568"}}>Descansado</div>
-        <div style={{display:"flex",gap:2}}>{[0.1,0.3,0.5,0.7,0.9,1].map(v=>(<div key={v} style={{width:16,height:6,borderRadius:2,background:`rgb(${Math.round(37*v)},${Math.round(99*v)},${Math.round(235*v)})`}}/>))}</div>
-        <div style={{fontSize:9,color:"#3B82F6",fontWeight:700}}>Ativo</div>
-      </div>
+    <div style={{width, height:H, margin:"0 auto", position:"relative", borderRadius:12, overflow:"hidden", background:"transparent"}}>
+      <img
+        src="/body-semana-atual.png"
+        alt="Mapa muscular"
+        style={{width:"100%",height:"100%",objectFit:"contain",display:"block",filter:`sepia(1) saturate(3) hue-rotate(175deg) brightness(${brightness})`}}
+      />
     </div>
   );
 }
