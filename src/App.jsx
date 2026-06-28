@@ -3201,8 +3201,8 @@ const EXERCISE_IDS = {
   "Supino Inclinado (Halter)":                            "0047", // barbell incline bench press
   "Crucifixo na Polia (Máquina)":                        "0155", // cable cross-over variation
   "Levantamento Terra (Barra)":                           "0032", // barbell deadlift
-  "Barra Fixa":                                           "0017", // assisted pull-up (mais próximo)
-  "Remada Inclinada Apoiada No Peito (Halter)":           "0049", // barbell incline row
+  "Barra Fixa":                                           "0652", // pull-up
+  "Remada Inclinada Apoiada No Peito (Halter)":           "0327", // dumbbell incline row
   "Puxada Alta na Polia (Máquina)":                      "0198", // cable pulldown
   "Levantamento Terra Romeno (Barra)":                    "0044", // barbell good morning (similar)
   "Desenvolvimento (Halter)":                             "0091", // barbell seated overhead press
@@ -3222,7 +3222,7 @@ const EXERCISE_IDS = {
   "Rosca Martelo (Halter)":                               "0023", // barbell alternate biceps curl
   "Tríceps na Paralela (Com Peso)":                       "0019", // assisted triceps dip
   "Extensão de tríceps acima da cabeça (cabo)":           "0057", // barbell lying extension
-  "Abdominal (Corda)":                                    "0003", // air bike
+  "Abdominal (Corda)":                                    "0226", // cable standing crunch
   "Abdominal Na Máquina":                                 "0071", // barbell press sit-up
 };
 
