@@ -2962,8 +2962,8 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
 @keyframes prFlash{0%{transform:scale(1);box-shadow:0 0 0 0 #F59E0B00}20%{transform:scale(1.04);box-shadow:0 0 32px 6px #F59E0BCC}100%{transform:scale(1);box-shadow:0 0 12px 2px #F59E0B44}}
 @keyframes prTextBounce{0%{opacity:0;transform:scale(0.8)}60%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
       `}</style>
-      <div id="workout-header" style={{position:"fixed",top:0,left:0,right:0,zIndex:9001,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)"}}>
-        <div style={{padding:"calc(env(safe-area-inset-top,0px) + 6px) 20px 4px",display:"flex",alignItems:"center",gap:8}}>
+      <div style={{position:"sticky",top:0,zIndex:9001,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",paddingTop:"calc(env(safe-area-inset-top,0px) + 6px)"}}>
+        <div style={{padding:"0 20px 4px",display:"flex",alignItems:"center",gap:8}}>
           <img src="/carbon-logo-transparent.png" alt="Carbon" style={{height:18,objectFit:"contain",opacity:0.9}}/>
         </div>
         <div style={{padding:"0 16px 10px"}}>
@@ -3004,7 +3004,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
         </div>
       </div>
 
-      <div style={{padding:"148px 12px 200px"}}>
+      <div style={{padding:"8px 12px 200px"}}>
         {exercises.map((exItem,exIdx)=>{
           const exWarm=exItem.activeSets.filter(s=>s.type==="warmup");
           const exWork=exItem.activeSets.filter(s=>s.type==="work");
