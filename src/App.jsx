@@ -3211,7 +3211,7 @@ const EXERCISE_IDS = {
   "Aberturas Invertidas De Ombro Posterior (Na Máquina)": "0076", // barbell rear delt row
   "Agachamento (Barra)":                                  "0043", // barbell full squat
   "Leg Press 45º (Máquina)":                              "0739", // sled 45° leg press
-  "Mesa Flexora (Máquina)":                               "0599", // lever seated leg curl
+  "Mesa Flexora (Máquina)":                               "0586", // lever lying leg curl
   "Extensora (Máquina)":                                  "0585", // lever leg extension
   "Afundo (Halter)":                                      "0336", // dumbbell lunge
   "Elevação de Panturrilha Sentado (Máquina)":            "0594", // lever seated calf raise
