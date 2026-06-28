@@ -2998,7 +2998,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
         </div>
       </div>
 
-      <div style={{padding:"8px 12px 200px",paddingTop:"calc(52px + env(safe-area-inset-top,0px) + 10px)"}}>
+      <div style={{padding:"8px 12px 200px",paddingTop:"calc(52px + env(safe-area-inset-top,0px) - 10px)"}}>
         {exercises.map((exItem,exIdx)=>{
           const exWarm=exItem.activeSets.filter(s=>s.type==="warmup");
           const exWork=exItem.activeSets.filter(s=>s.type==="work");
@@ -3006,7 +3006,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
           const exVol=exWork.filter(s=>s.done).reduce((s,set)=>s+set.w*set.r,0);
           const exDone=exWork.filter(s=>s.done).length;
           return(
-            <div key={exIdx} style={{marginBottom:6,background:C.card,border:"1px solid "+(allDone?"rgba(16,185,129,0.3)":"rgba(255,255,255,0.06)"),borderRadius:12,overflow:"hidden",transition:"border-color 0.3s"}}>
+            <div key={exIdx} style={{marginBottom:16,background:C.card,border:"1px solid "+(allDone?"rgba(16,185,129,0.3)":"rgba(255,255,255,0.06)"),borderRadius:12,overflow:"hidden",transition:"border-color 0.3s"}}>
               <div style={{padding:"8px 10px 6px",borderBottom:"1px solid "+C.border}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                   <div style={{display:"flex",alignItems:"center",gap:6,flex:1,minWidth:0}}>
