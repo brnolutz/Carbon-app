@@ -1014,8 +1014,8 @@ function DeloadWeekScreen({onBack,onDeloadStarted}){
   const[saving,setSaving]=useState(false);
   // SVG icons for each story slide (no borders, same style as nav icons)
   const StoryIcons=[
-    // Slide 0 — wind/rest: leaf + wave
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3a6 6 0 0 1 6 6c0 3.5-2.5 5-5 5H3"/><path d="M9 14a6 6 0 0 1 6 6"/><path d="M3 9h3"/></svg>,
+    // Slide 0 — deload/descanso: bateria carregando
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="16" height="11" rx="2"/><path d="M18 10h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-2"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/></svg>,
     // Slide 1 — brain/CNS: activity pulse
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2 12 6 12 8 5 10 19 12 12 14 15 16 12 22 12"/></svg>,
     // Slide 2 — warning signs: alert triangle
@@ -1074,7 +1074,7 @@ function DeloadWeekScreen({onBack,onDeloadStarted}){
         </div>}
       </div>
 
-      <div style={{flex:1,padding:"20px 16px",overflowY:"auto",paddingBottom:40}}>
+      <div style={{flex:1,overflowY:"auto",padding:"20px 16px 60px"}}>
         {step<STORIES.length
           ?<div>
             <div style={{background:story.bg,borderRadius:20,padding:"32px 20px",marginBottom:20,textAlign:"center"}}>
