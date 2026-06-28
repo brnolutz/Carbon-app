@@ -1584,6 +1584,16 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
   const[deloadState,setDeloadState]=useState(()=>loadDeload());
   const activeDeload=deloadState?.active?deloadState:null;
 
+  // DEBUG — remover depois
+  const [debugInfo,setDebugInfo]=useState("");
+  useEffect(()=>{
+    setTimeout(()=>{
+      const ls=localStorage.getItem("carbon_deload_config");
+      const cache=loadDeload();
+      setDebugInfo(`LS:${ls?JSON.parse(ls).active:"null"} | cache:${cache?.active??"null"} | state:${deloadState?.active??"null"}`);
+    },1500);
+  },[]);
+
   // Scroll pro topo ao voltar da tela de deload
   useEffect(()=>{
     if(!showDeload && scrollRef.current){
@@ -1706,6 +1716,8 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
 
   return(
     <div ref={scrollRef} className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:8,overflowY:"auto"}}>
+      {/* DEBUG - remover depois */}
+      {debugInfo&&<div style={{margin:"4px 16px",padding:"6px 10px",background:"rgba(255,0,0,0.2)",border:"1px solid red",borderRadius:8,fontSize:10,color:"#fff",wordBreak:"break-all"}}>{debugInfo}</div>}
       {/* ── Banner Deload Ativo ── */}
       {activeDeload&&(
         <div style={{margin:"12px 16px 0",background:"linear-gradient(135deg,rgba(139,92,246,0.15),rgba(59,130,246,0.1))",border:"1px solid rgba(139,92,246,0.4)",borderRadius:16,padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
