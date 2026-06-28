@@ -3208,7 +3208,7 @@ const EXERCISE_IDS = {
   "Desenvolvimento (Halter)":                             "0405", // dumbbell seated shoulder press
   "Elevação Lateral (Halter)":                            "0334", // dumbbell lateral raise
   "Elevação Lateral Unilateral (Cabo)":                   "0192", // cable one arm lateral raise
-  "Aberturas Invertidas De Ombro Posterior (Na Máquina)": "0215", // cable seated rear lateral raise
+  "Aberturas Invertidas De Ombro Posterior (Na Máquina)": "0154", // cable cross-over reverse fly
   "Agachamento (Barra)":                                  "0043", // barbell full squat
   "Leg Press 45º (Máquina)":                              "0739", // sled 45° leg press
   "Mesa Flexora (Máquina)":                               "0586", // lever lying leg curl
