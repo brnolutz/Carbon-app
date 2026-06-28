@@ -2955,13 +2955,13 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
   const totalVol=exercises.flatMap(e=>e.activeSets.filter(s=>s.type==="work"&&s.done)).reduce((s,set)=>s+set.w*set.r,0);
   const muscleGroups=[...new Set(exercises.map(e=>e.group).filter(Boolean))];
   return(
-    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:"calc(52px + env(safe-area-inset-top,0px) - 96px)",paddingBottom:160}}>
+    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingBottom:160}}>
       <style>{`
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
 @keyframes prFlash{0%{transform:scale(1);box-shadow:0 0 0 0 #F59E0B00}20%{transform:scale(1.04);box-shadow:0 0 32px 6px #F59E0BCC}100%{transform:scale(1);box-shadow:0 0 12px 2px #F59E0B44}}
 @keyframes prTextBounce{0%{opacity:0;transform:scale(0.8)}60%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
       `}</style>
-      <div style={{position:"sticky",top:0,zIndex:8999,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",padding:"8px 16px 10px"}}>
+      <div style={{position:"fixed",top:"calc(52px + env(safe-area-inset-top,0px))",left:0,right:0,zIndex:8999,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",padding:"8px 16px 10px",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
           <button onClick={()=>{setScreen("plans");onMinimize&&onMinimize();}} style={{width:30,height:30,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="#6B7FA3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -2998,7 +2998,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
         </div>
       </div>
 
-      <div style={{padding:"8px 12px 200px"}}>
+      <div style={{padding:"8px 12px 200px",paddingTop:"calc(52px + env(safe-area-inset-top,0px) + 90px)"}}>
         {exercises.map((exItem,exIdx)=>{
           const exWarm=exItem.activeSets.filter(s=>s.type==="warmup");
           const exWork=exItem.activeSets.filter(s=>s.type==="work");
