@@ -5200,8 +5200,9 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
                 {wDates.length>0&&<text x={px(n-1)} y={H-4} textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.25)">{fmt(wDates[wDates.length-1])}</text>}
                 {etaLabel&&projPts.length>1&&<text x={px(projPts[projPts.length-1].i)} y={H-4} textAnchor="end" fontSize="8" fill="rgba(245,158,11,0.6)">{etaLabel}</text>}
               </svg>
-              {etaLabel&&<div style={{fontSize:10,color:"rgba(245,158,11,0.7)",textAlign:"right",marginTop:2}}>
-                📍 Meta estimada: <strong>{etaLabel}</strong>
+              {etaLabel&&<div style={{fontSize:10,color:"rgba(245,158,11,0.7)",textAlign:"right",marginTop:2,display:"flex",alignItems:"center",justifyContent:"flex-end",gap:5}}>
+                <svg width="11" height="11" fill="none" stroke="rgba(245,158,11,0.7)" strokeWidth="1.6" viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+                Meta estimada: <strong>{etaLabel}</strong>
               </div>}
             </>);
           })()}
