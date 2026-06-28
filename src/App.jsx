@@ -4628,77 +4628,63 @@ function BodyDiagram({muscleHeat,width=320,savedCount=0}){
   const KEY = "863ed60540msha869e2cf0791bd5p1ccf0cjsn2febf3210d99";
   const BASE = "https://muscle-visualizer-api.p.rapidapi.com";
 
-  // Grupo → nome aceito pela API
+  // Mapa grupo PT-BR → nome da API (um único nome por grupo para simplicidade)
   const G2A = {
     "Peito":"PECTORALS","Costas":"LATS","Pernas":"QUADS",
     "Ombros":"DELTS","Braços":"BICEPS","Core":"ABS",
     "Glúteos":"GLUTES","Panturrilha":"CALVES",
   };
 
-  const [frontSrc, setFrontSrc] = useState(null);
-  const [backSrc,  setBackSrc]  = useState(null);
-  const [loading,  setLoading]  = useState(false);
+  // Calcula cor por intensidade (pct 0-100)
+  // pct=100 → azul forte, pct=30 → azul fraco, pct=0 → sem cor
+  function pctToHex(pct){
+    if(pct<=0) return null;
+    const t=Math.max(0.15,pct/100);
+    const r=Math.round(14+t*23);   // 14→37
+    const g=Math.round(30+t*69);   // 30→99
+    const b=Math.round(80+t*155);  // 80→235
+    return "#"+[r,g,b].map(x=>x.toString(16).padStart(2,"0")).join("");
+  }
 
-  // Músculos ativos (pct > 0)
-  const activeMuscles = Object.entries(muscleHeat||{})
-    .filter(([,pct])=>pct>0)
-    .map(([g])=>G2A[g])
-    .filter(Boolean);
+  // Monta URL do heatmap — formato: muscles=NOME1:COR1,NOME2:COR2
+  function buildUrl(view){
+    const parts=[];
+    Object.entries(muscleHeat||{}).forEach(([group,pct])=>{
+      if(pct<=0) return;
+      const apiName=G2A[group];
+      if(!apiName) return;
+      const hex=pctToHex(pct);
+      if(hex) parts.push(encodeURIComponent(apiName)+":"+encodeURIComponent(hex));
+    });
+    if(!parts.length) return null;
+    return `${BASE}/api/v1/visualize/heatmap?muscles=${parts.join(",")}&background=%23080A0E&size=medium&format=webp&gender=male&view=${view}&rapidapi-key=${KEY}`;
+  }
 
-  // Cor única baseada na intensidade média
-  const avgPct = activeMuscles.length > 0
-    ? Object.values(muscleHeat||{}).filter(v=>v>0).reduce((a,b)=>a+b,0) / Object.values(muscleHeat||{}).filter(v=>v>0).length
-    : 0;
+  const frontUrl=buildUrl("front");
+  const backUrl=buildUrl("back");
+  const[frontOk,setFrontOk]=useState(true);
+  const[backOk,setBackOk]=useState(true);
+  const hasData=Object.values(muscleHeat||{}).some(v=>v>0);
 
-  // Azul Carbon com opacidade baseada na intensidade média
-  const color = avgPct >= 80 ? "%232563EB"  // azul forte
-              : avgPct >= 50 ? "%231D4ED8"  // azul médio
-              : avgPct >= 20 ? "%231E40AF"  // azul fraco
-              : "%231e3a8a";               // azul muito fraco
-
-  useEffect(()=>{
-    if(activeMuscles.length === 0){ setFrontSrc(null); setBackSrc(null); return; }
-    setLoading(true);
-    const muscles = activeMuscles.join(",");
-    const common = `muscles=${encodeURIComponent(muscles)}&color=${color}&background=white&size=medium&format=png&gender=male`;
-
-    async function fetchImg(view){
-      const url = `${BASE}/api/v1/visualize?${common}&view=${view}`;
-      const res = await fetch(url, { headers:{"X-RapidAPI-Key": KEY} });
-      if(!res.ok) throw new Error(res.status);
-      const blob = await res.blob();
-      return URL.createObjectURL(blob);
-    }
-
-    Promise.all([fetchImg("front"), fetchImg("back")])
-      .then(([f,b])=>{ setFrontSrc(f); setBackSrc(b); })
-      .catch(err=>console.error("MuscleViz error:", err))
-      .finally(()=>setLoading(false));
-  }, [JSON.stringify(muscleHeat)]);
-
-  const hasData = activeMuscles.length > 0;
-
-  if(!hasData) return(
-    <div style={{padding:"16px 0",textAlign:"center",color:"#2A3550",fontSize:12}}>
-      Nenhum treino recente para exibir
-    </div>
-  );
-
-  if(loading) return(
-    <div style={{padding:"24px 0",textAlign:"center",color:"#3B82F6",fontSize:12}}>
-      Carregando mapa muscular...
-    </div>
-  );
+  if(!hasData) return(<div style={{padding:"24px 0",textAlign:"center",color:"#2A3550",fontSize:12}}>Nenhum treino recente</div>);
 
   return(
     <div style={{width:"100%"}}>
       <div style={{display:"flex",gap:8,justifyContent:"center"}}>
-        {frontSrc&&<div style={{flex:1,borderRadius:12,overflow:"hidden",background:"#080A0E"}}><img src={frontSrc} style={{width:"100%",display:"block",filter:"invert(1) hue-rotate(180deg)"}}/></div>}
-        {backSrc&&<div style={{flex:1,borderRadius:12,overflow:"hidden",background:"#080A0E"}}><img src={backSrc} style={{width:"100%",display:"block",filter:"invert(1) hue-rotate(180deg)"}}/></div>}
+        {frontOk&&frontUrl&&(
+          <div style={{flex:1,borderRadius:12,overflow:"hidden",background:"#080A0E",minHeight:120,display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <img src={frontUrl} alt="Frente" style={{width:"100%",display:"block"}} onError={()=>setFrontOk(false)}/>
+          </div>
+        )}
+        {backOk&&backUrl&&(
+          <div style={{flex:1,borderRadius:12,overflow:"hidden",background:"#080A0E",minHeight:120,display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <img src={backUrl} alt="Costas" style={{width:"100%",display:"block"}} onError={()=>setBackOk(false)}/>
+          </div>
+        )}
       </div>
       <div style={{display:"flex",alignItems:"center",gap:6,marginTop:8,justifyContent:"center"}}>
         <div style={{fontSize:9,color:"#4A5568"}}>Descansado</div>
-        <div style={{display:"flex",gap:2}}>{[0.2,0.4,0.6,0.8,1].map(v=>(<div key={v} style={{width:14,height:5,borderRadius:2,background:`rgba(37,99,235,${v})`}}/>))}</div>
+        <div style={{display:"flex",gap:2}}>{[0.15,0.35,0.55,0.75,0.95].map(v=>(<div key={v} style={{width:14,height:5,borderRadius:2,background:`#${Math.round(14+v*23).toString(16).padStart(2,"0")}${Math.round(30+v*69).toString(16).padStart(2,"0")}${Math.round(80+v*155).toString(16).padStart(2,"0")}`}}/>))}</div>
         <div style={{fontSize:9,color:"#3B82F6",fontWeight:700}}>Ativo</div>
       </div>
     </div>
