@@ -5678,7 +5678,7 @@ function GlobalWorkoutBar({workout,onOpen,onEnd}){
 // ROOT APP
 // ══════════════════════════════════════════════════════════════
 function ForgeAppInner(){
-  const[screen,setScreen]=useState("home");
+  const[screen,setScreen]=useState(()=>{try{const s=localStorage.getItem("carbon_active_workout");if(s&&JSON.parse(s)?.startTs)return"treino";}catch(e){}return"home";});
   const[exName,setExName]=useState(null);
   const[savedCount,setSavedCount]=useState(0);
 
@@ -5694,10 +5694,32 @@ function ForgeAppInner(){
   },[screen]);
 
   // ── Global workout state lifted here ──
-  const[activeWorkout,setActiveWorkout]=useState(null); // null = no active workout
+  const WORKOUT_KEY="carbon_active_workout";
+  const[activeWorkout,setActiveWorkout]=useState(()=>{
+    // Restaura treino ativo do localStorage ao abrir o app
+    try{
+      const saved=localStorage.getItem(WORKOUT_KEY);
+      if(saved){
+        const w=JSON.parse(saved);
+        // Recalcula elapsed baseado no startTs real
+        if(w?.startTs) w.elapsed=Math.floor((Date.now()-w.startTs)/1000);
+        return w;
+      }
+    }catch(e){}
+    return null;
+  });
   // activeWorkout: { plan, exercises, currentEx, elapsed, startTs }
   const elapsedRef=useRef(0);
   const timerRef=useRef(null);
+
+  // Persiste treino ativo no localStorage sempre que mudar
+  useEffect(()=>{
+    if(activeWorkout){
+      try{localStorage.setItem(WORKOUT_KEY,JSON.stringify(activeWorkout));}catch(e){}
+    } else {
+      try{localStorage.removeItem(WORKOUT_KEY);}catch(e){}
+    }
+  },[activeWorkout]);
 
   // Global elapsed ticker — runs regardless of which screen is shown
   useEffect(()=>{
@@ -5742,7 +5764,7 @@ function ForgeAppInner(){
     screen==="exercicio"||screen==="exercicios_browser"?"treino":
     screen==="medicoes"||screen==="corpo"?"corpo":"home";
 
-  const[treinoSub,setTreinoSub]=useState("plans");
+  const[treinoSub,setTreinoSub]=useState(()=>{try{const s=localStorage.getItem("carbon_active_workout");if(s&&JSON.parse(s)?.startTs)return"active";}catch(e){}return"plans";});
   const[forceActive,setForceActive]=useState(0);
   const prevScreenRef=useRef("treino");
 
