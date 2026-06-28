@@ -1644,7 +1644,13 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
       {/* ── Banner Deload Ativo ── */}
       {activeDeload&&(
         <div style={{margin:"12px 16px 0",background:"linear-gradient(135deg,rgba(139,92,246,0.15),rgba(59,130,246,0.1))",border:"1px solid rgba(139,92,246,0.4)",borderRadius:16,padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
-          <div style={{fontSize:24}}>🔋</div>
+          <div style={{width:36,height:36,borderRadius:10,background:"linear-gradient(135deg,rgba(139,92,246,0.25),rgba(59,130,246,0.15))",border:"1px solid rgba(139,92,246,0.4)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(196,181,253,0.9)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="7" width="16" height="11" rx="2"/>
+              <path d="M18 10h2a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-2"/>
+              <rect x="4" y="9.5" width="9" height="6" rx="1" fill="rgba(139,92,246,0.45)" stroke="none"/>
+            </svg>
+          </div>
           <div style={{flex:1}}>
             <div style={{fontSize:13,fontWeight:800,color:"#C4B5FD"}}>Semana de Deload ativa</div>
             <div style={{fontSize:11,color:"rgba(196,181,253,0.6)",marginTop:2}}>
