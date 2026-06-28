@@ -3205,10 +3205,10 @@ const EXERCISE_IDS = {
   "Remada Inclinada Apoiada No Peito (Halter)":           "0327", // dumbbell incline row
   "Puxada Alta na Polia (Máquina)":                      "0198", // cable pulldown
   "Levantamento Terra Romeno (Barra)":                    "0044", // barbell good morning (similar)
-  "Desenvolvimento (Halter)":                             "0091", // barbell seated overhead press
-  "Elevação Lateral (Halter)":                            "0075", // barbell rear delt raise
+  "Desenvolvimento (Halter)":                             "0405", // dumbbell seated shoulder press
+  "Elevação Lateral (Halter)":                            "0334", // dumbbell lateral raise
   "Elevação Lateral Unilateral (Cabo)":                   "0192", // cable one arm lateral raise
-  "Aberturas Invertidas De Ombro Posterior (Na Máquina)": "0076", // barbell rear delt row
+  "Aberturas Invertidas De Ombro Posterior (Na Máquina)": "0154", // cable cross-over reverse fly
   "Agachamento (Barra)":                                  "0043", // barbell full squat
   "Leg Press 45º (Máquina)":                              "0739", // sled 45° leg press
   "Mesa Flexora (Máquina)":                               "0586", // lever lying leg curl
@@ -3221,9 +3221,9 @@ const EXERCISE_IDS = {
   "Rosca Inclinada (Halter)":                             "0072", // barbell prone incline curl
   "Rosca Martelo (Halter)":                               "0023", // barbell alternate biceps curl
   "Tríceps na Paralela (Com Peso)":                       "0019", // assisted triceps dip
-  "Extensão de tríceps acima da cabeça (cabo)":           "0057", // barbell lying extension
+  "Extensão de tríceps acima da cabeça (cabo)":           "0194", // cable overhead triceps extension (rope attachment)
   "Abdominal (Corda)":                                    "0226", // cable standing crunch
-  "Abdominal Na Máquina":                                 "0071", // barbell press sit-up
+  "Abdominal Na Máquina":                                 "0595", // lever seated crunch (chest pad)
 };
 
 function seedExerciseGifs(){} // IDs agora hardcoded — sem necessidade de seed
