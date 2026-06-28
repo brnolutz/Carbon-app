@@ -1037,7 +1037,7 @@ function DeloadWeekScreen({onBack,onDeloadStarted}){
   }
   return(
     <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",display:"flex",flexDirection:"column"}}>
-      <div style={{position:"sticky",top:0,zIndex:50,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:8}}>
+      <div style={{position:"sticky",top:0,zIndex:9001,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",paddingTop:"calc(env(safe-area-inset-top,0px) + 8px)"}}>
         <div style={{padding:"10px 16px",display:"flex",alignItems:"center",gap:10}}>
           <button onClick={onBack} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
           <div style={{flex:1,fontSize:15,fontWeight:700,color:"#fff"}}>Semana de Deload</div>
