@@ -3552,10 +3552,10 @@ function HistoricoScreen({onNavigate}){
 //   Braços(bot-L) Ombros(bot-R)
 function SpiderChart({muscles,size=280}){
   // Hevy-style: minimalist, single color, top-center start
-  const order=["Costas","Peito","Core","Ombros","Braços","Pernas"];
+  const order=["Braços","Peito","Costas","Ombros","Pernas","Core"];
   const sm=order.map(g=>muscles.find(m=>m.g===g)||{g,pct:0});
   const N=sm.length,CX=size/2,CY=size/2,R=size*0.33,LD=size*0.455;
-  const ang=(i)=>(i/N)*Math.PI*2+(-Math.PI/2);
+  const ang=(i)=>(i/N)*Math.PI*2+(Math.PI); // Braços=esquerda, Ombros=direita
   const ox=(i)=>CX+R*Math.cos(ang(i));
   const oy=(i)=>CY+R*Math.sin(ang(i));
   const vx=(m,i)=>CX+R*(m.pct/100)*Math.cos(ang(i));
