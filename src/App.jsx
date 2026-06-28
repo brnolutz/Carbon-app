@@ -5176,8 +5176,6 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
               }
             }
             // Y ticks every 1kg
-            const minY=Math.floor(Math.min(...allPts.map(p=>p.y),...projPts.map(p=>p.y),(weightGoal||99))-0.5);
-            const maxY=Math.ceil(Math.max(...allPts.map(p=>p.y),...projPts.map(p=>p.y))+0.5);
             const yTicks=[];for(let v=minY;v<=maxY;v++) yTicks.push(v);
             const wEntries=measureHistory.filter(h=>h.Peso!=null).sort((a,b)=>a.date.localeCompare(b.date));
             return(<>
