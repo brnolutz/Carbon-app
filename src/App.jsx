@@ -5130,7 +5130,7 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
               </div>}
             </div>
             <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
-              <button onClick={()=>{setWeightDraft("");setShowAddWeight(true);}} style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.15)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderRadius:12,padding:"8px 16px",color:"rgba(255,255,255,0.9)",fontSize:12,fontWeight:600,cursor:"pointer",letterSpacing:"0.02em"}}>＋ Registrar peso</button>
+              <button onClick={()=>{setWeightDraft("");setShowAddWeight(true);}} style={{background:"linear-gradient(135deg,rgba(99,102,241,0.25),rgba(59,130,246,0.15))",border:"1px solid rgba(99,102,241,0.3)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",borderRadius:12,padding:"8px 16px",color:"rgba(165,180,252,0.9)",fontSize:12,fontWeight:600,cursor:"pointer"}}>＋ Registrar peso</button>
               <button onClick={()=>{setGoalDraft(String(weightGoal));setEditingGoal(true);}} style={{fontSize:11,color:C.muted,background:"none",border:"none",cursor:"pointer"}}>Meta: {weightGoal}kg ✎</button>
             </div>
           </div>
@@ -5186,22 +5186,22 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
                 {/* subtle area under real data */}
                 <path d={realPath+` L${px(n-1)},${H-PB} L${px(0)},${H-PB} Z`} fill="url(#wg2)"/>
                 {/* goal line — very subtle */}
-                {goalY!=null&&<line x1={PL} y1={goalY} x2={W-PR} y2={goalY} stroke="rgba(245,158,11,0.3)" strokeWidth="1" strokeDasharray="3 4"/>}
+                {goalY!=null&&<line x1={PL} y1={goalY} x2={W-PR} y2={goalY} stroke="rgba(99,102,241,0.3)" strokeWidth="1" strokeDasharray="3 4"/>}
                 {/* real history line */}
                 <path d={realPath} fill="none" stroke={C.mint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 {/* projection line */}
-                {projPath&&<path d={projPath} fill="none" stroke="rgba(245,158,11,0.7)" strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>}
+                {projPath&&<path d={projPath} fill="none" stroke="rgba(99,102,241,0.7)" strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>}
                 {/* dots */}
                 <circle cx={px(0)} cy={py(allPts[0].y)} r="2.5" fill={C.mint} opacity="0.5"/>
                 <circle cx={px(n-1)} cy={py(allPts[n-1].y)} r="3.5" fill={C.mint}/>
-                {projPts.length>1&&<circle cx={px(projPts[projPts.length-1].i)} cy={py(projPts[projPts.length-1].y)} r="3" fill="#F59E0B" opacity="0.8"/>}
+                {projPts.length>1&&<circle cx={px(projPts[projPts.length-1].i)} cy={py(projPts[projPts.length-1].y)} r="3" fill="rgba(99,102,241,0.9)" opacity="0.9"/>}
                 {/* x labels */}
                 {wDates.length>0&&<text x={px(0)} y={H-4} textAnchor="start" fontSize="8" fill="rgba(255,255,255,0.25)">{fmt(wDates[0])}</text>}
                 {wDates.length>0&&<text x={px(n-1)} y={H-4} textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.25)">{fmt(wDates[wDates.length-1])}</text>}
-                {etaLabel&&projPts.length>1&&<text x={px(projPts[projPts.length-1].i)} y={H-4} textAnchor="end" fontSize="8" fill="rgba(245,158,11,0.6)">{etaLabel}</text>}
+                {etaLabel&&projPts.length>1&&<text x={px(projPts[projPts.length-1].i)} y={H-4} textAnchor="end" fontSize="8" fill="rgba(165,180,252,0.6)">{etaLabel}</text>}
               </svg>
-              {etaLabel&&<div style={{fontSize:10,color:"rgba(245,158,11,0.7)",textAlign:"right",marginTop:2,display:"flex",alignItems:"center",justifyContent:"flex-end",gap:5}}>
-                <svg width="11" height="11" fill="none" stroke="rgba(245,158,11,0.7)" strokeWidth="1.6" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="rgba(245,158,11,0.7)" stroke="none"/></svg>
+              {etaLabel&&<div style={{fontSize:10,color:"rgba(165,180,252,0.8)",textAlign:"right",marginTop:2,display:"flex",alignItems:"center",justifyContent:"flex-end",gap:5}}>
+                <svg width="11" height="11" fill="none" stroke="rgba(99,102,241,0.7)" strokeWidth="1.6" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="rgba(99,102,241,0.8)" stroke="none"/></svg>
                 Meta estimada: <strong>{etaLabel}</strong>
               </div>}
             </>);
