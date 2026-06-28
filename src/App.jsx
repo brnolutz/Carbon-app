@@ -4572,8 +4572,7 @@ const EX_TO_MUSCLES = {
   prancha: ["Core"],
 };
 
-function buildHeatmapUrl(muscleColors){
-  // muscleColors: [{muscle:"pectoralis major", color:"3B82F6"}, ...]
+function buildHeatmapUrl(muscleColors,view="front"){
   if(!muscleColors.length) return null;
   const params = new URLSearchParams();
   muscleColors.forEach(({muscle,color})=>{
@@ -4583,6 +4582,7 @@ function buildHeatmapUrl(muscleColors){
   params.set("backgroundColor","080A0E");
   params.set("width","400");
   params.set("gender","male");
+  params.set("view",view);
   return "https://muscle-visualizer-api.p.rapidapi.com/v1/visualize/heatmap?"+params.toString();
 }
 
@@ -4596,18 +4596,14 @@ function BodyDiagram({muscleHeat,width=320,savedCount=0}){
     setLoading(true);
     setError(false);
 
-    // Calcula músculos treinados na semana atual
+    // Últimos 7 dias
     const allSessions = getAllSessions();
-    const now = new Date();
-    const sunday = new Date(now);
-    sunday.setDate(now.getDate() - now.getDay());
-    sunday.setHours(0,0,0,0);
-    const weekStart = sunday.toISOString().slice(0,10);
-    const thisWeek = allSessions.filter(s => s.date >= weekStart);
+    const cutoff = new Date(Date.now() - 7*24*60*60*1000).toISOString().slice(0,10);
+    const recentSessions = allSessions.filter(s => s.date >= cutoff);
 
     // Conta sessões por grupo muscular para intensidade
     const groupCount = {};
-    thisWeek.forEach(s=>{
+    recentSessions.forEach(s=>{
       const n = (s.name||"").toLowerCase();
       Object.entries(EX_TO_MUSCLES).forEach(([kw,groups])=>{
         if(n.includes(kw)) groups.forEach(g=>{ groupCount[g]=(groupCount[g]||0)+1; });
@@ -4651,13 +4647,24 @@ function BodyDiagram({muscleHeat,width=320,savedCount=0}){
       "X-RapidAPI-Host": "muscle-visualizer-api.p.rapidapi.com",
     };
 
-    const fetchImg = (muscles,view)=>{
-      if(!muscles.length) return Promise.resolve(null);
-      const url = buildHeatmapUrl(muscles)+"&view="+view;
-      return fetch(url,{headers})
-        .then(r=>r.ok?r.blob():null)
-        .then(b=>b?URL.createObjectURL(b):null)
-        .catch(()=>null);
+    const fetchImg = async (muscles,view)=>{
+      if(!muscles.length) return null;
+      const url = buildHeatmapUrl(muscles,view);
+      try{
+        const r = await fetch(url,{headers});
+        if(!r.ok){
+          console.warn("Muscle Visualizer API error:",r.status, await r.text().catch(()=>""));
+          return null;
+        }
+        const ct = r.headers.get("content-type")||"";
+        if(ct.includes("image")){
+          const b = await r.blob();
+          return URL.createObjectURL(b);
+        }
+        // some plans return JSON with imageUrl
+        const j = await r.json().catch(()=>null);
+        return j?.imageUrl||j?.url||null;
+      }catch(e){console.warn("fetchImg error",e);return null;}
     };
 
     Promise.all([
