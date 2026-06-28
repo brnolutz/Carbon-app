@@ -1060,6 +1060,7 @@ function DeloadWeekScreen({onBack,onDeloadStarted}){
     background:color,border:"1px solid "+borderColor,
     borderRadius:14,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",padding:"14px",
   });
+  useEffect(()=>{document.body.classList.add("hide-carbon-header");return()=>document.body.classList.remove("hide-carbon-header");},[]);
   return(
     <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",display:"flex",flexDirection:"column"}}>
       {/* Carbon header */}
@@ -1074,7 +1075,7 @@ function DeloadWeekScreen({onBack,onDeloadStarted}){
         </div>}
       </div>
 
-      <div style={{flex:1,overflowY:"auto",padding:"20px 16px 60px"}}>
+      <div style={{flex:1,overflowY:"auto",padding:"28px 16px 60px"}}>
         {step<STORIES.length
           ?<div>
             <div style={{background:story.bg,borderRadius:20,padding:"32px 20px",marginBottom:20,textAlign:"center"}}>
