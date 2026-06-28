@@ -4577,88 +4577,123 @@ const EX_TO_MUSCLES = {
   prancha: ["Core"],
 };
 
-function buildHeatmapUrl(muscleColors,view="front"){
-  if(!muscleColors.length) return null;
-  const params = new URLSearchParams();
-  muscleColors.forEach(({muscle,color})=>{
-    params.append("muscles",muscle);
-    params.append("colors",color.replace("#",""));
-  });
-  params.set("backgroundColor","080A0E");
-  params.set("width","400");
-  params.set("gender","male");
-  params.set("view",view);
-  return "https://muscle-visualizer-api.p.rapidapi.com/v1/visualize/heatmap?"+params.toString();
-}
-
 function BodyDiagram({muscleHeat,width=320,savedCount=0}){
-  const [frontUrl,setFrontUrl] = useState(null);
-  const [backUrl,setBackUrl]   = useState(null);
-  const [loading,setLoading]   = useState(true);
+  const entries=Object.entries(muscleHeat||{}).filter(([,p])=>p>0);
+  const active=Object.fromEntries(entries);
+  const col=(g)=>{
+    const p=active[g]||0;
+    if(!p) return "rgba(255,255,255,0.06)";
+    if(p>=70) return "rgba(59,130,246,0.75)";
+    if(p>=40) return "rgba(59,130,246,0.45)";
+    return "rgba(59,130,246,0.25)";
+  };
+  const stroke=(g)=>active[g]?"rgba(59,130,246,0.9)":"rgba(255,255,255,0.1)";
+  const W=width/2-6, H=Math.round(W*2.1);
 
-  useEffect(()=>{
-    setLoading(true);
-    setFrontUrl(null);
-    setBackUrl(null);
-
-    // muscleHeat = {Peito:80, Costas:60, ...} — já calculado pelo pai
-    const entries = Object.entries(muscleHeat||{}).filter(([,pct])=>pct>0);
-    if(!entries.length){ setLoading(false); return; }
-
-    const intensityColor=(pct)=>{
-      if(pct>=70) return "3B82F6";
-      if(pct>=40) return "1D4ED8";
-      return "1E3A5F";
-    };
-
-    const frontGroups=["Peito","Ombros","Braços","Core","Pernas","Glúteos"];
-    const backGroups =["Costas","Ombros","Glúteos","Pernas","Panturrilha"];
-    const frontMuscles=[], backMuscles=[];
-
-    entries.forEach(([group,pct])=>{
-      const apiMuscles=MUSCLE_API_MAP[group]||[];
-      const color=intensityColor(pct);
-      if(frontGroups.includes(group)) apiMuscles.slice(0,1).forEach(m=>frontMuscles.push({muscle:m,color}));
-      if(backGroups.includes(group))  apiMuscles.slice(0,1).forEach(m=>backMuscles.push({muscle:m,color}));
-    });
-
-    const headers={"X-RapidAPI-Key":RAPIDAPI_KEY,"X-RapidAPI-Host":"muscle-visualizer-api.p.rapidapi.com"};
-
-    const fetchImg=async(muscles,view)=>{
-      if(!muscles.length) return null;
-      try{
-        const r=await fetch(buildHeatmapUrl(muscles,view),{headers});
-        if(!r.ok){ console.warn("MuscleViz",view,r.status); return null; }
-        const ct=r.headers.get("content-type")||"";
-        if(ct.includes("image")) return URL.createObjectURL(await r.blob());
-        const j=await r.json().catch(()=>null);
-        return j?.imageUrl||j?.url||null;
-      }catch(e){ console.warn("MuscleViz fetch error",e); return null; }
-    };
-
-    Promise.all([fetchImg(frontMuscles,"front"),fetchImg(backMuscles,"back")])
-      .then(([f,b])=>{ setFrontUrl(f); setBackUrl(b); setLoading(false); })
-      .catch(()=>setLoading(false));
-  },[muscleHeat,savedCount]);
-
-  const H=Math.round(width/2*1.4);
-
-  if(loading) return(
-    <div style={{width,height:H,display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <div style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>Carregando mapa muscular…</div>
-    </div>
+  // Front body SVG
+  const Front=()=>(
+    <svg width={W} height={H} viewBox="0 0 120 240" style={{display:"block"}}>
+      {/* head */}
+      <ellipse cx="60" cy="14" rx="11" ry="13" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.15)" strokeWidth="0.8"/>
+      {/* neck */}
+      <rect x="55" y="26" width="10" height="8" rx="2" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5"/>
+      {/* chest / pec */}
+      <path d="M38,34 Q48,32 60,34 Q72,32 82,34 L84,56 Q72,60 60,58 Q48,60 36,56 Z" fill={col("Peito")} stroke={stroke("Peito")} strokeWidth="0.8"/>
+      {/* shoulders */}
+      <ellipse cx="31" cy="40" rx="10" ry="13" fill={col("Ombros")} stroke={stroke("Ombros")} strokeWidth="0.8"/>
+      <ellipse cx="89" cy="40" rx="10" ry="13" fill={col("Ombros")} stroke={stroke("Ombros")} strokeWidth="0.8"/>
+      {/* biceps L/R */}
+      <path d="M20,52 Q16,58 16,70 Q20,74 24,72 Q26,62 28,54 Z" fill={col("Braços")} stroke={stroke("Braços")} strokeWidth="0.8"/>
+      <path d="M100,52 Q104,58 104,70 Q100,74 96,72 Q94,62 92,54 Z" fill={col("Braços")} stroke={stroke("Braços")} strokeWidth="0.8"/>
+      {/* forearms */}
+      <path d="M16,72 Q13,82 14,92 Q17,94 20,92 Q22,82 24,72 Z" fill={col("Braços")} stroke={stroke("Braços")} strokeWidth="0.6"/>
+      <path d="M104,72 Q107,82 106,92 Q103,94 100,92 Q98,82 96,72 Z" fill={col("Braços")} stroke={stroke("Braços")} strokeWidth="0.6"/>
+      {/* abs / core */}
+      <rect x="47" y="58" width="26" height="34" rx="4" fill={col("Core")} stroke={stroke("Core")} strokeWidth="0.8"/>
+      <line x1="60" y1="58" x2="60" y2="92" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5"/>
+      <line x1="47" y1="68" x2="73" y2="68" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5"/>
+      <line x1="47" y1="78" x2="73" y2="78" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5"/>
+      {/* hip */}
+      <path d="M42,92 Q50,90 60,92 Q70,90 78,92 L76,106 Q60,110 44,106 Z" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.1)" strokeWidth="0.6"/>
+      {/* quads L/R */}
+      <path d="M44,106 Q40,110 38,130 Q40,140 48,140 Q54,136 52,118 Q52,110 48,106 Z" fill={col("Pernas")} stroke={stroke("Pernas")} strokeWidth="0.8"/>
+      <path d="M76,106 Q80,110 82,130 Q80,140 72,140 Q66,136 68,118 Q68,110 72,106 Z" fill={col("Pernas")} stroke={stroke("Pernas")} strokeWidth="0.8"/>
+      {/* knee */}
+      <ellipse cx="43" cy="143" rx="7" ry="5" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.1)" strokeWidth="0.6"/>
+      <ellipse cx="77" cy="143" rx="7" ry="5" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.1)" strokeWidth="0.6"/>
+      {/* calves front */}
+      <path d="M37,148 Q34,162 36,178 Q40,182 46,180 Q50,168 48,148 Z" fill={col("Panturrilha")} stroke={stroke("Panturrilha")} strokeWidth="0.7"/>
+      <path d="M83,148 Q86,162 84,178 Q80,182 74,180 Q70,168 72,148 Z" fill={col("Panturrilha")} stroke={stroke("Panturrilha")} strokeWidth="0.7"/>
+      {/* feet */}
+      <ellipse cx="41" cy="183" rx="8" ry="4" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5"/>
+      <ellipse cx="79" cy="183" rx="8" ry="4" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5"/>
+      {/* labels */}
+      {active["Peito"]&&<text x="60" y="47" textAnchor="middle" fontSize="5.5" fontWeight="700" fill="rgba(255,255,255,0.9)">Peito</text>}
+      {active["Core"]&&<text x="60" y="77" textAnchor="middle" fontSize="5.5" fontWeight="700" fill="rgba(255,255,255,0.9)">Core</text>}
+      {active["Ombros"]&&<text x="31" y="41" textAnchor="middle" fontSize="4.5" fontWeight="700" fill="rgba(255,255,255,0.9)">Omb</text>}
+      {active["Braços"]&&<text x="19" y="64" textAnchor="middle" fontSize="4.5" fontWeight="700" fill="rgba(255,255,255,0.9)">Bíc</text>}
+      {active["Pernas"]&&<text x="43" y="125" textAnchor="middle" fontSize="5" fontWeight="700" fill="rgba(255,255,255,0.9)">Quad</text>}
+    </svg>
   );
 
-  if(!frontUrl&&!backUrl) return(
-    <div style={{width,height:H,display:"flex",alignItems:"center",justifyContent:"center"}}>
+  // Back body SVG
+  const Back=()=>(
+    <svg width={W} height={H} viewBox="0 0 120 240" style={{display:"block"}}>
+      {/* head */}
+      <ellipse cx="60" cy="14" rx="11" ry="13" fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.15)" strokeWidth="0.8"/>
+      {/* neck */}
+      <rect x="55" y="26" width="10" height="8" rx="2" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5"/>
+      {/* traps */}
+      <path d="M38,34 Q48,30 60,32 Q72,30 82,34 L80,44 Q60,40 40,44 Z" fill={col("Costas")} stroke={stroke("Costas")} strokeWidth="0.8"/>
+      {/* shoulders back */}
+      <ellipse cx="31" cy="42" rx="10" ry="13" fill={col("Ombros")} stroke={stroke("Ombros")} strokeWidth="0.8"/>
+      <ellipse cx="89" cy="42" rx="10" ry="13" fill={col("Ombros")} stroke={stroke("Ombros")} strokeWidth="0.8"/>
+      {/* lats */}
+      <path d="M38,44 Q34,52 36,68 Q42,72 48,68 Q50,56 48,44 Z" fill={col("Costas")} stroke={stroke("Costas")} strokeWidth="0.8"/>
+      <path d="M82,44 Q86,52 84,68 Q78,72 72,68 Q70,56 72,44 Z" fill={col("Costas")} stroke={stroke("Costas")} strokeWidth="0.8"/>
+      {/* mid back */}
+      <rect x="46" y="44" width="28" height="30" rx="3" fill={col("Costas")} stroke={stroke("Costas")} strokeWidth="0.8"/>
+      {/* triceps L/R */}
+      <path d="M20,54 Q16,62 17,72 Q21,75 25,73 Q27,63 28,55 Z" fill={col("Braços")} stroke={stroke("Braços")} strokeWidth="0.8"/>
+      <path d="M100,54 Q104,62 103,72 Q99,75 95,73 Q93,63 92,55 Z" fill={col("Braços")} stroke={stroke("Braços")} strokeWidth="0.8"/>
+      {/* forearms back */}
+      <path d="M17,73 Q14,83 15,93 Q18,95 21,93 Q23,83 25,73 Z" fill={col("Braços")} stroke={stroke("Braços")} strokeWidth="0.6"/>
+      <path d="M103,73 Q106,83 105,93 Q102,95 99,93 Q97,83 95,73 Z" fill={col("Braços")} stroke={stroke("Braços")} strokeWidth="0.6"/>
+      {/* lower back */}
+      <rect x="46" y="74" width="28" height="20" rx="3" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.1)" strokeWidth="0.6"/>
+      {/* glutes */}
+      <path d="M42,94 Q50,90 60,92 Q70,90 78,94 L78,112 Q70,118 60,116 Q50,118 42,112 Z" fill={col("Glúteos")} stroke={stroke("Glúteos")} strokeWidth="0.8"/>
+      {/* hamstrings L/R */}
+      <path d="M42,112 Q38,118 38,136 Q40,142 48,142 Q54,138 52,120 Q50,112 44,112 Z" fill={col("Pernas")} stroke={stroke("Pernas")} strokeWidth="0.8"/>
+      <path d="M78,112 Q82,118 82,136 Q80,142 72,142 Q66,138 68,120 Q70,112 76,112 Z" fill={col("Pernas")} stroke={stroke("Pernas")} strokeWidth="0.8"/>
+      {/* knee back */}
+      <ellipse cx="43" cy="145" rx="7" ry="5" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.1)" strokeWidth="0.6"/>
+      <ellipse cx="77" cy="145" rx="7" ry="5" fill="rgba(255,255,255,0.07)" stroke="rgba(255,255,255,0.1)" strokeWidth="0.6"/>
+      {/* calves back */}
+      <path d="M37,150 Q34,165 36,180 Q40,184 46,182 Q50,170 48,150 Z" fill={col("Panturrilha")} stroke={stroke("Panturrilha")} strokeWidth="0.7"/>
+      <path d="M83,150 Q86,165 84,180 Q80,184 74,182 Q70,170 72,150 Z" fill={col("Panturrilha")} stroke={stroke("Panturrilha")} strokeWidth="0.7"/>
+      {/* feet */}
+      <ellipse cx="41" cy="185" rx="8" ry="4" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5"/>
+      <ellipse cx="79" cy="185" rx="8" ry="4" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5"/>
+      {/* labels */}
+      {active["Costas"]&&<text x="60" y="58" textAnchor="middle" fontSize="5.5" fontWeight="700" fill="rgba(255,255,255,0.9)">Costas</text>}
+      {active["Glúteos"]&&<text x="60" y="106" textAnchor="middle" fontSize="5.5" fontWeight="700" fill="rgba(255,255,255,0.9)">Glúteos</text>}
+      {active["Ombros"]&&<text x="89" y="43" textAnchor="middle" fontSize="4.5" fontWeight="700" fill="rgba(255,255,255,0.9)">Omb</text>}
+      {active["Pernas"]&&<text x="77" y="128" textAnchor="middle" fontSize="5" fontWeight="700" fill="rgba(255,255,255,0.9)">Posterior</text>}
+      {active["Panturrilha"]&&<text x="37" y="167" textAnchor="middle" fontSize="4.5" fontWeight="700" fill="rgba(255,255,255,0.9)">Pant</text>}
+    </svg>
+  );
+
+  if(!entries.length) return(
+    <div style={{height:H,display:"flex",alignItems:"center",justifyContent:"center"}}>
       <div style={{fontSize:11,color:"rgba(255,255,255,0.2)"}}>Sem treinos recentes</div>
     </div>
   );
 
   return(
     <div style={{display:"flex",gap:8,justifyContent:"center",width}}>
-      {frontUrl&&<img src={frontUrl} alt="Frente" style={{width:width/2-4,height:H,objectFit:"contain",borderRadius:8}}/>}
-      {backUrl&&<img src={backUrl} alt="Costas" style={{width:width/2-4,height:H,objectFit:"contain",borderRadius:8}}/>}
+      <Front/>
+      <Back/>
     </div>
   );
 }
