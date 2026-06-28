@@ -3190,108 +3190,7 @@ const EXERCISES_INFO = {
   "Abdominal Na Máquina":{group:"Core",secondary:[],type:"Isolado",equipment:"Máquina",muscles:["Reto abdominal"],instructions:["Sentado na máquina, mãos nas alças.","Flexione o tronco contra a resistência.","Contraia o abdômen no ponto mais baixo.","Retorne controlado."],tips:"Expire ao contrair — isso aumenta a ativação do core."},
 };
 
-// ── Muscle Visualizer API ─────────────────────────────────────
-const MUSCLE_VIZ_KEY = "863ed60540msha869e2cf0791bd5p1ccf0cjsn2febf3210d99";
-const MUSCLE_VIZ_BASE = "https://muscle-visualizer-api.p.rapidapi.com";
-
-// Mapa PT-BR → nome aceito pela Muscle Visualizer API
-const MUSCLE_VIZ_MAP = {
-  // Peito
-  "Peitoral maior": "PECTORALS",
-  "Peitoral maior (porção inferior)": "PECTORALS",
-  "Peitoral maior (porção superior)": "PECTORALS",
-  "Peitoral inferior": "PECTORALS",
-  // Costas
-  "Latíssimo do dorso": "LATISSIMUS DORSI",
-  "Romboides": "RHOMBOIDS",
-  "Trapézio": "TRAPEZIUS",
-  "Trapézio médio": "TRAPEZIUS",
-  "Trapézio superior": "TRAPEZIUS",
-  "Lombar": "LOWER BACK",
-  // Ombros
-  "Deltoide médio": "LATERAL DELTOID",
-  "Deltoide anterior": "ANTERIOR DELTOID",
-  "Deltoide posterior": "POSTERIOR DELTOID",
-  // Bíceps
-  "Bíceps braquial": "BICEPS",
-  "Bíceps braquial (porção longa)": "BICEPS",
-  "Braquial": "BRACHIALIS",
-  "Braquiorradial": "BRACHIORADIALIS",
-  // Tríceps
-  "Tríceps braquial": "TRICEPS",
-  "Tríceps braquial (porção longa)": "TRICEPS",
-  // Pernas
-  "Quadríceps": "QUADRICEPS",
-  "Isquiotibiais": "HAMSTRINGS",
-  "Glúteo máximo": "GLUTEUS MAXIMUS",
-  "Glúteos": "GLUTES",
-  // Panturrilha
-  "Gastrocnêmio": "GASTROCNEMIUS",
-  "Sóleo": "SOLEUS",
-  // Core
-  "Reto abdominal": "RECTUS ABDOMINIS",
-  "Oblíquos": "OBLIQUES",
-  // Antebraço
-  "Antebraço": "FOREARMS",
-};
-
-function muscleToApi(ptName) {
-  return MUSCLE_VIZ_MAP[ptName] || null;
-}
-
-function buildHeatmapUrl(primary, secondary, view="front") {
-  const allPrimary = [...new Set(primary.map(muscleToApi).filter(Boolean))];
-  const allSecondary = [...new Set(secondary.map(muscleToApi).filter(Boolean))];
-  if(allPrimary.length === 0) return null;
-  const params = new URLSearchParams({
-    primary_muscles: allPrimary.join(","),
-    secondary_muscles: allSecondary.join(","),
-    primary_color: "#2563EB",
-    secondary_color: "#1E3A5F",
-    gender: "male",
-    background: "#080A0E",
-    size: "medium",
-    format: "webp",
-    view,
-    "rapidapi-key": MUSCLE_VIZ_KEY,
-  });
-  return `${MUSCLE_VIZ_BASE}/api/v1/visualize/workout?${params.toString()}`;
-}
-
-function MuscleHeatmap({primary, secondary, color}){
-  const frontUrl = buildHeatmapUrl(primary, secondary, "front");
-  const backUrl  = buildHeatmapUrl(primary, secondary, "back");
-  const[frontErr, setFrontErr] = useState(false);
-  const[backErr,  setBackErr]  = useState(false);
-
-  if(!frontUrl) return null;
-
-  return(
-    <div style={{marginBottom:12}}>
-      <div style={{fontSize:11,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:color,marginBottom:8}}>Músculos Ativados</div>
-      <div style={{display:"flex",gap:8}}>
-        {!frontErr&&(
-          <div style={{flex:1,borderRadius:12,overflow:"hidden",background:"#080A0E",border:"1px solid rgba(255,255,255,0.07)"}}>
-            <img src={frontUrl} alt="frente" style={{width:"100%",display:"block"}}
-              onError={()=>setFrontErr(true)}/>
-          </div>
-        )}
-        {!backErr&&(
-          <div style={{flex:1,borderRadius:12,overflow:"hidden",background:"#080A0E",border:"1px solid rgba(255,255,255,0.07)"}}>
-            <img src={backUrl} alt="costas" style={{width:"100%",display:"block"}}
-              onError={()=>setBackErr(true)}/>
-          </div>
-        )}
-      </div>
-      <div style={{display:"flex",gap:12,marginTop:8}}>
-        <div style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:10,height:10,borderRadius:3,background:"#2563EB"}}/><span style={{fontSize:10,color:"#94a3b8"}}>Principal</span></div>
-        <div style={{display:"flex",alignItems:"center",gap:4}}><div style={{width:10,height:10,borderRadius:3,background:"#1E3A5F"}}/><span style={{fontSize:10,color:"#94a3b8"}}>Secundário</span></div>
-      </div>
-    </div>
-  );
-}
-
-
+// ── ExerciseDB Images — getExerciseImage endpoint ─────────────
 const RAPIDAPI_KEY = "863ed60540msha869e2cf0791bd5p1ccf0cjsn2febf3210d99";
 
 // IDs confirmados via catálogo da API (bodyPart endpoint)
@@ -3503,11 +3402,6 @@ function ExercicioScreen({name,onNavigate,onBack,noHideHeader=false}){
       <div style={{flex:1,overflowY:"auto",padding:"0 16px 20px"}}>
         {tab==="resumo"&&<div>
           <ExerciseSlideshow exName={exName} color={gc}/>
-          <MuscleHeatmap primary={info.muscles||[]} secondary={(info.secondary||[]).flatMap(s=>{
-            // secondary no EXERCISES_INFO são nomes de grupos, converter para músculos
-            const groupMap={"Tríceps":["Tríceps braquial"],"Bíceps":["Bíceps braquial"],"Ombros":["Deltoide anterior","Deltoide médio"],"Peito":["Peitoral maior"],"Costas":["Latíssimo do dorso"],"Core":["Reto abdominal"],"Pernas":["Quadríceps"],"Glúteos":["Glúteo máximo"],"Antebraço":["Antebraço"],"Romboides":["Romboides"],"Isquiotibiais":["Isquiotibiais"]};
-            return groupMap[s]||[];
-          })} color={gc}/>
           <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:12}}>
             <div style={{display:"flex",flexWrap:"wrap",gap:8,marginBottom:8}}>
               {(info.muscles||[]).map(m=><span key={m} style={{padding:"4px 12px",borderRadius:99,background:gc+"22",border:"1px solid "+gc+"44",fontSize:12,color:gc,fontWeight:600}}>{m}</span>)}
