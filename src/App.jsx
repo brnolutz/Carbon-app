@@ -3193,37 +3193,82 @@ const EXERCISES_INFO = {
 // ── ExerciseDB Images — getExerciseImage endpoint ─────────────
 const RAPIDAPI_KEY = "863ed60540msha869e2cf0791bd5p1ccf0cjsn2febf3210d99";
 
-// Mapa PT-BR → exerciseId do ExerciseDB
-const EXERCISE_IDS = {
-  "Supino (Barra)":                                       "0025",
-  "Supino Declinado (Halter)":                            "0301",
-  "Supino Inclinado (Halter)":                            "0314",
-  "Crucifixo na Polia (Máquina)":                        "0254",
-  "Levantamento Terra (Barra)":                           "0011",
-  "Barra Fixa":                                           "0031",
-  "Remada Inclinada Apoiada No Peito (Halter)":           "0307",
-  "Puxada Alta na Polia (Máquina)":                      "0019",
-  "Levantamento Terra Romeno (Barra)":                    "0038",
-  "Desenvolvimento (Halter)":                             "0323",
-  "Elevação Lateral (Halter)":                            "0328",
-  "Elevação Lateral Unilateral (Cabo)":                   "0620",
-  "Aberturas Invertidas De Ombro Posterior (Na Máquina)": "0291",
-  "Agachamento (Barra)":                                  "0047",
-  "Leg Press 45º (Máquina)":                              "0280",
-  "Mesa Flexora (Máquina)":                               "0051",
-  "Extensora (Máquina)":                                  "0052",
-  "Afundo (Halter)":                                      "0041",
-  "Elevação de Panturrilha Sentado (Máquina)":            "1355",
-  "Elevação Unilateral de Panturrilha em Pé (Máquina)":  "0341",
-  "Rosca Direta na Barra W":                              "0032",
-  "Rosca Scott (Barra)":                                  "0286",
-  "Rosca Inclinada (Halter)":                             "0098",
-  "Rosca Martelo (Halter)":                               "0097",
-  "Tríceps na Paralela (Com Peso)":                       "0045",
-  "Extensão de tríceps acima da cabeça (cabo)":           "1701",
-  "Abdominal (Corda)":                                    "0024",
-  "Abdominal Na Máquina":                                 "0025",
+// Mapa PT-BR → nome em inglês para busca na ExerciseDB API
+// A API retorna o exerciseId correto via /exercises/name/{name}
+const EXERCISE_SEARCH_MAP = {
+  "Supino (Barra)":                                       "barbell bench press",
+  "Supino Declinado (Halter)":                            "dumbbell decline bench press",
+  "Supino Inclinado (Halter)":                            "dumbbell incline bench press",
+  "Crucifixo na Polia (Máquina)":                        "cable crossover",
+  "Levantamento Terra (Barra)":                           "barbell deadlift",
+  "Barra Fixa":                                           "pull-up",
+  "Remada Inclinada Apoiada No Peito (Halter)":           "chest supported dumbbell row",
+  "Puxada Alta na Polia (Máquina)":                      "lat pulldown",
+  "Levantamento Terra Romeno (Barra)":                    "romanian deadlift",
+  "Desenvolvimento (Halter)":                             "dumbbell shoulder press",
+  "Elevação Lateral (Halter)":                            "dumbbell lateral raise",
+  "Elevação Lateral Unilateral (Cabo)":                   "cable lateral raise",
+  "Aberturas Invertidas De Ombro Posterior (Na Máquina)": "reverse fly",
+  "Agachamento (Barra)":                                  "barbell squat",
+  "Leg Press 45º (Máquina)":                              "leg press",
+  "Mesa Flexora (Máquina)":                               "leg curl",
+  "Extensora (Máquina)":                                  "leg extension",
+  "Afundo (Halter)":                                      "dumbbell lunge",
+  "Elevação de Panturrilha Sentado (Máquina)":            "seated calf raise",
+  "Elevação Unilateral de Panturrilha em Pé (Máquina)":  "calf raise",
+  "Rosca Direta na Barra W":                              "ez bar curl",
+  "Rosca Scott (Barra)":                                  "preacher curl",
+  "Rosca Inclinada (Halter)":                             "incline dumbbell curl",
+  "Rosca Martelo (Halter)":                               "hammer curl",
+  "Tríceps na Paralela (Com Peso)":                       "tricep dip",
+  "Extensão de tríceps acima da cabeça (cabo)":           "cable overhead tricep extension",
+  "Abdominal (Corda)":                                    "cable crunch",
+  "Abdominal Na Máquina":                                 "ab crunch machine",
 };
+
+// Cache em memória: PT-BR → exerciseId (populado do Supabase ou via API)
+const EXERCISE_IDS = {};
+
+// Busca o exerciseId correto via API e salva no Supabase
+// Roda em background na inicialização — só busca exercícios ainda não salvos
+async function seedExerciseGifs(){
+  try{
+    // Buscar o que já está salvo no Supabase
+    const{data:existing}=await supabase.from('exercise_gifs').select('exercise_name,exercise_id').not('exercise_id','is',null);
+    const alreadySaved=new Set((existing||[]).map(r=>r.exercise_name));
+
+    // Preencher cache com o que já existe
+    (existing||[]).forEach(r=>{ if(r.exercise_id) EXERCISE_IDS[r.exercise_name]=r.exercise_id; });
+
+    // Quais ainda precisam ser buscados?
+    const missing=Object.keys(EXERCISE_SEARCH_MAP).filter(pt=>!alreadySaved.has(pt));
+    if(missing.length===0) return;
+
+    console.log('[Carbon] seedExerciseGifs: buscando IDs para',missing.length,'exercícios');
+
+    for(const ptName of missing){
+      const searchTerm=EXERCISE_SEARCH_MAP[ptName];
+      try{
+        await new Promise(r=>setTimeout(r,400)); // respeitar rate limit
+        const res=await fetch(
+          `https://exercisedb.p.rapidapi.com/exercises/name/${encodeURIComponent(searchTerm)}?limit=1`,
+          { headers:{ 'x-rapidapi-key':RAPIDAPI_KEY, 'x-rapidapi-host':'exercisedb.p.rapidapi.com' } }
+        );
+        if(!res.ok){ console.warn('[Carbon] seedExerciseGifs: HTTP',res.status,'para',ptName); continue; }
+        const results=await res.json();
+        if(!Array.isArray(results)||results.length===0){ console.warn('[Carbon] seedExerciseGifs: sem resultado para',ptName,'(busca:',searchTerm,')'); continue; }
+        const exerciseId=results[0].id;
+        EXERCISE_IDS[ptName]=exerciseId;
+        // Salvar no Supabase
+        await supabase.from('exercise_gifs').upsert(
+          { exercise_name:ptName, exercise_id:exerciseId, search_term:searchTerm },
+          { onConflict:'exercise_name' }
+        );
+        console.log('[Carbon] seedExerciseGifs: OK',ptName,'→',exerciseId,'('+results[0].name+')');
+      }catch(e){ console.warn('[Carbon] seedExerciseGifs: erro para',ptName,e); }
+    }
+  }catch(e){ console.warn('[Carbon] seedExerciseGifs erro geral:',e); }
+}
 
 // Cache em memória
 const _imgCache = {};
@@ -3268,17 +3313,23 @@ async function fetchExerciseImage(exName){
 }
 
 function ExerciseSlideshow({exName,color}){
-  const id = EXERCISE_IDS[exName];
+  const[exerciseId,setExerciseId]=useState(()=>EXERCISE_IDS[exName]||null);
   const[paused,setPaused]=useState(false);
   const[loaded,setLoaded]=useState(false);
   const[error,setError]=useState(false);
 
-  useEffect(()=>{setLoaded(false);setError(false);setPaused(false);},[exName]);
+  useEffect(()=>{
+    setLoaded(false);setError(false);setPaused(false);
+    if(EXERCISE_IDS[exName]){setExerciseId(EXERCISE_IDS[exName]);return;}
+    // Buscar do Supabase se ainda não está em memória
+    supabase.from('exercise_gifs').select('exercise_id').eq('exercise_name',exName).maybeSingle()
+      .then(({data})=>{
+        if(data?.exercise_id){EXERCISE_IDS[exName]=data.exercise_id;setExerciseId(data.exercise_id);}
+      }).catch(()=>{});
+  },[exName]);
 
-  // URL direta — o GIF é servido com CORS aberto, basta passar os headers como query params
-  // Mas como headers não podem ir em img src, usamos um proxy simples via URL do RapidAPI
-  const gifUrl = id
-    ? `https://exercisedb.p.rapidapi.com/image?exerciseId=${id}&resolution=180&rapidapi-key=${RAPIDAPI_KEY}`
+  const gifUrl = exerciseId
+    ? `https://exercisedb.p.rapidapi.com/image?exerciseId=${exerciseId}&resolution=180&rapidapi-key=${RAPIDAPI_KEY}`
     : null;
 
   return(
