@@ -5137,7 +5137,7 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
 
           {/* Chart with projection */}
           {(()=>{
-            const H=130, PL=36, PR=12, PT=8, PB=28;
+            const H=110, PL=30, PR=10, PT=6, PB=22;
             const allPts=W_DATA.map((y,i)=>({y,i}));
             if(allPts.length<2) return <LineChart data={weightChartData} color={C.mint} height={72}/>;
             const n=allPts.length;
@@ -5162,57 +5162,60 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
             const realPath=allPts.map((p,i)=>`${i===0?"M":"L"}${px(p.i).toFixed(1)},${py(p.y).toFixed(1)}`).join(" ");
             const projPath=projPts.length>1?projPts.map((p,i)=>`${i===0?"M":"L"}${px(p.i).toFixed(1)},${py(p.y).toFixed(1)}`).join(" "):"";
             const goalY=weightGoal?py(weightGoal):null;
-            // date labels
-            const wDates=measureHistory.filter(h=>h.Peso!=null).map(h=>h.date).sort();
-            const fmt=d=>d?new Date(d+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"}):"";
-            // ETA
-            let etaLabel="";
-            if(Math.abs(slope)>0.001&&weightGoal){
-              const stepsToGoal=Math.round((weightGoal-intercept)/slope);
-              const daysLeft=stepsToGoal-n+1;
-              if(daysLeft>0&&daysLeft<500){
-                const eta=new Date(); eta.setDate(eta.getDate()+daysLeft);
-                etaLabel=eta.toLocaleDateString("pt-BR",{day:"numeric",month:"short",year:"numeric"});
-              }
-            }
-            // Y ticks every 1kg
-            const yTicks=[];for(let v=minY;v<=maxY;v++) yTicks.push(v);
+
+            // Só 3 ticks no Y: mínimo, meta, máximo
+            const yTicks=[maxY, weightGoal||Math.round((minY+maxY)/2), minY].filter((v,i,a)=>a.indexOf(v)===i);
+
+            // Datas reais do histórico
             const wEntries=measureHistory.filter(h=>h.Peso!=null).sort((a,b)=>a.date.localeCompare(b.date));
+            const fmt=d=>new Date(d+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"});
+
+            // ETA: data real baseada na última medição
+            let etaLabel="", etaDate="";
+            if(projPts.length>1&&wEntries.length>0){
+              const lastDate=new Date(wEntries[wEntries.length-1].date+"T12:00:00");
+              // cada passo = intervalo médio entre medições em dias
+              const firstDate=new Date(wEntries[0].date+"T12:00:00");
+              const avgDaysPerStep=wEntries.length>1?(lastDate-firstDate)/(86400000*(wEntries.length-1)):1;
+              const daysToGoal=Math.round((projPts.length-1)*avgDaysPerStep);
+              const eta=new Date(lastDate); eta.setDate(eta.getDate()+daysToGoal);
+              etaDate=eta.toISOString().slice(0,10);
+              etaLabel=eta.toLocaleDateString("pt-BR",{day:"numeric",month:"short",year:"numeric"});
+            }
+
             return(<>
-              <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{overflow:"visible"}}>
+              <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{overflow:"visible",marginBottom:2}}>
                 <defs>
                   <linearGradient id="wg2" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={C.mint} stopOpacity="0.15"/>
+                    <stop offset="0%" stopColor={C.mint} stopOpacity="0.18"/>
                     <stop offset="100%" stopColor={C.mint} stopOpacity="0"/>
                   </linearGradient>
                 </defs>
-                {/* Y grid + labels */}
-                {yTicks.map(v=><g key={v}>
-                  <line x1={PL} y1={py(v)} x2={W-PR} y2={py(v)} stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
-                  <text x={PL-4} y={py(v)+3} textAnchor="end" fontSize="8" fill="rgba(255,255,255,0.3)">{v}</text>
-                </g>)}
-                {/* X axis */}
-                <line x1={PL} y1={H-PB} x2={W-PR} y2={H-PB} stroke="rgba(255,255,255,0.08)" strokeWidth="1"/>
-                {/* Goal line */}
-                {goalY!=null&&<line x1={PL} y1={goalY} x2={W-PR} y2={goalY} stroke="rgba(99,102,241,0.25)" strokeWidth="1" strokeDasharray="3 4"/>}
+                {/* Y ticks - só 3 */}
+                {yTicks.map(v=>(
+                  <g key={v}>
+                    <line x1={PL} y1={py(v)} x2={W-PR} y2={py(v)} stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
+                    <text x={PL-4} y={py(v)+3} textAnchor="end" fontSize="8" fill={v===weightGoal?"rgba(99,102,241,0.6)":"rgba(255,255,255,0.25)"}>{v}</text>
+                  </g>
+                ))}
+                {/* Meta line */}
+                {goalY!=null&&<line x1={PL} y1={goalY} x2={W-PR} y2={goalY} stroke="rgba(99,102,241,0.2)" strokeWidth="1" strokeDasharray="3 4"/>}
                 {/* Real area */}
                 <path d={realPath+` L${px(n-1)},${H-PB} L${px(0)},${H-PB} Z`} fill="url(#wg2)"/>
                 {/* Real line */}
                 <path d={realPath} fill="none" stroke={C.mint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 {/* Projection line */}
-                {projPath&&<path d={projPath} fill="none" stroke="rgba(99,102,241,0.7)" strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>}
+                {projPath&&<path d={projPath} fill="none" stroke="rgba(99,102,241,0.6)" strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>}
                 {/* Dots */}
-                <circle cx={px(0)} cy={py(allPts[0].y)} r="2.5" fill={C.mint} opacity="0.6"/>
-                <circle cx={px(n-1)} cy={py(allPts[n-1].y)} r="3.5" fill={C.mint}/>
+                <circle cx={px(n-1)} cy={py(allPts[n-1].y)} r="3" fill={C.mint}/>
                 {projPts.length>1&&<circle cx={px(projPts[projPts.length-1].i)} cy={py(projPts[projPts.length-1].y)} r="3" fill="rgba(99,102,241,0.9)"/>}
-                {/* X labels */}
-                {wEntries.length>0&&<text x={px(0)} y={H-6} textAnchor="start" fontSize="8" fill="rgba(255,255,255,0.3)">{fmt(wEntries[0].date)}</text>}
-                {wEntries.length>1&&<text x={px(n-1)} y={H-6} textAnchor={projPts.length>1?"middle":"end"} fontSize="8" fill="rgba(255,255,255,0.3)">{fmt(wEntries[wEntries.length-1].date)}</text>}
-                {etaLabel&&projPts.length>1&&<text x={Math.min(px(n-1+projPts.length-1),W-PR)} y={H-6} textAnchor="end" fontSize="8" fill="rgba(165,180,252,0.6)">{etaLabel}</text>}
+                {/* X labels: apenas início e data estimada */}
+                {wEntries.length>0&&<text x={PL} y={H-5} textAnchor="start" fontSize="8" fill="rgba(255,255,255,0.3)">{fmt(wEntries[0].date)}</text>}
+                {etaDate&&<text x={W-PR} y={H-5} textAnchor="end" fontSize="8" fill="rgba(165,180,252,0.5)">{fmt(etaDate)}</text>}
               </svg>
-              {etaLabel&&<div style={{fontSize:10,color:"rgba(165,180,252,0.8)",textAlign:"right",marginTop:2,display:"flex",alignItems:"center",justifyContent:"flex-end",gap:5}}>
-                <svg width="11" height="11" fill="none" stroke="rgba(99,102,241,0.7)" strokeWidth="1.6" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="rgba(99,102,241,0.8)" stroke="none"/></svg>
-                Meta estimada: <strong>{etaLabel}</strong>
+              {etaLabel&&<div style={{fontSize:10,color:"rgba(165,180,252,0.7)",textAlign:"right",display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4}}>
+                <svg width="10" height="10" fill="none" stroke="rgba(99,102,241,0.7)" strokeWidth="1.6" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1.5" fill="rgba(99,102,241,0.8)" stroke="none"/></svg>
+                Meta estimada: <strong style={{color:"rgba(165,180,252,0.9)"}}>{etaLabel}</strong>
               </div>}
             </>);
           })()}
