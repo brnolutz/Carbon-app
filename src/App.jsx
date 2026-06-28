@@ -3207,7 +3207,7 @@ const EXERCISE_IDS = {
   "Levantamento Terra Romeno (Barra)":                    "0044", // barbell good morning (similar)
   "Desenvolvimento (Halter)":                             "0091", // barbell seated overhead press
   "Elevação Lateral (Halter)":                            "0075", // barbell rear delt raise
-  "Elevação Lateral Unilateral (Cabo)":                   "0150", // cable bar lateral pulldown
+  "Elevação Lateral Unilateral (Cabo)":                   "0192", // cable one arm lateral raise
   "Aberturas Invertidas De Ombro Posterior (Na Máquina)": "0076", // barbell rear delt row
   "Agachamento (Barra)":                                  "0043", // barbell full squat
   "Leg Press 45º (Máquina)":                              "0026", // barbell bench squat
