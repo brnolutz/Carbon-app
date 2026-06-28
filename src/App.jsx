@@ -3210,12 +3210,12 @@ const EXERCISE_IDS = {
   "Elevação Lateral Unilateral (Cabo)":                   "0192", // cable one arm lateral raise
   "Aberturas Invertidas De Ombro Posterior (Na Máquina)": "0076", // barbell rear delt row
   "Agachamento (Barra)":                                  "0043", // barbell full squat
-  "Leg Press 45º (Máquina)":                              "0026", // barbell bench squat
-  "Mesa Flexora (Máquina)":                               "0044", // barbell good morning
-  "Extensora (Máquina)":                                  "0068", // barbell one leg squat
-  "Afundo (Halter)":                                      "0054", // barbell lunge
-  "Elevação de Panturrilha Sentado (Máquina)":            "0088", // barbell seated calf raise
-  "Elevação Unilateral de Panturrilha em Pé (Máquina)":  "0108", // barbell standing leg calf raise
+  "Leg Press 45º (Máquina)":                              "0739", // sled 45° leg press
+  "Mesa Flexora (Máquina)":                               "0599", // lever seated leg curl
+  "Extensora (Máquina)":                                  "0585", // lever leg extension
+  "Afundo (Halter)":                                      "0336", // dumbbell lunge
+  "Elevação de Panturrilha Sentado (Máquina)":            "0594", // lever seated calf raise
+  "Elevação Unilateral de Panturrilha em Pé (Máquina)":  "0605", // lever standing calf raise
   "Rosca Direta na Barra W":                              "0031", // barbell curl
   "Rosca Scott (Barra)":                                  "0070", // barbell preacher curl
   "Rosca Inclinada (Halter)":                             "0072", // barbell prone incline curl
