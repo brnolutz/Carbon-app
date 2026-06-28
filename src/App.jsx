@@ -4218,9 +4218,10 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
     Object.keys(SETS_EX_MAP).forEach(g=>{result[g]=0;});
     recentSessions.forEach(s=>{
       (s.exercises||[]).forEach(e=>{
+        const nSets=(e.setData||[]).length||(typeof e.sets==='number'?e.sets:0);
         Object.entries(SETS_EX_MAP).forEach(([g,kws])=>{
           if(kws.some(kw=>(e.name||"").toLowerCase().includes(kw.toLowerCase()))){
-            result[g]=(result[g]||0)+(e.sets||0);
+            result[g]=(result[g]||0)+nSets;
           }
         });
       });
@@ -5197,7 +5198,7 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
     const EX_MAP={"Peito":["Supino","Crucifixo","Peitoral"],"Costas":["Terra","Remada","Puxada","Barra Fixa"],"Pernas":["Agachamento","Leg Press","Cadeira","Mesa Flexora","Afundo"],"Ombros":["Desenvolvimento","Elevação Lateral","Aberturas"],"Braços":["Rosca","Tríceps","Martelo","Scott"],"Core":["Abdominal","Core","Prancha"],"Glúteos":["Agachamento","Afundo","Romeno","Hip Thrust"],"Panturrilha":["Panturrilha","Elevação de Panturrilha"]};
     recent.forEach(s=>(s.exercises||[]).forEach(e=>{
       const g=e.group||(Object.entries(EX_MAP).find(([,kws])=>kws.some(kw=>(e.name||"").includes(kw)))||[])[0]||"";
-      if(g)sets[g]=(sets[g]||0)+(Array.isArray(e.setData)?e.setData.length:e.sets||1);
+      if(g){const n=(e.setData||[]).length||(typeof e.sets==='number'?e.sets:0);sets[g]=(sets[g]||0)+n;}
     }));
     const maxS=Math.max(...Object.values(sets),1);
     const heat={};
