@@ -5247,8 +5247,10 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
             const px=i=>PL+(i/(total-1||1))*(W-PL-PR);
             const py=v=>H-PB-((v-minY)/(maxY-minY||1))*(H-PT-PB);
             const realPath=allPts.map((p,i)=>`${i===0?"M":"L"}${px(p.i).toFixed(1)},${py(p.y).toFixed(1)}`).join(" ");
-            const projPath=projPts.length>1?projPts.map((p,i)=>`${i===0?"M":"L"}${px(p.i).toFixed(1)},${py(p.y).toFixed(1)}`).join(" "):"";
-            // ETA
+            // projPath começa no último ponto real para ligar sem gap
+            const lastRealX=px(n-1).toFixed(1), lastRealY=py(allPts[n-1].y).toFixed(1);
+            const projPath=projPts.length>1?`M${lastRealX},${lastRealY} `+projPts.slice(1).map(p=>`L${px(p.i).toFixed(1)},${py(p.y).toFixed(1)}`).join(" "):"";
+            const PURPLE="rgba(139,92,246,";
             let etaLabel="";
             if(projPts.length>1){
               const wEntries=measureHistory.filter(h=>h.Peso!=null).sort((a,b)=>a.date.localeCompare(b.date));
@@ -5271,13 +5273,13 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
                 </defs>
                 <path d={realPath+` L${px(n-1)},${H-PB} L${px(0)},${H-PB} Z`} fill="url(#wg2)"/>
                 <path d={realPath} fill="none" stroke={C.mint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                {projPath&&<path d={projPath} fill="none" stroke="rgba(99,102,241,0.7)" strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>}
+                {projPath&&<path d={projPath} fill="none" stroke="rgba(139,92,246,0.95)" strokeWidth="2" strokeDasharray="5 3" strokeLinecap="round"/>}
                 <circle cx={px(n-1)} cy={py(allPts[n-1].y)} r="3" fill={C.mint}/>
-                {projPts.length>1&&<circle cx={px(projPts[projPts.length-1].i)} cy={py(projPts[projPts.length-1].y)} r="3" fill="rgba(99,102,241,0.9)"/>}
+                {projPts.length>1&&<circle cx={px(projPts[projPts.length-1].i)} cy={py(projPts[projPts.length-1].y)} r="3.5" fill="rgba(139,92,246,1)"/>}
               </svg>
-              {etaLabel&&<div style={{fontSize:10,color:"rgba(165,180,252,0.7)",textAlign:"right",display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4}}>
-                <svg width="10" height="10" fill="none" stroke="rgba(99,102,241,0.7)" strokeWidth="1.6" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1.5" fill="rgba(99,102,241,0.8)" stroke="none"/></svg>
-                Meta estimada: <strong style={{color:"rgba(165,180,252,0.9)"}}>{etaLabel}</strong>
+              {etaLabel&&<div style={{fontSize:10,color:"rgba(167,139,250,0.8)",textAlign:"right",display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4}}>
+                <svg width="10" height="10" fill="none" stroke="rgba(139,92,246,0.9)" strokeWidth="1.6" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1.5" fill="rgba(139,92,246,0.9)" stroke="none"/></svg>
+                Meta estimada: <strong style={{color:"rgba(196,167,255,1)"}}>{etaLabel}</strong>
               </div>}
             </>);
           })()}
