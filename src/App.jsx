@@ -2998,7 +2998,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
         </div>
       </div>
 
-      <div style={{padding:"8px 12px 200px",paddingTop:"calc(52px + env(safe-area-inset-top,0px) + 50px)"}}>
+      <div style={{padding:"8px 12px 200px",paddingTop:"calc(52px + env(safe-area-inset-top,0px) + 10px)"}}>
         {exercises.map((exItem,exIdx)=>{
           const exWarm=exItem.activeSets.filter(s=>s.type==="warmup");
           const exWork=exItem.activeSets.filter(s=>s.type==="work");
