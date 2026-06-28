@@ -5137,7 +5137,7 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
 
           {/* Chart with projection */}
           {(()=>{
-            const H=110, PL=30, PR=10, PT=6, PB=22;
+            const H=90, PL=4, PR=4, PT=6, PB=4;
             const allPts=W_DATA.map((y,i)=>({y,i}));
             if(allPts.length<2) return <LineChart data={weightChartData} color={C.mint} height={72}/>;
             const n=allPts.length;
@@ -5154,64 +5154,39 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
             }
             const allY=[...allPts,...projPts].map(p=>p.y);
             if(weightGoal) allY.push(weightGoal);
-            const minY=Math.floor(Math.min(...allY)-0.5), maxY=Math.ceil(Math.max(...allY)+0.5);
+            const minY=Math.min(...allY)-0.5, maxY=Math.max(...allY)+0.5;
             const total=n+(projPts.length>0?projPts.length-1:0);
             const W=320;
             const px=i=>PL+(i/(total-1||1))*(W-PL-PR);
             const py=v=>H-PB-((v-minY)/(maxY-minY||1))*(H-PT-PB);
             const realPath=allPts.map((p,i)=>`${i===0?"M":"L"}${px(p.i).toFixed(1)},${py(p.y).toFixed(1)}`).join(" ");
             const projPath=projPts.length>1?projPts.map((p,i)=>`${i===0?"M":"L"}${px(p.i).toFixed(1)},${py(p.y).toFixed(1)}`).join(" "):"";
-            const goalY=weightGoal?py(weightGoal):null;
-
-            // Só 3 ticks no Y: mínimo, meta, máximo
-            const yTicks=[maxY, weightGoal||Math.round((minY+maxY)/2), minY].filter((v,i,a)=>a.indexOf(v)===i);
-
-            // Datas reais do histórico
-            const wEntries=measureHistory.filter(h=>h.Peso!=null).sort((a,b)=>a.date.localeCompare(b.date));
-            const fmt=d=>new Date(d+"T12:00:00").toLocaleDateString("pt-BR",{day:"2-digit",month:"short"});
-
-            // ETA: data real baseada na última medição
-            let etaLabel="", etaDate="";
-            if(projPts.length>1&&wEntries.length>0){
-              const lastDate=new Date(wEntries[wEntries.length-1].date+"T12:00:00");
-              // cada passo = intervalo médio entre medições em dias
-              const firstDate=new Date(wEntries[0].date+"T12:00:00");
-              const avgDaysPerStep=wEntries.length>1?(lastDate-firstDate)/(86400000*(wEntries.length-1)):1;
-              const daysToGoal=Math.round((projPts.length-1)*avgDaysPerStep);
-              const eta=new Date(lastDate); eta.setDate(eta.getDate()+daysToGoal);
-              etaDate=eta.toISOString().slice(0,10);
-              etaLabel=eta.toLocaleDateString("pt-BR",{day:"numeric",month:"short",year:"numeric"});
+            // ETA
+            let etaLabel="";
+            if(projPts.length>1){
+              const wEntries=measureHistory.filter(h=>h.Peso!=null).sort((a,b)=>a.date.localeCompare(b.date));
+              if(wEntries.length>1){
+                const last=new Date(wEntries[wEntries.length-1].date+"T12:00:00");
+                const first=new Date(wEntries[0].date+"T12:00:00");
+                const avgDays=(last-first)/(86400000*(wEntries.length-1));
+                const daysToGoal=Math.round((projPts.length-1)*avgDays);
+                const eta=new Date(last); eta.setDate(eta.getDate()+daysToGoal);
+                etaLabel=eta.toLocaleDateString("pt-BR",{day:"numeric",month:"short",year:"numeric"});
+              }
             }
-
             return(<>
               <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{overflow:"visible",marginBottom:2}}>
                 <defs>
                   <linearGradient id="wg2" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={C.mint} stopOpacity="0.18"/>
+                    <stop offset="0%" stopColor={C.mint} stopOpacity="0.15"/>
                     <stop offset="100%" stopColor={C.mint} stopOpacity="0"/>
                   </linearGradient>
                 </defs>
-                {/* Y ticks - só 3 */}
-                {yTicks.map(v=>(
-                  <g key={v}>
-                    <line x1={PL} y1={py(v)} x2={W-PR} y2={py(v)} stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
-                    <text x={PL-4} y={py(v)+3} textAnchor="end" fontSize="8" fill={v===weightGoal?"rgba(99,102,241,0.6)":"rgba(255,255,255,0.25)"}>{v}</text>
-                  </g>
-                ))}
-                {/* Meta line */}
-                {goalY!=null&&<line x1={PL} y1={goalY} x2={W-PR} y2={goalY} stroke="rgba(99,102,241,0.2)" strokeWidth="1" strokeDasharray="3 4"/>}
-                {/* Real area */}
                 <path d={realPath+` L${px(n-1)},${H-PB} L${px(0)},${H-PB} Z`} fill="url(#wg2)"/>
-                {/* Real line */}
                 <path d={realPath} fill="none" stroke={C.mint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                {/* Projection line */}
-                {projPath&&<path d={projPath} fill="none" stroke="rgba(99,102,241,0.6)" strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>}
-                {/* Dots */}
+                {projPath&&<path d={projPath} fill="none" stroke="rgba(99,102,241,0.7)" strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>}
                 <circle cx={px(n-1)} cy={py(allPts[n-1].y)} r="3" fill={C.mint}/>
                 {projPts.length>1&&<circle cx={px(projPts[projPts.length-1].i)} cy={py(projPts[projPts.length-1].y)} r="3" fill="rgba(99,102,241,0.9)"/>}
-                {/* X labels: apenas início e data estimada */}
-                {wEntries.length>0&&<text x={PL} y={H-5} textAnchor="start" fontSize="8" fill="rgba(255,255,255,0.3)">{fmt(wEntries[0].date)}</text>}
-                {etaDate&&<text x={W-PR} y={H-5} textAnchor="end" fontSize="8" fill="rgba(165,180,252,0.5)">{fmt(etaDate)}</text>}
               </svg>
               {etaLabel&&<div style={{fontSize:10,color:"rgba(165,180,252,0.7)",textAlign:"right",display:"flex",alignItems:"center",justifyContent:"flex-end",gap:4}}>
                 <svg width="10" height="10" fill="none" stroke="rgba(99,102,241,0.7)" strokeWidth="1.6" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1.5" fill="rgba(99,102,241,0.8)" stroke="none"/></svg>
