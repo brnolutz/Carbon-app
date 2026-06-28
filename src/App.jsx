@@ -3006,8 +3006,8 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
           const exVol=exWork.filter(s=>s.done).reduce((s,set)=>s+set.w*set.r,0);
           const exDone=exWork.filter(s=>s.done).length;
           return(
-            <div key={exIdx} style={{marginBottom:16,background:C.card,border:"1px solid "+(allDone?"rgba(16,185,129,0.3)":"rgba(255,255,255,0.06)"),borderRadius:12,overflow:"hidden",transition:"border-color 0.3s"}}>
-              <div style={{padding:"8px 10px 6px",borderBottom:"1px solid "+C.border}}>
+            <div key={exIdx} style={{marginBottom:16,background:"rgba(255,255,255,0.05)",border:"1px solid "+(allDone?"rgba(16,185,129,0.4)":"rgba(59,130,246,0.2)"),borderRadius:12,overflow:"hidden",transition:"border-color 0.3s"}}>
+              <div style={{padding:"10px 12px 8px",borderBottom:"1px solid rgba(255,255,255,0.08)",background:"rgba(255,255,255,0.03)"}}>
                 <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
                   <div style={{display:"flex",alignItems:"center",gap:6,flex:1,minWidth:0}}>
                     <div style={{width:6,height:6,borderRadius:"50%",background:GC[exItem.group]||C.blueL,flexShrink:0}}/>
@@ -3062,10 +3062,10 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
                         <span style={{fontSize:8,color:C.amber+"88"}}>{setIsOrmPR?`${setORM}kg`:`${set.w}kg`} ant. {setIsOrmPR?bestORM:bestW}kg</span>
                       </div>}
                       <div style={{display:"grid",gridTemplateColumns:"24px 1fr 1fr 1fr 30px 30px 24px",gap:3,alignItems:"center",padding:"2px 0",borderRadius:8,background:setIsPR?"rgba(245,158,11,0.06)":set.done?"rgba(16,185,129,0.04)":"transparent",border:setIsPR?"1px solid "+C.amber+"44":set.done?"1px solid "+C.mint+"18":"1px solid transparent",animation:isAnim?"prFlash 0.7s ease-out 1 forwards":"none",transition:"background 0.25s,border 0.25s"}}>
-                        <div style={{width:24,height:24,borderRadius:6,background:setIsPR?"linear-gradient(135deg,#B45309,#F59E0B)":set.done?C.mint+"33":C.blueM+"22",border:"1px solid "+(setIsPR?"transparent":set.done?C.mint+"44":C.borderL),display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                          {setIsPR?<span style={{fontSize:11}}>🏆</span>:<span style={{fontSize:10,fontWeight:800,color:set.done?C.mint:C.blueXL}}>{wi+1}</span>}
+                        <div style={{width:24,height:24,borderRadius:6,background:setIsPR?"linear-gradient(135deg,#B45309,#F59E0B)":set.done?C.mint+"33":"rgba(59,130,246,0.18)",border:"1px solid "+(setIsPR?"transparent":set.done?C.mint+"44":"rgba(59,130,246,0.4)"),display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                          {setIsPR?<span style={{fontSize:11}}>🏆</span>:<span style={{fontSize:10,fontWeight:800,color:set.done?C.mint:"rgba(147,197,253,0.9)"}}>{wi+1}</span>}
                         </div>
-                        <div style={{fontSize:9,color:C.muted,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"center"}}>{prevStr}</div>
+                        <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"center"}}>{prevStr}</div>
                         <SmartInput value={set.w} onChange={v=>!set.done&&updateSet(exIdx,si,"w",v)} readOnly={set.done} unit="kg" color={setIsPR?C.amber:set.done?C.mint:C.text} compact/>
                         <SmartInput value={set.r} onChange={v=>!set.done&&updateSet(exIdx,si,"r",v)} readOnly={set.done} unit="reps" integer color={setIsPR?C.amber:set.done?C.mint:C.text} compact/>
                         <button onClick={()=>!set.done&&(setCurrentEx(exIdx),setRpeModal({ei:exIdx,si,rest:exItem.rest}))} style={{height:24,borderRadius:6,cursor:set.done?"default":"pointer",background:set.rpe?(rpeColor+"22"):C.surface,border:"1px solid "+(set.rpe?(rpeColor+"66"):C.border),color:set.rpe?rpeColor:C.muted,fontSize:set.rpe?9:7,fontWeight:800,display:"flex",alignItems:"center",justifyContent:"center"}}>{set.rpe||"RPE"}</button>
