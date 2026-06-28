@@ -1573,7 +1573,12 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
   const[deloadState,setDeloadState]=useState(()=>loadDeload());
   const activeDeload=deloadState?.active?deloadState:null;
 
-  // Re-sync deload state when Supabase data loads (savedCount changes when sessions load)
+  // Scroll pro topo ao voltar da tela de deload
+  useEffect(()=>{
+    if(!showDeload && scrollRef.current){
+      scrollRef.current.scrollTop=0;
+    }
+  },[showDeload]);
   useEffect(()=>{
     const d=loadDeload();
     if(d!==deloadState)setDeloadState(d);
@@ -1682,7 +1687,7 @@ function HomeScreen({onNavigate,onStartWorkout,onSessionDeleted,savedCount=0}){
   const todayStr=new Date().toISOString().slice(0,10);
   const allPlans=loadRoutines().length>0?loadRoutines():PLANS;
 
-  if(showDeload) return <DeloadWeekScreen onBack={()=>setShowDeload(false)} onDeloadStarted={()=>{setDeloadState(loadDeload());setShowDeload(false);setTimeout(()=>{window.scrollTo(0,0);document.querySelectorAll(".screen-root").forEach(el=>{el.scrollTop=0;});},50);}}/>;
+  if(showDeload) return <DeloadWeekScreen onBack={()=>setShowDeload(false)} onDeloadStarted={()=>{setDeloadState(loadDeload());setShowDeload(false);}}/>;
   if(showReport) return <MonthlyReportScreen onBack={()=>setShowReport(false)}/>;
   if(showDeloadReport&&deloadState) return <DeloadReportScreen deload={deloadState} onClose={()=>{setShowDeloadReport(false);setDeloadState(loadDeload());}}/>;
   if(detail) return <WorkoutDetail session={detail} onClose={()=>setDetail(null)} onDelete={async(s)=>{await deleteSession(s,()=>{onSessionDeleted&&onSessionDeleted();});setDetail(null);}}/>;
