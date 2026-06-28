@@ -230,15 +230,19 @@ async function saveWeightGoal(v){
   }catch(e){console.error(e);}
 }
 
-// ─── DELOAD (persisted in user_settings.deload_config) ───────
+// ─── DELOAD (persisted in user_settings.deload_config + localStorage fallback) ───────
+const DELOAD_LS_KEY="carbon_deload_config";
 function loadDeload(){return _deloadCache;}
 async function saveDeload(config){
   _deloadCache=config;
+  // localStorage fallback — garante persistência mesmo se Supabase falhar
+  try{localStorage.setItem(DELOAD_LS_KEY,JSON.stringify(config));}catch(e){}
   try{
     const{data:userData}=await supabase.auth.getUser();
     const uid=userData?.user?.id;
     if(!uid)return;
-    await supabase.from('user_settings').upsert({user_id:uid,deload_config:config,updated_at:new Date().toISOString()});
+    const{error}=await supabase.from('user_settings').upsert({user_id:uid,deload_config:config,updated_at:new Date().toISOString()});
+    if(error)console.error('saveDeload Supabase error:',error);
   }catch(e){console.error('saveDeload error',e);}
 }
 async function startDeload(method,intensity){
@@ -330,6 +334,13 @@ async function loadAllUserData(){
   _measureHistoryCache=(measRes.data||[]).map(measureRowToEntry).sort((a,b)=>a.date.localeCompare(b.date));
   _weightGoalCache=settRes.data?.weight_goal??74;
   _deloadCache=settRes.data?.deload_config??null;
+  // Fallback: se Supabase não tem deload_config, tenta localStorage
+  if(!_deloadCache){
+    try{
+      const ls=localStorage.getItem(DELOAD_LS_KEY);
+      if(ls)_deloadCache=JSON.parse(ls);
+    }catch(e){}
+  }
   // Auto-expire deload if past endDate
   if(_deloadCache?.active){
     const today=new Date().toISOString().slice(0,10);
