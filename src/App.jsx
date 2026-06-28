@@ -1065,7 +1065,10 @@ function DeloadWeekScreen({onBack,onDeloadStarted}){
     <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",display:"flex",flexDirection:"column"}}>
       {/* Carbon header */}
       <div style={{position:"sticky",top:0,zIndex:9001,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",paddingTop:"calc(env(safe-area-inset-top,0px) + 8px)",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
-        <div style={{padding:"8px 16px 10px",display:"flex",alignItems:"center",gap:10}}>
+        <div style={{padding:"4px 20px 6px",display:"flex",alignItems:"center",gap:8}}>
+          <img src="/carbon-logo-transparent.png" alt="Carbon" style={{height:18,objectFit:"contain",opacity:0.9}}/>
+        </div>
+        <div style={{padding:"0 16px 10px",display:"flex",alignItems:"center",gap:10}}>
           <button onClick={onBack} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.08)",color:"#fff",fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(8px)"}}>‹</button>
           <div style={{flex:1,fontSize:15,fontWeight:700,color:"#fff",letterSpacing:"-0.3px"}}>Semana de Deload</div>
           {step>=STORIES.length&&<div style={{fontSize:11,color:"rgba(255,255,255,0.35)"}}>até {endDate}</div>}
