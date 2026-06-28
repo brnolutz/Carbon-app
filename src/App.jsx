@@ -5260,25 +5260,19 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
             const allPts=W_DATA.map((y,i)=>({y,i}));
             if(allPts.length<2) return <LineChart data={weightChartData} color={C.mint} height={72}/>;
             const n=allPts.length;
-            // Regressão usa últimas 12 medições para suavizar variações pontuais
+            // Regressão usa últimas 12 medições para refletir ritmo atual
             const recentPts=allPts.slice(-Math.min(12,n));
             const rn=recentPts.length;
             const xm=(rn-1)/2, ym=recentPts.reduce((s,p)=>s+p.y,0)/rn;
             const num=recentPts.reduce((s,p,i)=>s+(i-xm)*(p.y-ym),0);
             const den=recentPts.reduce((s,_,i)=>s+(i-xm)**2,0);
             const slope=den?num/den:0;
-            const lastY=allPts[n-1].y;
-            // Só projeta se slope vai em direção à meta E o peso atual está além da meta
-            const goingTowardGoal=weightGoal&&(
-              (weightGoal<lastY&&slope<-0.001) || // querendo emagrecer e caindo
-              (weightGoal>lastY&&slope>0.001)     // querendo engordar e subindo
-            );
-            // Projeção parte do último ponto real (não da regressão) para não "pular"
+            const intercept=ym-slope*xm;
             let projPts=[];
-            if(goingTowardGoal){
-              const stepsToGoal=Math.round((weightGoal-lastY)/slope);
-              const projCount=Math.min(Math.max(stepsToGoal,4),90);
-              for(let i=0;i<=projCount;i++) projPts.push({y:lastY+slope*i,i:n-1+i});
+            if(Math.abs(slope)>0.001&&weightGoal){
+              const stepsToGoal=Math.round((weightGoal-intercept)/slope);
+              const projCount=Math.min(Math.max(stepsToGoal-n+1,4),90);
+              if(projCount>0) for(let i=0;i<=projCount;i++) projPts.push({y:intercept+slope*(n-1+i),i:n-1+i});
             }
             const allY=[...allPts,...projPts].map(p=>p.y);
             if(weightGoal) allY.push(weightGoal);
