@@ -5228,11 +5228,15 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
             const allPts=W_DATA.map((y,i)=>({y,i}));
             if(allPts.length<2) return <LineChart data={weightChartData} color={C.mint} height={72}/>;
             const n=allPts.length;
-            const xm=(n-1)/2, ym=allPts.reduce((s,p)=>s+p.y,0)/n;
-            const num=allPts.reduce((s,p,i)=>s+(i-xm)*(p.y-ym),0);
-            const den=allPts.reduce((s,_,i)=>s+(i-xm)**2,0);
+            // Regressão usa apenas as últimas 8 semanas (≈56 dias) para refletir ritmo atual
+            const recentPts=allPts.slice(-Math.min(8,n));
+            const rn=recentPts.length;
+            const xm=(rn-1)/2, ym=recentPts.reduce((s,p)=>s+p.y,0)/rn;
+            const num=recentPts.reduce((s,p,i)=>s+(i-xm)*(p.y-ym),0);
+            const den=recentPts.reduce((s,_,i)=>s+(i-xm)**2,0);
             const slope=den?num/den:0;
-            const intercept=ym-slope*xm;
+            const intercept=ym-slope*xm-(slope*(recentPts[0].i-(n-rn)));
+            // intercept ajustado para coordenada global
             let projPts=[];
             if(Math.abs(slope)>0.001&&weightGoal){
               const stepsToGoal=Math.round((weightGoal-intercept)/slope);
