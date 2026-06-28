@@ -2955,7 +2955,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
   const totalVol=exercises.flatMap(e=>e.activeSets.filter(s=>s.type==="work"&&s.done)).reduce((s,set)=>s+set.w*set.r,0);
   const muscleGroups=[...new Set(exercises.map(e=>e.group).filter(Boolean))];
   return(
-    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:"calc(52px + env(safe-area-inset-top,0px) - 16px)",paddingBottom:160}}>
+    <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:"calc(52px + env(safe-area-inset-top,0px) - 56px)",paddingBottom:160}}>
       <style>{`
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
 @keyframes prFlash{0%{transform:scale(1);box-shadow:0 0 0 0 #F59E0B00}20%{transform:scale(1.04);box-shadow:0 0 32px 6px #F59E0BCC}100%{transform:scale(1);box-shadow:0 0 12px 2px #F59E0B44}}
