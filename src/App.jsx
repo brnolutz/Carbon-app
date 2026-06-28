@@ -4600,15 +4600,26 @@ function BodyDiagram({muscleHeat,width=320,savedCount=0}){
     const allSessions = getAllSessions();
     const cutoff = new Date(Date.now() - 7*24*60*60*1000).toISOString().slice(0,10);
     const recentSessions = allSessions.filter(s => s.date >= cutoff);
+    console.log("[BodyDiagram] sessions últimos 7 dias:", recentSessions.length, recentSessions.map(s=>s.date+"/"+s.name));
 
-    // Conta sessões por grupo muscular para intensidade
+    // Conta volume por grupo muscular usando o campo `group` dos exercícios
     const groupCount = {};
     recentSessions.forEach(s=>{
-      const n = (s.name||"").toLowerCase();
-      Object.entries(EX_TO_MUSCLES).forEach(([kw,groups])=>{
-        if(n.includes(kw)) groups.forEach(g=>{ groupCount[g]=(groupCount[g]||0)+1; });
+      // Tenta pelo campo group dos exercícios primeiro
+      (s.exercises||[]).forEach(e=>{
+        const g = e.group||"";
+        if(g) groupCount[g]=(groupCount[g]||0)+(e.sets||1);
       });
+      // Fallback: nome da sessão para mapear grupos
+      if(!(s.exercises||[]).some(e=>e.group)){
+        const n=(s.name||"").toLowerCase();
+        Object.entries(EX_TO_MUSCLES).forEach(([kw,groups])=>{
+          if(n.includes(kw)) groups.forEach(g=>{ groupCount[g]=(groupCount[g]||0)+1; });
+        });
+      }
     });
+
+    console.log("[BodyDiagram] groupCount:", groupCount);
 
     if(!Object.keys(groupCount).length){
       setLoading(false);
