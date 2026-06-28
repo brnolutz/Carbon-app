@@ -1012,19 +1012,38 @@ function DeloadWeekScreen({onBack,onDeloadStarted}){
   const[intensity,setIntensity]=useState(60);
   const[method,setMethod]=useState("volume");
   const[saving,setSaving]=useState(false);
-  useEffect(()=>{document.body.classList.add("hide-carbon-header");return()=>document.body.classList.remove("hide-carbon-header");},[]);
+  // SVG icons for each story slide (no borders, same style as nav icons)
+  const StoryIcons=[
+    // Slide 0 — wind/rest: leaf + wave
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3a6 6 0 0 1 6 6c0 3.5-2.5 5-5 5H3"/><path d="M9 14a6 6 0 0 1 6 6"/><path d="M3 9h3"/></svg>,
+    // Slide 1 — brain/CNS: activity pulse
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="2 12 6 12 8 5 10 19 12 12 14 15 16 12 22 12"/></svg>,
+    // Slide 2 — warning signs: alert triangle
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+    // Slide 3 — how to: layers/stack
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>,
+    // Slide 4 — return: rotate/refresh
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>,
+  ];
+  // SVG icons for method buttons
+  const MethodIcons={
+    volume:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>,
+    intensity:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>,
+    frequency:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>,
+    technique:<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>,
+  };
   const STORIES=[
-    {emoji:"😮‍💨",title:"O que é uma Semana de Deload?",body:"Uma redução planejada de 30–50% na carga de treino. Seu corpo e sistema nervoso têm tempo de recuperar completamente.",color:"#3B82F6",bg:"rgba(59,130,246,0.12)"},
-    {emoji:"🧠",title:"Por que é importante?",body:"Após semanas intensas, o sistema nervoso central fica fatigado. Um deload reseta tudo.",color:"#8B5CF6",bg:"rgba(139,92,246,0.12)",bullets:["Reduz risco de lesão","Quebra platôs","Melhora performance","Suporta crescimento muscular"]},
-    {emoji:"📊",title:"6 Sinais que Você Precisa",color:"#F59E0B",bg:"rgba(245,158,11,0.12)",bullets:["Força diminuindo","DOMS constante","Sono ruim / FC elevada","Perda de motivação","Desconforto articular","Treino pesado já no aquecimento"]},
-    {emoji:"⚡",title:"Como Fazer?",body:"Você ainda treina. Só reduz o estresse.",color:"#10B981",bg:"rgba(16,185,129,0.12)",bullets:["Reduzir Volume: menos séries (–40–60%)","Reduzir Intensidade: menos peso (60–70%)","Reduzir Frequência: menos dias","Foco em Técnica: movimentos lentos"]},
-    {emoji:"🔙",title:"Retornando ao Treino",body:"Após o deload, treinos vão parecer mais fáceis. É sinal que funcionou!",color:"#06B6D4",bg:"rgba(6,182,212,0.12)",bullets:["Volte ao programa normal","Não adicione volume extra","Deixe a performance subir naturalmente"]},
+    {title:"O que é uma Semana de Deload?",body:"Uma redução planejada de 30–50% na carga de treino. Seu corpo e sistema nervoso têm tempo de recuperar completamente.",color:"#3B82F6",bg:"rgba(59,130,246,0.10)"},
+    {title:"Por que é importante?",body:"Após semanas intensas, o sistema nervoso central fica fatigado. Um deload reseta tudo.",color:"#8B5CF6",bg:"rgba(139,92,246,0.10)",bullets:["Reduz risco de lesão","Quebra platôs","Melhora performance","Suporta crescimento muscular"]},
+    {title:"6 Sinais que Você Precisa",color:"#F59E0B",bg:"rgba(245,158,11,0.10)",bullets:["Força diminuindo","DOMS constante","Sono ruim / FC elevada","Perda de motivação","Desconforto articular","Treino pesado já no aquecimento"]},
+    {title:"Como Fazer?",body:"Você ainda treina. Só reduz o estresse.",color:"#10B981",bg:"rgba(16,185,129,0.10)",bullets:["Reduzir Volume: menos séries (–40–60%)","Reduzir Intensidade: menos peso (60–70%)","Reduzir Frequência: menos dias","Foco em Técnica: movimentos lentos"]},
+    {title:"Retornando ao Treino",body:"Após o deload, treinos vão parecer mais fáceis. É sinal que funcionou!",color:"#06B6D4",bg:"rgba(6,182,212,0.10)",bullets:["Volte ao programa normal","Não adicione volume extra","Deixe a performance subir naturalmente"]},
   ];
   const METHODS=[
-    {k:"volume",l:"Reduzir Volume",d:"Menos séries (−40–60%), mesmo peso",icon:"📉"},
-    {k:"intensity",l:"Reduzir Intensidade",d:"Mesmo volume, peso mais leve (60–70%)",icon:"🏋️"},
-    {k:"frequency",l:"Reduzir Frequência",d:"Menos dias de treino esta semana",icon:"📅"},
-    {k:"technique",l:"Foco em Técnica",d:"Movimentos lentos e controlados",icon:"🎯️"},
+    {k:"volume",l:"Reduzir Volume",d:"Menos séries (−40–60%), mesmo peso"},
+    {k:"intensity",l:"Reduzir Intensidade",d:"Mesmo volume, peso mais leve (60–70%)"},
+    {k:"frequency",l:"Reduzir Frequência",d:"Menos dias de treino esta semana"},
+    {k:"technique",l:"Foco em Técnica",d:"Movimentos lentos e controlados"},
   ];
   const story=STORIES[step];
   const endDate=new Date(Date.now()+7*24*60*60*1000).toLocaleDateString("pt-BR",{day:"2-digit",month:"short"});
@@ -1035,43 +1054,54 @@ function DeloadWeekScreen({onBack,onDeloadStarted}){
     if(onDeloadStarted)onDeloadStarted();
     onBack();
   }
+  // glass button style helper
+  const glassBtn=(color="rgba(255,255,255,0.08)",borderColor="rgba(255,255,255,0.12)")=>({
+    backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",
+    background:color,border:"1px solid "+borderColor,
+    borderRadius:14,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer",padding:"14px",
+  });
   return(
     <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",display:"flex",flexDirection:"column"}}>
-      <div style={{position:"sticky",top:0,zIndex:9001,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",paddingTop:"calc(env(safe-area-inset-top,0px) + 8px)"}}>
-        <div style={{padding:"10px 16px",display:"flex",alignItems:"center",gap:10}}>
-          <button onClick={onBack} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",color:"#fff",fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-          <div style={{flex:1,fontSize:15,fontWeight:700,color:"#fff"}}>Semana de Deload</div>
-          {step>=STORIES.length&&<div style={{fontSize:11,color:"rgba(255,255,255,0.4)"}}>até {endDate}</div>}
+      {/* Carbon header */}
+      <div style={{position:"sticky",top:0,zIndex:9001,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",paddingTop:"calc(env(safe-area-inset-top,0px) + 8px)",borderBottom:"1px solid rgba(255,255,255,0.06)"}}>
+        <div style={{padding:"8px 16px 10px",display:"flex",alignItems:"center",gap:10}}>
+          <button onClick={onBack} style={{width:34,height:34,borderRadius:"50%",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.08)",color:"#fff",fontSize:18,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",backdropFilter:"blur(8px)"}}>‹</button>
+          <div style={{flex:1,fontSize:15,fontWeight:700,color:"#fff",letterSpacing:"-0.3px"}}>Semana de Deload</div>
+          {step>=STORIES.length&&<div style={{fontSize:11,color:"rgba(255,255,255,0.35)"}}>até {endDate}</div>}
         </div>
-        {step<STORIES.length&&<div style={{padding:"0 16px 12px",display:"flex",gap:4}}>
-          {STORIES.map((_,i)=>(<div key={i} onClick={()=>setStep(i)} style={{flex:1,height:3,borderRadius:99,background:i<=step?"#3B82F6":"rgba(255,255,255,0.1)",cursor:"pointer"}}/>))}
+        {step<STORIES.length&&<div style={{padding:"0 16px 10px",display:"flex",gap:4}}>
+          {STORIES.map((_,i)=>(<div key={i} onClick={()=>setStep(i)} style={{flex:1,height:3,borderRadius:99,background:i<=step?"#3B82F6":"rgba(255,255,255,0.08)",cursor:"pointer",transition:"background 0.2s"}}/>))}
         </div>}
       </div>
-      <div style={{flex:1,padding:"20px 16px",overflowY:"auto",paddingBottom:140}}>
+
+      <div style={{flex:1,padding:"20px 16px",overflowY:"auto",paddingBottom:40}}>
         {step<STORIES.length
           ?<div>
-            <div style={{background:story.bg,border:"1px solid "+story.color+"44",borderRadius:20,padding:"28px 20px",marginBottom:20,textAlign:"center"}}>
-              <div style={{fontSize:52,marginBottom:16}}>{story.emoji}</div>
+            <div style={{background:story.bg,borderRadius:20,padding:"32px 20px",marginBottom:20,textAlign:"center"}}>
+              {/* SVG icon centered, no border */}
+              <div style={{display:"flex",justifyContent:"center",marginBottom:20}}>
+                {StoryIcons[step]}
+              </div>
               <div style={{fontSize:22,fontWeight:900,color:"#fff",letterSpacing:"-0.5px",marginBottom:12,lineHeight:1.2}}>{story.title}</div>
-              {story.body&&<div style={{fontSize:14,color:"rgba(255,255,255,0.7)",lineHeight:1.7}}>{story.body}</div>}
+              {story.body&&<div style={{fontSize:14,color:"rgba(255,255,255,0.65)",lineHeight:1.7}}>{story.body}</div>}
               {story.bullets&&<div style={{marginTop:14,textAlign:"left",display:"flex",flexDirection:"column",gap:8}}>
-                {story.bullets.map((b,i)=>(<div key={i} style={{display:"flex",alignItems:"flex-start",gap:10,padding:"8px 12px",background:"rgba(255,255,255,0.05)",borderRadius:10}}><div style={{width:6,height:6,borderRadius:"50%",background:story.color,flexShrink:0,marginTop:5}}/><span style={{fontSize:13,color:"rgba(255,255,255,0.8)",lineHeight:1.5}}>{b}</span></div>))}
+                {story.bullets.map((b,i)=>(<div key={i} style={{display:"flex",alignItems:"flex-start",gap:10,padding:"9px 12px",background:"rgba(255,255,255,0.05)",borderRadius:10,backdropFilter:"blur(4px)"}}><div style={{width:6,height:6,borderRadius:"50%",background:story.color,flexShrink:0,marginTop:5}}/><span style={{fontSize:13,color:"rgba(255,255,255,0.8)",lineHeight:1.5}}>{b}</span></div>))}
               </div>}
             </div>
             <div style={{display:"flex",gap:10}}>
-              {step>0&&<button onClick={()=>setStep(s=>s-1)} style={{flex:1,padding:"14px",background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:14,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer"}}>← Anterior</button>}
-              <button onClick={()=>setStep(s=>Math.min(STORIES.length,s+1))} style={{flex:2,padding:"14px",background:"linear-gradient(135deg,#1E40AF,#3B82F6)",border:"none",borderRadius:14,color:"#fff",fontSize:14,fontWeight:700,cursor:"pointer"}}>
+              {step>0&&<button onClick={()=>setStep(s=>s-1)} style={{...glassBtn(),flex:1}}>← Anterior</button>}
+              <button onClick={()=>setStep(s=>Math.min(STORIES.length,s+1))} style={{...glassBtn("rgba(59,130,246,0.2)","rgba(59,130,246,0.4)"),flex:2,color:"#93C5FD"}}>
                 {step<STORIES.length-1?"Próximo →":"Configurar Deload →"}
               </button>
             </div>
           </div>
           :<div>
-            <div style={{fontSize:22,fontWeight:900,color:"#fff",marginBottom:6}}>Configure seu Deload</div>
+            <div style={{fontSize:22,fontWeight:900,color:"#fff",marginBottom:6,letterSpacing:"-0.5px"}}>Configure seu Deload</div>
             <div style={{fontSize:13,color:"rgba(255,255,255,0.4)",marginBottom:24}}>Seus treinos desta semana serão ajustados automaticamente</div>
-            <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.4)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>Método</div>
+            <div style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:10}}>Método</div>
             {METHODS.map(m=>(
-              <button key={m.k} onClick={()=>setMethod(m.k)} style={{width:"100%",display:"flex",alignItems:"center",gap:12,padding:"14px 16px",background:method===m.k?"rgba(59,130,246,0.15)":"rgba(255,255,255,0.03)",border:"1px solid "+(method===m.k?"rgba(59,130,246,0.5)":"rgba(255,255,255,0.07)"),borderRadius:12,marginBottom:8,cursor:"pointer",textAlign:"left"}}>
-                <div style={{fontSize:22,width:32,textAlign:"center"}}>{m.icon}</div>
+              <button key={m.k} onClick={()=>setMethod(m.k)} style={{width:"100%",display:"flex",alignItems:"center",gap:12,padding:"14px 16px",background:method===m.k?"rgba(59,130,246,0.15)":"rgba(255,255,255,0.03)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",border:"1px solid "+(method===m.k?"rgba(59,130,246,0.4)":"rgba(255,255,255,0.07)"),borderRadius:12,marginBottom:8,cursor:"pointer",textAlign:"left"}}>
+                <div style={{color:method===m.k?"#3B82F6":"rgba(255,255,255,0.4)",flexShrink:0}}>{MethodIcons[m.k]}</div>
                 <div style={{flex:1}}><div style={{fontSize:14,fontWeight:700,color:"#fff"}}>{m.l}</div><div style={{fontSize:11,color:"rgba(255,255,255,0.4)",marginTop:2}}>{m.d}</div></div>
                 <div style={{width:20,height:20,borderRadius:"50%",border:"2px solid "+(method===m.k?"#3B82F6":"rgba(255,255,255,0.2)"),background:method===m.k?"#3B82F6":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
                   {method===m.k&&<div style={{width:8,height:8,borderRadius:"50%",background:"#fff"}}/>}
@@ -1085,16 +1115,19 @@ function DeloadWeekScreen({onBack,onDeloadStarted}){
               <input type="range" min="40" max="80" step="5" value={intensity} onChange={e=>setIntensity(+e.target.value)} style={{width:"100%",accentColor:"#3B82F6",marginBottom:6}}/>
               <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:"rgba(255,255,255,0.3)"}}><span>40% leve</span><span>60% ideal</span><span>80% mínimo</span></div>
             </>}
-            <div style={{background:"rgba(59,130,246,0.08)",border:"1px solid rgba(59,130,246,0.2)",borderRadius:16,padding:"16px",marginTop:20,marginBottom:8}}>
-              <div style={{fontSize:13,fontWeight:700,color:"#60A5FA",marginBottom:10}}>📋 O que vai mudar nos seus treinos</div>
+            <div style={{background:"rgba(59,130,246,0.08)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",border:"1px solid rgba(59,130,246,0.18)",borderRadius:16,padding:"16px",marginTop:20,marginBottom:8}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#60A5FA" strokeWidth="2" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <div style={{fontSize:13,fontWeight:700,color:"#60A5FA"}}>O que vai mudar nos seus treinos</div>
+              </div>
               {method==="volume"&&<div style={{fontSize:12,color:"rgba(255,255,255,0.7)",lineHeight:1.9}}>• Séries reduzidas para {intensity}% do normal<br/>• Peso mantido<br/>• Sem séries até a falha</div>}
               {method==="intensity"&&<div style={{fontSize:12,color:"rgba(255,255,255,0.7)",lineHeight:1.9}}>• Peso reduzido para {intensity}% do normal<br/>• Séries e reps mantidos<br/>• Foco em forma perfeita</div>}
               {method==="frequency"&&<div style={{fontSize:12,color:"rgba(255,255,255,0.7)",lineHeight:1.9}}>• Treine no máximo 3x esta semana<br/>• Sessões mais curtas (~30–40 min)<br/>• Descanse mais entre sessões</div>}
               {method==="technique"&&<div style={{fontSize:12,color:"rgba(255,255,255,0.7)",lineHeight:1.9}}>• Peso reduzido para {intensity}% do normal<br/>• Tempo sob tensão lento (3-1-2)<br/>• Foco na conexão mente-músculo</div>}
             </div>
-            <div style={{fontSize:11,color:"rgba(255,255,255,0.3)",textAlign:"center",marginBottom:24}}>Deload ativo até {endDate} — você pode encerrar a qualquer momento</div>
-            <button onClick={handleStart} disabled={saving} style={{width:"100%",padding:"16px",background:saving?"rgba(59,130,246,0.4)":"linear-gradient(135deg,#1E40AF,#3B82F6)",border:"none",borderRadius:16,color:"#fff",fontSize:15,fontWeight:800,cursor:saving?"default":"pointer",opacity:saving?0.7:1}}>
-              {saving?"Ativando...":"🏃 Iniciar Semana de Deload"}
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.3)",textAlign:"center",marginBottom:20}}>Deload ativo até {endDate} — você pode encerrar a qualquer momento</div>
+            <button onClick={handleStart} disabled={saving} style={{width:"100%",padding:"16px",background:saving?"rgba(59,130,246,0.15)":"rgba(59,130,246,0.2)",backdropFilter:"blur(12px)",WebkitBackdropFilter:"blur(12px)",border:"1px solid "+(saving?"rgba(59,130,246,0.2)":"rgba(59,130,246,0.45)"),borderRadius:16,color:saving?"rgba(147,197,253,0.5)":"#93C5FD",fontSize:15,fontWeight:800,cursor:saving?"default":"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              {saving?<><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>Ativando...</>:<><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>Iniciar Semana de Deload</>}
             </button>
           </div>
         }
@@ -2279,7 +2312,27 @@ function RestTimer({seconds,onDone,onSkip}){
     const iv=setInterval(()=>{
       const l=calcLeft();
       setLeft(l);
-      if(l<=0){clearInterval(iv);onDone();}
+      if(l<=0){
+        clearInterval(iv);
+        // Bip + vibração ao acabar o descanso
+        try{
+          const ctx=new(window.AudioContext||window.webkitAudioContext)();
+          [0,0.18,0.36].forEach(t=>{
+            const osc=ctx.createOscillator();
+            const gain=ctx.createGain();
+            osc.connect(gain);gain.connect(ctx.destination);
+            osc.frequency.value=880;
+            osc.type="sine";
+            gain.gain.setValueAtTime(0,ctx.currentTime+t);
+            gain.gain.linearRampToValueAtTime(0.4,ctx.currentTime+t+0.02);
+            gain.gain.linearRampToValueAtTime(0,ctx.currentTime+t+0.18);
+            osc.start(ctx.currentTime+t);
+            osc.stop(ctx.currentTime+t+0.2);
+          });
+        }catch(e){}
+        try{if(navigator.vibrate)navigator.vibrate([200,100,200,100,400]);}catch(e){}
+        onDone();
+      }
     },500);
     return()=>clearInterval(iv);
   },[]);// eslint-disable-line
@@ -3498,39 +3551,44 @@ function HistoricoScreen({onNavigate}){
 //   Core(mid-L)   Pernas(mid-R)
 //   Braços(bot-L) Ombros(bot-R)
 function SpiderChart({muscles,size=280}){
-  // Order must match vertex positions clockwise from top-left
-  // flat-top: vertices at -150,-90,-30,30,90,150 degrees
-  // So: Peito(-150=top-L), Core(-90=left), Braços(-30→actually bottom-L needs 150)
-  // Correct flat-top clockwise: top-L, top-R, right, bot-R, bot-L, left
-  // = Peito, Costas, Pernas, Ombros, Braços, Core
-  const order=["Peito","Costas","Pernas","Ombros","Braços","Core"];
-  const sm=order.map(g=>muscles.find(m=>m.g===g)||{g,pct:0,color:C.coral});
-  const N=sm.length,CX=size/2,CY=size/2,R=size*0.34,LD=size*0.44;
-  // flat-top: first vertex at -150° (top-left), step 60°
-  const ang=(i)=>(i/N)*Math.PI*2+(-150*Math.PI/180);
+  // Hevy-style: minimalist, single color, top-center start
+  const order=["Costas","Peito","Core","Ombros","Braços","Pernas"];
+  const sm=order.map(g=>muscles.find(m=>m.g===g)||{g,pct:0});
+  const N=sm.length,CX=size/2,CY=size/2,R=size*0.33,LD=size*0.455;
+  const ang=(i)=>(i/N)*Math.PI*2+(-Math.PI/2);
   const ox=(i)=>CX+R*Math.cos(ang(i));
   const oy=(i)=>CY+R*Math.sin(ang(i));
   const vx=(m,i)=>CX+R*(m.pct/100)*Math.cos(ang(i));
   const vy=(m,i)=>CY+R*(m.pct/100)*Math.sin(ang(i));
-  const rings=[0.25,0.5,0.75,1];
+  const rings=[0.33,0.66,1];
   const axes=sm.map((_,i)=>i);
   const dataStr=sm.map((m,i)=>vx(m,i)+","+vy(m,i)).join(" ");
+  const BLUE="rgba(59,130,246,";
   return(
     <svg width={size} height={size} viewBox={"0 0 "+size+" "+size} style={{display:"block",margin:"0 auto"}}>
-      {rings.map(lv=><polygon key={lv} points={axes.map(i=>(CX+(ox(i)-CX)*lv)+","+(CY+(oy(i)-CY)*lv)).join(" ")} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="1"/>)}
-      {axes.map(i=><line key={i} x1={CX} y1={CY} x2={ox(i)} y2={oy(i)} stroke="rgba(255,255,255,0.07)" strokeWidth="1"/>)}
-      <polygon points={dataStr} fill={C.mint+"2A"} stroke={C.mint} strokeWidth="2" strokeLinejoin="round"/>
-      {sm.map((m,i)=><circle key={i} cx={vx(m,i)} cy={vy(m,i)} r="4" fill={m.color} stroke="rgba(0,0,0,0.5)" strokeWidth="1"/>)}
+      {rings.map((lv,ri)=>(
+        <polygon key={ri} points={axes.map(i=>(CX+(ox(i)-CX)*lv)+","+(CY+(oy(i)-CY)*lv)).join(" ")}
+          fill={lv===1?"rgba(59,130,246,0.03)":"none"}
+          stroke={lv===1?"rgba(59,130,246,0.18)":"rgba(255,255,255,0.07)"} strokeWidth={lv===1?"1":"0.8"}/>
+      ))}
+      {axes.map(i=>(
+        <line key={i} x1={CX} y1={CY} x2={ox(i)} y2={oy(i)} stroke="rgba(255,255,255,0.07)" strokeWidth="0.8"/>
+      ))}
+      <polygon points={dataStr} fill={BLUE+"0.12)"} stroke={BLUE+"0.85)"} strokeWidth="1.8" strokeLinejoin="round"/>
+      {sm.map((m,i)=>m.pct>0&&(
+        <circle key={i} cx={vx(m,i)} cy={vy(m,i)} r="3" fill={BLUE+"1)"} stroke="rgba(0,0,0,0.6)" strokeWidth="1"/>
+      ))}
       {sm.map((m,i)=>{
         const lx=CX+LD*Math.cos(ang(i));
         const ly=CY+LD*Math.sin(ang(i));
-        const anchor=lx<CX-4?"start":lx>CX+4?"end":"middle";
-        return(<g key={i}>
-          <text x={lx} y={ly-4} textAnchor={anchor} dominantBaseline="middle" fontSize="10" fontWeight="700" fill={m.color}>{m.g}</text>
-          <text x={lx} y={ly+9} textAnchor={anchor} dominantBaseline="middle" fontSize="9" fill={m.color+"CC"}>{m.pct===100?"✓":m.pct+"%"}</text>
-        </g>);
+        const anchor=lx<CX-6?"start":lx>CX+6?"end":"middle";
+        return(
+          <g key={i}>
+            <text x={lx} y={ly-(m.pct>0?5:0)} textAnchor={anchor} dominantBaseline="middle" fontSize="10" fontWeight="600" fill="rgba(255,255,255,0.75)">{m.g}</text>
+            {m.pct>0&&<text x={lx} y={ly+8} textAnchor={anchor} dominantBaseline="middle" fontSize="9" fill={BLUE+"0.8)"}>{m.pct===100?"✓":m.pct+"%"}</text>}
+          </g>
+        );
       })}
-      {[25,50,75].map(v=><text key={v} x={CX+3} y={CY-R*(v/100)+4} fontSize="7" fill="rgba(255,255,255,0.18)" textAnchor="start">{v}%</text>)}
     </svg>
   );
 }
@@ -4443,38 +4501,41 @@ const SEED_MEASURE_HISTORY=[{"date":"2026-04-29","Braço D":41,"Braço E":39,"Pe
 const SEED_WEIGHT_HISTORY=[{"date":"2025-04-21","Peso":78.0},{"date":"2026-03-07","Peso":79.0},{"date":"2026-03-08","Peso":79.7},{"date":"2026-03-14","Peso":78.6},{"date":"2026-03-21","Peso":78.6},{"date":"2026-03-23","Peso":80.0},{"date":"2026-04-01","Peso":79.6},{"date":"2026-04-03","Peso":78.3},{"date":"2026-04-09","Peso":78.6},{"date":"2026-04-11","Peso":78.4},{"date":"2026-04-16","Peso":77.8},{"date":"2026-04-17","Peso":78.0},{"date":"2026-04-18","Peso":77.55},{"date":"2026-04-23","Peso":77.8},{"date":"2026-04-24","Peso":77.5},{"date":"2026-04-26","Peso":77.9},{"date":"2026-04-30","Peso":77.25},{"date":"2026-05-02","Peso":77.3},{"date":"2026-05-07","Peso":77.45},{"date":"2026-05-14","Peso":76.8},{"date":"2026-05-19","Peso":76.6},{"date":"2026-05-21","Peso":76.25},{"date":"2026-06-11","Peso":77.2}];
 
 function VolumeSpiderChart({volumeByGroup,size=260}){
-  const order=["Peito","Costas","Pernas","Ombros","Glúteos","Core"];
+  const order=["Peito","Costas","Pernas","Ombros","Braços","Core"];
   const maxVol=Math.max(...order.map(g=>volumeByGroup[g]||0),1);
-  const data=order.map(g=>({g,pct:Math.round(((volumeByGroup[g]||0)/maxVol)*100),color:GC[g]||C.blueXL,vol:Math.round(volumeByGroup[g]||0)}));
-  const N=order.length,CX=size/2,CY=size/2,R=size*0.33,LD=size*0.44;
-  const ang=(i)=>(i/N)*Math.PI*2+(-150*Math.PI/180);
+  const data=order.map(g=>({g,pct:Math.round(((volumeByGroup[g]||0)/maxVol)*100),vol:Math.round(volumeByGroup[g]||0)}));
+  const N=order.length,CX=size/2,CY=size/2,R=size*0.33,LD=size*0.455;
+  const ang=(i)=>(i/N)*Math.PI*2+(-Math.PI/2);
   const ox=(i)=>CX+R*Math.cos(ang(i));
   const oy=(i)=>CY+R*Math.sin(ang(i));
   const vx=(m,i)=>CX+R*(m.pct/100)*Math.cos(ang(i));
   const vy=(m,i)=>CY+R*(m.pct/100)*Math.sin(ang(i));
-  const rings=[0.25,0.5,0.75,1];
+  const rings=[0.33,0.66,1];
   const axes=data.map((_,i)=>i);
   const dataStr=data.map((m,i)=>vx(m,i)+","+vy(m,i)).join(" ");
+  const BLUE="rgba(59,130,246,";
   return(
     <svg width={size} height={size} viewBox={"0 0 "+size+" "+size} style={{display:"block",margin:"0 auto"}}>
-      {rings.map(lv=>(
-        <polygon key={lv} points={axes.map(i=>(CX+(ox(i)-CX)*lv)+","+(CY+(oy(i)-CY)*lv)).join(" ")} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="1"/>
+      {rings.map((lv,ri)=>(
+        <polygon key={ri} points={axes.map(i=>(CX+(ox(i)-CX)*lv)+","+(CY+(oy(i)-CY)*lv)).join(" ")}
+          fill={lv===1?"rgba(59,130,246,0.03)":"none"}
+          stroke={lv===1?"rgba(59,130,246,0.18)":"rgba(255,255,255,0.07)"} strokeWidth={lv===1?"1":"0.8"}/>
       ))}
       {axes.map(i=>(
-        <line key={i} x1={CX} y1={CY} x2={ox(i)} y2={oy(i)} stroke="rgba(255,255,255,0.07)" strokeWidth="1"/>
+        <line key={i} x1={CX} y1={CY} x2={ox(i)} y2={oy(i)} stroke="rgba(255,255,255,0.07)" strokeWidth="0.8"/>
       ))}
-      <polygon points={dataStr} fill={C.blueXL+"2A"} stroke={C.blueXL} strokeWidth="2" strokeLinejoin="round"/>
-      {data.map((m,i)=>(
-        <circle key={i} cx={vx(m,i)} cy={vy(m,i)} r="4" fill={m.color} stroke="rgba(0,0,0,0.5)" strokeWidth="1"/>
+      <polygon points={dataStr} fill={BLUE+"0.12)"} stroke={BLUE+"0.85)"} strokeWidth="1.8" strokeLinejoin="round"/>
+      {data.map((m,i)=>m.pct>0&&(
+        <circle key={i} cx={vx(m,i)} cy={vy(m,i)} r="3" fill={BLUE+"1)"} stroke="rgba(0,0,0,0.6)" strokeWidth="1"/>
       ))}
       {data.map((m,i)=>{
         const lx=CX+LD*Math.cos(ang(i));
         const ly=CY+LD*Math.sin(ang(i));
-        const anchor=lx<CX-4?"start":lx>CX+4?"end":"middle";
+        const anchor=lx<CX-6?"start":lx>CX+6?"end":"middle";
         return(
           <g key={i}>
-            <text x={lx} y={ly-5} textAnchor={anchor} dominantBaseline="middle" fontSize="10" fontWeight="700" fill={m.color}>{m.g}</text>
-            <text x={lx} y={ly+8} textAnchor={anchor} dominantBaseline="middle" fontSize="9" fill={m.color+"BB"}>{m.vol>0?m.vol+"kg":"—"}</text>
+            <text x={lx} y={ly-(m.vol>0?5:0)} textAnchor={anchor} dominantBaseline="middle" fontSize="10" fontWeight="600" fill="rgba(255,255,255,0.75)">{m.g}</text>
+            {m.vol>0&&<text x={lx} y={ly+8} textAnchor={anchor} dominantBaseline="middle" fontSize="9" fill={BLUE+"0.8)"}>{m.vol}kg</text>}
           </g>
         );
       })}
