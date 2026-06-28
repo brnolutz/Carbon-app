@@ -4322,10 +4322,14 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   }
 
   const muscleHeatProgresso=useMemo(()=>{
+    // Usa séries por grupo (últimos 7 dias) — 0 se não treinou, 100 se treinou muito
+    const maxSets=Math.max(...Object.values(weeklySetsByMuscle),1);
     const heat={};
-    muscles.forEach(m=>{heat[m.g]=m.pct;});
+    Object.entries(weeklySetsByMuscle).forEach(([g,sets])=>{
+      if(sets>0) heat[g]=Math.round((sets/maxSets)*100);
+    });
     return heat;
-  },[muscles]);
+  },[weeklySetsByMuscle]);
 
   const GlassCard=({children,style={},onClick})=>(
     <div onClick={onClick} style={{background:C.card,backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderRadius:20,border:"1px solid "+C.border,boxShadow:"0 4px 24px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.05)",cursor:onClick?"pointer":undefined,...style}}>{children}</div>
@@ -4590,105 +4594,53 @@ function BodyDiagram({muscleHeat,width=320,savedCount=0}){
   const [frontUrl,setFrontUrl] = useState(null);
   const [backUrl,setBackUrl]   = useState(null);
   const [loading,setLoading]   = useState(true);
-  const [error,setError]       = useState(false);
 
   useEffect(()=>{
     setLoading(true);
-    setError(false);
+    setFrontUrl(null);
+    setBackUrl(null);
 
-    // Últimos 7 dias
-    const allSessions = getAllSessions();
-    const cutoff = new Date(Date.now() - 7*24*60*60*1000).toISOString().slice(0,10);
-    const recentSessions = allSessions.filter(s => s.date >= cutoff);
-    console.log("[BodyDiagram] sessions últimos 7 dias:", recentSessions.length, recentSessions.map(s=>s.date+"/"+s.name));
+    // muscleHeat = {Peito:80, Costas:60, ...} — já calculado pelo pai
+    const entries = Object.entries(muscleHeat||{}).filter(([,pct])=>pct>0);
+    if(!entries.length){ setLoading(false); return; }
 
-    // Conta volume por grupo muscular usando o campo `group` dos exercícios
-    const groupCount = {};
-    recentSessions.forEach(s=>{
-      // Tenta pelo campo group dos exercícios primeiro
-      (s.exercises||[]).forEach(e=>{
-        const g = e.group||"";
-        if(g) groupCount[g]=(groupCount[g]||0)+(e.sets||1);
-      });
-      // Fallback: nome da sessão para mapear grupos
-      if(!(s.exercises||[]).some(e=>e.group)){
-        const n=(s.name||"").toLowerCase();
-        Object.entries(EX_TO_MUSCLES).forEach(([kw,groups])=>{
-          if(n.includes(kw)) groups.forEach(g=>{ groupCount[g]=(groupCount[g]||0)+1; });
-        });
-      }
-    });
-
-    console.log("[BodyDiagram] groupCount:", groupCount);
-
-    if(!Object.keys(groupCount).length){
-      setLoading(false);
-      return;
-    }
-
-    // Intensidade → cor (mais treinos = mais intenso)
-    const maxCount = Math.max(...Object.values(groupCount));
-    const intensityColor = (count)=>{
-      const ratio = count/maxCount;
-      if(ratio >= 0.8) return "3B82F6";  // azul forte
-      if(ratio >= 0.5) return "1D4ED8";  // azul médio
-      return "1E3A5F";                   // azul suave
+    const intensityColor=(pct)=>{
+      if(pct>=70) return "3B82F6";
+      if(pct>=40) return "1D4ED8";
+      return "1E3A5F";
     };
 
-    // Separa músculos em frente (front) e costas (back)
-    const frontGroups = ["Peito","Ombros","Braços","Core","Pernas","Glúteos"];
-    const backGroups  = ["Costas","Ombros","Glúteos","Pernas","Panturrilha"];
+    const frontGroups=["Peito","Ombros","Braços","Core","Pernas","Glúteos"];
+    const backGroups =["Costas","Ombros","Glúteos","Pernas","Panturrilha"];
+    const frontMuscles=[], backMuscles=[];
 
-    const frontMuscles = [];
-    const backMuscles  = [];
-
-    Object.entries(groupCount).forEach(([group,count])=>{
-      const apiMuscles = MUSCLE_API_MAP[group] || [];
-      const color = intensityColor(count);
-      if(frontGroups.includes(group)){
-        apiMuscles.slice(0,1).forEach(m=>frontMuscles.push({muscle:m,color}));
-      }
-      if(backGroups.includes(group)){
-        apiMuscles.slice(0,1).forEach(m=>backMuscles.push({muscle:m,color}));
-      }
+    entries.forEach(([group,pct])=>{
+      const apiMuscles=MUSCLE_API_MAP[group]||[];
+      const color=intensityColor(pct);
+      if(frontGroups.includes(group)) apiMuscles.slice(0,1).forEach(m=>frontMuscles.push({muscle:m,color}));
+      if(backGroups.includes(group))  apiMuscles.slice(0,1).forEach(m=>backMuscles.push({muscle:m,color}));
     });
 
-    const headers = {
-      "X-RapidAPI-Key": RAPIDAPI_KEY,
-      "X-RapidAPI-Host": "muscle-visualizer-api.p.rapidapi.com",
-    };
+    const headers={"X-RapidAPI-Key":RAPIDAPI_KEY,"X-RapidAPI-Host":"muscle-visualizer-api.p.rapidapi.com"};
 
-    const fetchImg = async (muscles,view)=>{
+    const fetchImg=async(muscles,view)=>{
       if(!muscles.length) return null;
-      const url = buildHeatmapUrl(muscles,view);
       try{
-        const r = await fetch(url,{headers});
-        if(!r.ok){
-          console.warn("Muscle Visualizer API error:",r.status, await r.text().catch(()=>""));
-          return null;
-        }
-        const ct = r.headers.get("content-type")||"";
-        if(ct.includes("image")){
-          const b = await r.blob();
-          return URL.createObjectURL(b);
-        }
-        // some plans return JSON with imageUrl
-        const j = await r.json().catch(()=>null);
+        const r=await fetch(buildHeatmapUrl(muscles,view),{headers});
+        if(!r.ok){ console.warn("MuscleViz",view,r.status); return null; }
+        const ct=r.headers.get("content-type")||"";
+        if(ct.includes("image")) return URL.createObjectURL(await r.blob());
+        const j=await r.json().catch(()=>null);
         return j?.imageUrl||j?.url||null;
-      }catch(e){console.warn("fetchImg error",e);return null;}
+      }catch(e){ console.warn("MuscleViz fetch error",e); return null; }
     };
 
-    Promise.all([
-      fetchImg(frontMuscles,"front"),
-      fetchImg(backMuscles,"back"),
-    ]).then(([f,b])=>{
-      setFrontUrl(f);
-      setBackUrl(b);
-      setLoading(false);
-    }).catch(()=>{setError(true);setLoading(false);});
-  },[savedCount]);
+    Promise.all([fetchImg(frontMuscles,"front"),fetchImg(backMuscles,"back")])
+      .then(([f,b])=>{ setFrontUrl(f); setBackUrl(b); setLoading(false); })
+      .catch(()=>setLoading(false));
+  },[muscleHeat,savedCount]);
 
-  const H = Math.round(width/2 * 1.4);
+  const H=Math.round(width/2*1.4);
 
   if(loading) return(
     <div style={{width,height:H,display:"flex",alignItems:"center",justifyContent:"center"}}>
@@ -4696,9 +4648,9 @@ function BodyDiagram({muscleHeat,width=320,savedCount=0}){
     </div>
   );
 
-  if(error||(!frontUrl&&!backUrl)) return(
+  if(!frontUrl&&!backUrl) return(
     <div style={{width,height:H,display:"flex",alignItems:"center",justifyContent:"center"}}>
-      <div style={{fontSize:11,color:"rgba(255,255,255,0.2)"}}>Sem treinos esta semana</div>
+      <div style={{fontSize:11,color:"rgba(255,255,255,0.2)"}}>Sem treinos recentes</div>
     </div>
   );
 
@@ -5239,11 +5191,19 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
 
   // ── body heat map ──
   const muscleHeat=useMemo(()=>{
-    const now=Date.now();
+    const cutoff=new Date(Date.now()-7*86400000).toISOString().slice(0,10);
+    const recent=getAllSessions().filter(s=>s.date>=cutoff);
+    const sets={};
+    const EX_MAP={"Peito":["Supino","Crucifixo","Peitoral"],"Costas":["Terra","Remada","Puxada","Barra Fixa"],"Pernas":["Agachamento","Leg Press","Cadeira","Mesa Flexora","Afundo"],"Ombros":["Desenvolvimento","Elevação Lateral","Aberturas"],"Braços":["Rosca","Tríceps","Martelo","Scott"],"Core":["Abdominal","Core","Prancha"],"Glúteos":["Agachamento","Afundo","Romeno","Hip Thrust"],"Panturrilha":["Panturrilha","Elevação de Panturrilha"]};
+    recent.forEach(s=>(s.exercises||[]).forEach(e=>{
+      const g=e.group||(Object.entries(EX_MAP).find(([,kws])=>kws.some(kw=>(e.name||"").includes(kw)))||[])[0]||"";
+      if(g)sets[g]=(sets[g]||0)+(Array.isArray(e.setData)?e.setData.length:e.sets||1);
+    }));
+    const maxS=Math.max(...Object.values(sets),1);
     const heat={};
-    recoveryMuscles.forEach(m=>{heat[m.g]=m.pct;});
+    Object.entries(sets).forEach(([g,s])=>{ if(s>0)heat[g]=Math.round((s/maxS)*100); });
     return heat;
-  },[recoveryMuscles]);
+  },[recoveryMuscles,savedCount]);
 
   // ── weight ──
   const currentWeight=W_DATA[W_DATA.length-1];
