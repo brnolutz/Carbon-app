@@ -5130,7 +5130,7 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
               </div>}
             </div>
             <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
-              <button onClick={()=>{setWeightDraft("");setShowAddWeight(true);}} style={{background:"rgba(59,130,246,0.15)",border:"1px solid rgba(59,130,246,0.4)",backdropFilter:"blur(12px)",borderRadius:12,padding:"8px 16px",color:C.blueXL,fontSize:12,fontWeight:700,cursor:"pointer"}}>＋ Registrar peso</button>
+              <button onClick={()=>{setWeightDraft("");setShowAddWeight(true);}} style={{background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.15)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderRadius:12,padding:"8px 16px",color:"rgba(255,255,255,0.9)",fontSize:12,fontWeight:600,cursor:"pointer",letterSpacing:"0.02em"}}>＋ Registrar peso</button>
               <button onClick={()=>{setGoalDraft(String(weightGoal));setEditingGoal(true);}} style={{fontSize:11,color:C.muted,background:"none",border:"none",cursor:"pointer"}}>Meta: {weightGoal}kg ✎</button>
             </div>
           </div>
@@ -5201,7 +5201,7 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
                 {etaLabel&&projPts.length>1&&<text x={px(projPts[projPts.length-1].i)} y={H-4} textAnchor="end" fontSize="8" fill="rgba(245,158,11,0.6)">{etaLabel}</text>}
               </svg>
               {etaLabel&&<div style={{fontSize:10,color:"rgba(245,158,11,0.7)",textAlign:"right",marginTop:2,display:"flex",alignItems:"center",justifyContent:"flex-end",gap:5}}>
-                <svg width="11" height="11" fill="none" stroke="rgba(245,158,11,0.7)" strokeWidth="1.6" viewBox="0 0 24 24"><circle cx="12" cy="10" r="3"/><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/></svg>
+                <svg width="11" height="11" fill="none" stroke="rgba(245,158,11,0.7)" strokeWidth="1.6" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="rgba(245,158,11,0.7)" stroke="none"/></svg>
                 Meta estimada: <strong>{etaLabel}</strong>
               </div>}
             </>);
