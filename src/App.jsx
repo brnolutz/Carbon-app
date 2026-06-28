@@ -4543,62 +4543,151 @@ function VolumeSpiderChart({volumeByGroup,size=260}){
   );
 }
 
-// Map from muscle group → image file
-const MUSCLE_IMG = {
-  "Peito":       "/body-peito.png",
-  "Costas":      "/body-costas.png",
-  "Ombros":      "/body-ombros.png",
-  "Pernas":      "/body-pernas.png",
-  "Braços":      "/body-biceps.png",
-  "Core":        "/body-core.png",
-  "Glúteos":     "/body-gluteos.png",
-  "Panturrilha": "/body-panturrilha.png",
+// Muscle Visualizer API — maps PT group names → API muscle names
+const MUSCLE_API_MAP = {
+  "Peito":       ["pectoralis major","pectoralis minor"],
+  "Costas":      ["latissimus dorsi","trapezius","rhomboids"],
+  "Ombros":      ["deltoid anterior","deltoid lateral","deltoid posterior"],
+  "Pernas":      ["quadriceps","hamstrings","calves"],
+  "Braços":      ["biceps","triceps","forearm"],
+  "Core":        ["abs","obliques"],
+  "Glúteos":     ["glutes"],
+  "Panturrilha": ["calves"],
 };
 
-// Priority order — which muscle to show if multiple are active
-const MUSCLE_PRIORITY = ["Peito","Costas","Pernas","Ombros","Braços","Core","Glúteos","Panturrilha"];
+// Exercise name → muscle groups (PT)
+const EX_TO_MUSCLES = {
+  push:    ["Peito","Ombros","Braços"],
+  pull:    ["Costas","Braços"],
+  legs:    ["Pernas","Glúteos"],
+  upper:   ["Peito","Costas","Ombros","Braços"],
+  supino:  ["Peito","Ombros","Braços"],
+  remada:  ["Costas","Braços"],
+  agacha:  ["Pernas","Glúteos"],
+  terra:   ["Costas","Pernas","Glúteos"],
+  ombro:   ["Ombros"],
+  rosca:   ["Braços"],
+  triceps: ["Braços"],
+  abdomi:  ["Core"],
+  prancha: ["Core"],
+};
+
+function buildHeatmapUrl(muscleColors){
+  // muscleColors: [{muscle:"pectoralis major", color:"3B82F6"}, ...]
+  if(!muscleColors.length) return null;
+  const params = new URLSearchParams();
+  muscleColors.forEach(({muscle,color})=>{
+    params.append("muscles",muscle);
+    params.append("colors",color.replace("#",""));
+  });
+  params.set("backgroundColor","080A0E");
+  params.set("width","400");
+  params.set("gender","male");
+  return "https://muscle-visualizer-api.p.rapidapi.com/v1/visualize/heatmap?"+params.toString();
+}
 
 function BodyDiagram({muscleHeat,width=320,savedCount=0}){
-  const H = Math.round(width * (1024/1536));
+  const [frontUrl,setFrontUrl] = useState(null);
+  const [backUrl,setBackUrl]   = useState(null);
+  const [loading,setLoading]   = useState(true);
+  const [error,setError]       = useState(false);
 
-  // Seleciona imagem baseada nos treinos DA SEMANA ATUAL (dom a sáb)
-  const imgSrc = useMemo(()=>{
+  useEffect(()=>{
+    setLoading(true);
+    setError(false);
+
+    // Calcula músculos treinados na semana atual
     const allSessions = getAllSessions();
     const now = new Date();
     const sunday = new Date(now);
     sunday.setDate(now.getDate() - now.getDay());
     sunday.setHours(0,0,0,0);
     const weekStart = sunday.toISOString().slice(0,10);
-
     const thisWeek = allSessions.filter(s => s.date >= weekStart);
-    const names = thisWeek.map(s => (s.name||"").toLowerCase());
-    const has = (kw) => names.some(n => n.includes(kw));
 
-    const hasPush  = has("push");
-    const hasPull  = has("pull") || has("bíceps") || has("biceps");
-    const hasLegs  = has("legs") || has("leg") || has("pernas");
-    const hasUpper = has("upper");
+    // Conta sessões por grupo muscular para intensidade
+    const groupCount = {};
+    thisWeek.forEach(s=>{
+      const n = (s.name||"").toLowerCase();
+      Object.entries(EX_TO_MUSCLES).forEach(([kw,groups])=>{
+        if(n.includes(kw)) groups.forEach(g=>{ groupCount[g]=(groupCount[g]||0)+1; });
+      });
+    });
 
-    // Acumulativo — mais treinos na semana = mais músculos acesos
-    if(hasPush && hasPull && hasLegs) return "/body-semana-atual.png";
-    if(hasPush && hasPull)            return "/body-push-pull.png";
-    if(hasPush && hasLegs)            return "/body-push-legs.png";
-    if(hasPull && hasLegs)            return "/body-pull-legs.png";
-    if(hasUpper && hasLegs)           return "/body-upper-legs.png";
-    if(hasPush)                       return "/body-push.png";
-    if(hasPull)                       return "/body-pull.png";
-    if(hasLegs)                       return "/body-legs.png";
-    if(hasUpper)                      return "/body-upper.png";
-    return "/body-rest.png";
+    if(!Object.keys(groupCount).length){
+      setLoading(false);
+      return;
+    }
+
+    // Intensidade → cor (mais treinos = mais intenso)
+    const maxCount = Math.max(...Object.values(groupCount));
+    const intensityColor = (count)=>{
+      const ratio = count/maxCount;
+      if(ratio >= 0.8) return "3B82F6";  // azul forte
+      if(ratio >= 0.5) return "1D4ED8";  // azul médio
+      return "1E3A5F";                   // azul suave
+    };
+
+    // Separa músculos em frente (front) e costas (back)
+    const frontGroups = ["Peito","Ombros","Braços","Core","Pernas","Glúteos"];
+    const backGroups  = ["Costas","Ombros","Glúteos","Pernas","Panturrilha"];
+
+    const frontMuscles = [];
+    const backMuscles  = [];
+
+    Object.entries(groupCount).forEach(([group,count])=>{
+      const apiMuscles = MUSCLE_API_MAP[group] || [];
+      const color = intensityColor(count);
+      if(frontGroups.includes(group)){
+        apiMuscles.slice(0,1).forEach(m=>frontMuscles.push({muscle:m,color}));
+      }
+      if(backGroups.includes(group)){
+        apiMuscles.slice(0,1).forEach(m=>backMuscles.push({muscle:m,color}));
+      }
+    });
+
+    const headers = {
+      "X-RapidAPI-Key": RAPIDAPI_KEY,
+      "X-RapidAPI-Host": "muscle-visualizer-api.p.rapidapi.com",
+    };
+
+    const fetchImg = (muscles,view)=>{
+      if(!muscles.length) return Promise.resolve(null);
+      const url = buildHeatmapUrl(muscles)+"&view="+view;
+      return fetch(url,{headers})
+        .then(r=>r.ok?r.blob():null)
+        .then(b=>b?URL.createObjectURL(b):null)
+        .catch(()=>null);
+    };
+
+    Promise.all([
+      fetchImg(frontMuscles,"front"),
+      fetchImg(backMuscles,"back"),
+    ]).then(([f,b])=>{
+      setFrontUrl(f);
+      setBackUrl(b);
+      setLoading(false);
+    }).catch(()=>{setError(true);setLoading(false);});
   },[savedCount]);
 
+  const H = Math.round(width/2 * 1.4);
+
+  if(loading) return(
+    <div style={{width,height:H,display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{fontSize:11,color:"rgba(255,255,255,0.3)"}}>Carregando mapa muscular…</div>
+    </div>
+  );
+
+  if(error||(!frontUrl&&!backUrl)) return(
+    <div style={{width,height:H,display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{fontSize:11,color:"rgba(255,255,255,0.2)"}}>Sem treinos esta semana</div>
+    </div>
+  );
+
   return(
-    <div style={{width, height:H, margin:"0 auto", position:"relative", borderRadius:12, overflow:"hidden", background:"transparent"}}>
-      <img
-        src={imgSrc}
-        alt="Mapa muscular"
-        style={{width:"100%",height:"100%",objectFit:"contain",display:"block",filter:"sepia(1) saturate(3) hue-rotate(175deg) brightness(0.65)"}}
-      />
+    <div style={{display:"flex",gap:8,justifyContent:"center",width}}>
+      {frontUrl&&<img src={frontUrl} alt="Frente" style={{width:width/2-4,height:H,objectFit:"contain",borderRadius:8}}/>}
+      {backUrl&&<img src={backUrl} alt="Costas" style={{width:width/2-4,height:H,objectFit:"contain",borderRadius:8}}/>}
     </div>
   );
 }
