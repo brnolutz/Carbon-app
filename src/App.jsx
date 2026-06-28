@@ -5270,8 +5270,13 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
                     <stop offset="0%" stopColor={C.mint} stopOpacity="0.15"/>
                     <stop offset="100%" stopColor={C.mint} stopOpacity="0"/>
                   </linearGradient>
+                  <linearGradient id="wg3" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="rgba(139,92,246,1)" stopOpacity="0.18"/>
+                    <stop offset="100%" stopColor="rgba(139,92,246,1)" stopOpacity="0"/>
+                  </linearGradient>
                 </defs>
                 <path d={realPath+` L${px(n-1)},${H-PB} L${px(0)},${H-PB} Z`} fill="url(#wg2)"/>
+                {projPath&&<path d={projPath+` L${px(projPts[projPts.length-1].i)},${H-PB} L${px(n-1)},${H-PB} Z`} fill="url(#wg3)"/>}
                 <path d={realPath} fill="none" stroke={C.mint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 {projPath&&<path d={projPath} fill="none" stroke="rgba(139,92,246,0.95)" strokeWidth="2" strokeDasharray="5 3" strokeLinecap="round"/>}
                 <circle cx={px(n-1)} cy={py(allPts[n-1].y)} r="3" fill={C.mint}/>
