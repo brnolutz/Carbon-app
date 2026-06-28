@@ -4580,42 +4580,23 @@ const EX_TO_MUSCLES = {
 function BodyDiagram({muscleHeat,width=320,savedCount=0}){
   const H = Math.round(width * (1024/1536));
 
-  const imgSrc = useMemo(()=>{
-    const allSessions = getAllSessions();
-    const now = new Date();
-    const sunday = new Date(now);
-    sunday.setDate(now.getDate() - now.getDay());
-    sunday.setHours(0,0,0,0);
-    const weekStart = sunday.toISOString().slice(0,10);
-    const thisWeek = allSessions.filter(s => s.date >= weekStart);
-    const names = thisWeek.map(s => (s.name||"").toLowerCase());
-    const exNames = thisWeek.flatMap(s=>(s.exercises||[]).map(e=>(e.name||"").toLowerCase()));
-    const all = [...names,...exNames];
-    const has = (kw) => all.some(n => n.includes(kw));
+  // Sempre mostra body-semana-atual.png com filtro azul (frente + costas)
+  // A intensidade do filtro varia conforme o nível de recuperação muscular
+  const avgPct = useMemo(()=>{
+    const vals = Object.values(muscleHeat||{});
+    if(!vals.length) return 50;
+    return vals.reduce((a,b)=>a+b,0)/vals.length;
+  },[muscleHeat]);
 
-    const hasPush  = has("push") || has("supino") || has("crucifixo") || has("tríceps") || has("peitoral");
-    const hasPull  = has("pull") || has("remada") || has("puxada") || has("barra fixa") || has("rosca") || has("terra");
-    const hasLegs  = has("legs") || has("leg") || has("pernas") || has("agachamento") || has("leg press") || has("afundo") || has("mesa flexora");
-    const hasUpper = has("upper") || has("ombros") || has("desenvolvimento") || has("elevação lateral");
-
-    if(hasPush && hasPull && hasLegs) return "/body-semana-atual.png";
-    if(hasPush && hasPull)            return "/body-push-pull.png";
-    if(hasPush && hasLegs)            return "/body-push-pull.png";
-    if(hasPull && hasLegs)            return "/body-semana-atual.png";
-    if(hasUpper && hasLegs)           return "/body-semana-atual.png";
-    if(hasPush)                       return "/body-push.png";
-    if(hasPull)                       return "/body-costas.png";
-    if(hasLegs)                       return "/body-pernas.png";
-    if(hasUpper)                      return "/body-push-pull.png";
-    return "/body-base.png";
-  },[savedCount]);
+  // Quanto mais fatigado (pct baixo), mais intenso o azul
+  const brightness = 0.5 + (avgPct/100)*0.3; // 0.5 → 0.8
 
   return(
     <div style={{width, height:H, margin:"0 auto", position:"relative", borderRadius:12, overflow:"hidden", background:"transparent"}}>
       <img
-        src={imgSrc}
+        src="/body-semana-atual.png"
         alt="Mapa muscular"
-        style={{width:"100%",height:"100%",objectFit:"contain",display:"block",filter:"sepia(1) saturate(3) hue-rotate(175deg) brightness(0.65)"}}
+        style={{width:"100%",height:"100%",objectFit:"contain",display:"block",filter:`sepia(1) saturate(3) hue-rotate(175deg) brightness(${brightness})`}}
       />
     </div>
   );
