@@ -5159,33 +5159,18 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
           <VolumeSpiderChart volumeByGroup={distVbg} size={Math.min(240,window.innerWidth-80)}/>
         </div>
 
-        {/* ── 3. RECUPERAÇÃO ── */}
+        {/* ── 3. MAPA MUSCULAR ── */}
         <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:12}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-            <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em"}}>Recuperação Muscular</div>
-            <div style={{display:"flex",gap:8}}>
-              {[{v:recoveryMuscles.filter(m=>m.pct>=100).length,l:"Prontos",c:C.mint},
-                {v:recoveryMuscles.filter(m=>m.pct>=60&&m.pct<100).length,l:"Rec.",c:C.amber},
-                {v:recoveryMuscles.filter(m=>m.pct<60).length,l:"Fatig.",c:C.coral}
-              ].map(s=>(
-                <div key={s.l} style={{textAlign:"center"}}>
-                  <div style={{fontSize:16,fontWeight:900,color:s.c}}>{s.v}</div>
-                  <div style={{fontSize:8,color:C.muted}}>{s.l}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-          {recoveryMuscles.map(m=>(
-            <div key={m.g} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-              <div style={{fontSize:11,fontWeight:600,color:C.sub,width:70,flexShrink:0}}>{m.g}</div>
-              <div style={{flex:1,height:7,background:C.surface,borderRadius:4,overflow:"hidden"}}>
-                <div style={{height:"100%",width:m.pct+"%",background:m.color,borderRadius:4,transition:"width 0.5s"}}/>
+          <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Mapa Muscular</div>
+          <BodyDiagram muscleHeat={muscleHeat} width={Math.min(300,window.innerWidth-64)} savedCount={savedCount}/>
+          <div style={{display:"flex",justifyContent:"center",gap:12,marginTop:8,flexWrap:"wrap"}}>
+            {[{c:"#3B82F6",o:1,l:"Fatigado"},{c:"#3B82F6",o:0.55,l:"Recuperando"},{c:"#3B82F6",o:0.25,l:"Quase pronto"},{c:C.muted,o:1,l:"Descansado"}].map(item=>(
+              <div key={item.l} style={{display:"flex",alignItems:"center",gap:4}}>
+                <div style={{width:7,height:7,borderRadius:"50%",background:item.c,opacity:item.o}}/>
+                <span style={{fontSize:9,color:C.muted}}>{item.l}</span>
               </div>
-              <div style={{fontSize:11,fontWeight:700,color:m.color,width:30,textAlign:"right"}}>{m.pct>=100?"✓":m.pct+"%"}</div>
-              {m.lastDays!=null&&<div style={{fontSize:9,color:C.muted,width:28,textAlign:"right"}}>há {m.lastDays}d</div>}
-            </div>
-          ))}
-          <div style={{marginTop:8,fontSize:9,color:C.muted,paddingTop:8,borderTop:"1px solid "+C.border}}>Core 36h · Ombros/Braços 48h · Peito 60h · Costas 72h · Pernas 96h</div>
+            ))}
+          </div>
         </div>
 
         {/* ── 4. VOLUME POR GRUPO ── */}
@@ -5225,21 +5210,36 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
           </div>
         </div>
 
-        {/* ── 4. MAPA MUSCULAR ── */}
+        {/* ── 5. RECUPERAÇÃO ── */}
         <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:12}}>
-          <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:12}}>Mapa Muscular</div>
-          <BodyDiagram muscleHeat={muscleHeat} width={Math.min(300,window.innerWidth-64)} savedCount={savedCount}/>
-          <div style={{display:"flex",justifyContent:"center",gap:12,marginTop:8,flexWrap:"wrap"}}>
-            {[{c:"#3B82F6",o:1,l:"Fatigado"},{c:"#3B82F6",o:0.55,l:"Recuperando"},{c:"#3B82F6",o:0.25,l:"Quase pronto"},{c:C.muted,o:1,l:"Descansado"}].map(item=>(
-              <div key={item.l} style={{display:"flex",alignItems:"center",gap:4}}>
-                <div style={{width:7,height:7,borderRadius:"50%",background:item.c,opacity:item.o}}/>
-                <span style={{fontSize:9,color:C.muted}}>{item.l}</span>
-              </div>
-            ))}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+            <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em"}}>Recuperação Muscular</div>
+            <div style={{display:"flex",gap:8}}>
+              {[{v:recoveryMuscles.filter(m=>m.pct>=100).length,l:"Prontos",c:C.mint},
+                {v:recoveryMuscles.filter(m=>m.pct>=60&&m.pct<100).length,l:"Rec.",c:C.amber},
+                {v:recoveryMuscles.filter(m=>m.pct<60).length,l:"Fatig.",c:C.coral}
+              ].map(s=>(
+                <div key={s.l} style={{textAlign:"center"}}>
+                  <div style={{fontSize:16,fontWeight:900,color:s.c}}>{s.v}</div>
+                  <div style={{fontSize:8,color:C.muted}}>{s.l}</div>
+                </div>
+              ))}
+            </div>
           </div>
+          {recoveryMuscles.map(m=>(
+            <div key={m.g} style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+              <div style={{fontSize:11,fontWeight:600,color:C.sub,width:70,flexShrink:0}}>{m.g}</div>
+              <div style={{flex:1,height:7,background:C.surface,borderRadius:4,overflow:"hidden"}}>
+                <div style={{height:"100%",width:m.pct+"%",background:m.color,borderRadius:4,transition:"width 0.5s"}}/>
+              </div>
+              <div style={{fontSize:11,fontWeight:700,color:m.color,width:30,textAlign:"right"}}>{m.pct>=100?"✓":m.pct+"%"}</div>
+              {m.lastDays!=null&&<div style={{fontSize:9,color:C.muted,width:28,textAlign:"right"}}>há {m.lastDays}d</div>}
+            </div>
+          ))}
+          <div style={{marginTop:8,fontSize:9,color:C.muted,paddingTop:8,borderTop:"1px solid "+C.border}}>Core 36h · Ombros/Braços 48h · Peito 60h · Costas 72h · Pernas 96h</div>
         </div>
 
-        {/* ── 5. MEDIDAS ── */}
+        {/* ── 6. MEDIDAS ── */}
         <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,marginBottom:12}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:12}}>
             <div style={{fontSize:12,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em"}}>Medidas Corporais</div>
