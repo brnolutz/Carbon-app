@@ -2954,6 +2954,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
   // ACTIVE WORKOUT
   const totalVol=exercises.flatMap(e=>e.activeSets.filter(s=>s.type==="work"&&s.done)).reduce((s,set)=>s+set.w*set.r,0);
   const muscleGroups=[...new Set(exercises.map(e=>e.group).filter(Boolean))];
+  useEffect(()=>{document.body.classList.add("hide-carbon-header");return()=>document.body.classList.remove("hide-carbon-header");},[]);// eslint-disable-line
   return(
     <div className="screen-root" style={{background:"#080A0E",minHeight:"100dvh",paddingTop:0,paddingBottom:160}}>
       <style>{`
@@ -3372,7 +3373,7 @@ function ExercicioScreen({name,onNavigate,onBack,noHideHeader=false}){
 
   return(
     <div style={{position:"fixed",inset:0,zIndex:10000,background:"#080A0E",display:"flex",flexDirection:"column",paddingBottom:100,overflowY:"auto"}}>
-      <div style={{position:"sticky",top:0,zIndex:2147483646,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:8}}>
+      <div style={{position:"sticky",top:0,zIndex:2147483646,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",paddingTop:"calc(env(safe-area-inset-top,0px) + 8px)"}}>
         <div style={{padding:"10px 16px 0"}}>
           <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:10}}>
             <button onClick={goBack} style={{width:34,height:34,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,color:C.sub,fontSize:20,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>‹</button>
