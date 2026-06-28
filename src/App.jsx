@@ -5137,7 +5137,7 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
 
           {/* Chart with projection */}
           {(()=>{
-            const H=100, PL=8, PR=8, PT=8, PB=20;
+            const H=130, PL=36, PR=12, PT=8, PB=28;
             const allPts=W_DATA.map((y,i)=>({y,i}));
             if(allPts.length<2) return <LineChart data={weightChartData} color={C.mint} height={72}/>;
             const n=allPts.length;
@@ -5154,7 +5154,7 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
             }
             const allY=[...allPts,...projPts].map(p=>p.y);
             if(weightGoal) allY.push(weightGoal);
-            const minY=Math.min(...allY)-0.5, maxY=Math.max(...allY)+0.5;
+            const minY=Math.floor(Math.min(...allY)-0.5), maxY=Math.ceil(Math.max(...allY)+0.5);
             const total=n+(projPts.length>0?projPts.length-1:0);
             const W=320;
             const px=i=>PL+(i/(total-1||1))*(W-PL-PR);
@@ -5175,6 +5175,11 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
                 etaLabel=eta.toLocaleDateString("pt-BR",{day:"numeric",month:"short",year:"numeric"});
               }
             }
+            // Y ticks every 1kg
+            const minY=Math.floor(Math.min(...allPts.map(p=>p.y),...projPts.map(p=>p.y),(weightGoal||99))-0.5);
+            const maxY=Math.ceil(Math.max(...allPts.map(p=>p.y),...projPts.map(p=>p.y))+0.5);
+            const yTicks=[];for(let v=minY;v<=maxY;v++) yTicks.push(v);
+            const wEntries=measureHistory.filter(h=>h.Peso!=null).sort((a,b)=>a.date.localeCompare(b.date));
             return(<>
               <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" style={{overflow:"visible"}}>
                 <defs>
@@ -5183,22 +5188,29 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
                     <stop offset="100%" stopColor={C.mint} stopOpacity="0"/>
                   </linearGradient>
                 </defs>
-                {/* subtle area under real data */}
+                {/* Y grid + labels */}
+                {yTicks.map(v=><g key={v}>
+                  <line x1={PL} y1={py(v)} x2={W-PR} y2={py(v)} stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
+                  <text x={PL-4} y={py(v)+3} textAnchor="end" fontSize="8" fill="rgba(255,255,255,0.3)">{v}</text>
+                </g>)}
+                {/* X axis */}
+                <line x1={PL} y1={H-PB} x2={W-PR} y2={H-PB} stroke="rgba(255,255,255,0.08)" strokeWidth="1"/>
+                {/* Goal line */}
+                {goalY!=null&&<line x1={PL} y1={goalY} x2={W-PR} y2={goalY} stroke="rgba(99,102,241,0.25)" strokeWidth="1" strokeDasharray="3 4"/>}
+                {/* Real area */}
                 <path d={realPath+` L${px(n-1)},${H-PB} L${px(0)},${H-PB} Z`} fill="url(#wg2)"/>
-                {/* goal line — very subtle */}
-                {goalY!=null&&<line x1={PL} y1={goalY} x2={W-PR} y2={goalY} stroke="rgba(99,102,241,0.3)" strokeWidth="1" strokeDasharray="3 4"/>}
-                {/* real history line */}
+                {/* Real line */}
                 <path d={realPath} fill="none" stroke={C.mint} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                {/* projection line */}
+                {/* Projection line */}
                 {projPath&&<path d={projPath} fill="none" stroke="rgba(99,102,241,0.7)" strokeWidth="1.5" strokeDasharray="4 3" strokeLinecap="round"/>}
-                {/* dots */}
-                <circle cx={px(0)} cy={py(allPts[0].y)} r="2.5" fill={C.mint} opacity="0.5"/>
+                {/* Dots */}
+                <circle cx={px(0)} cy={py(allPts[0].y)} r="2.5" fill={C.mint} opacity="0.6"/>
                 <circle cx={px(n-1)} cy={py(allPts[n-1].y)} r="3.5" fill={C.mint}/>
-                {projPts.length>1&&<circle cx={px(projPts[projPts.length-1].i)} cy={py(projPts[projPts.length-1].y)} r="3" fill="rgba(99,102,241,0.9)" opacity="0.9"/>}
-                {/* x labels */}
-                {wDates.length>0&&<text x={px(0)} y={H-4} textAnchor="start" fontSize="8" fill="rgba(255,255,255,0.25)">{fmt(wDates[0])}</text>}
-                {wDates.length>0&&<text x={px(n-1)} y={H-4} textAnchor="middle" fontSize="8" fill="rgba(255,255,255,0.25)">{fmt(wDates[wDates.length-1])}</text>}
-                {etaLabel&&projPts.length>1&&<text x={px(projPts[projPts.length-1].i)} y={H-4} textAnchor="end" fontSize="8" fill="rgba(165,180,252,0.6)">{etaLabel}</text>}
+                {projPts.length>1&&<circle cx={px(projPts[projPts.length-1].i)} cy={py(projPts[projPts.length-1].y)} r="3" fill="rgba(99,102,241,0.9)"/>}
+                {/* X labels */}
+                {wEntries.length>0&&<text x={px(0)} y={H-6} textAnchor="start" fontSize="8" fill="rgba(255,255,255,0.3)">{fmt(wEntries[0].date)}</text>}
+                {wEntries.length>1&&<text x={px(n-1)} y={H-6} textAnchor={projPts.length>1?"middle":"end"} fontSize="8" fill="rgba(255,255,255,0.3)">{fmt(wEntries[wEntries.length-1].date)}</text>}
+                {etaLabel&&projPts.length>1&&<text x={Math.min(px(n-1+projPts.length-1),W-PR)} y={H-6} textAnchor="end" fontSize="8" fill="rgba(165,180,252,0.6)">{etaLabel}</text>}
               </svg>
               {etaLabel&&<div style={{fontSize:10,color:"rgba(165,180,252,0.8)",textAlign:"right",marginTop:2,display:"flex",alignItems:"center",justifyContent:"flex-end",gap:5}}>
                 <svg width="11" height="11" fill="none" stroke="rgba(99,102,241,0.7)" strokeWidth="1.6" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="rgba(99,102,241,0.8)" stroke="none"/></svg>
