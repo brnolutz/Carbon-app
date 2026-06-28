@@ -2962,11 +2962,7 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
 @keyframes prFlash{0%{transform:scale(1);box-shadow:0 0 0 0 #F59E0B00}20%{transform:scale(1.04);box-shadow:0 0 32px 6px #F59E0BCC}100%{transform:scale(1);box-shadow:0 0 12px 2px #F59E0B44}}
 @keyframes prTextBounce{0%{opacity:0;transform:scale(0.8)}60%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
       `}</style>
-      <div style={{position:"sticky",top:0,zIndex:9001,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",paddingTop:"calc(env(safe-area-inset-top,0px) + 6px)"}}>
-        <div style={{padding:"0 20px 4px",display:"flex",alignItems:"center",gap:8}}>
-          <img src="/carbon-logo-transparent.png" alt="Carbon" style={{height:18,objectFit:"contain",opacity:0.9}}/>
-        </div>
-        <div style={{padding:"0 16px 10px"}}>
+      <div style={{position:"sticky",top:0,zIndex:9001,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",padding:"calc(env(safe-area-inset-top,0px) + 8px) 16px 10px"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
           <button onClick={()=>{setScreen("plans");onMinimize&&onMinimize();}} style={{width:30,height:30,borderRadius:"50%",background:C.card,border:"1px solid "+C.border,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
             <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="#6B7FA3" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
@@ -3000,7 +2996,6 @@ function TreinoScreen({onNavigate,activeWorkout,onStartWorkout,onEndWorkout,onUp
             {exercises.map((e,i)=>{const ws=e.activeSets.filter(s=>s.type==="work");const ds=ws.filter(s=>s.done).length;const all=ds===ws.length&&ws.length>0;return(<button key={i} onClick={()=>setCurrentEx(i)} style={{padding:"4px 10px",borderRadius:99,flexShrink:0,background:all?C.mint+"22":C.card,border:"1px solid "+(all?C.mint+"66":C.border),color:all?C.mint:C.sub,fontSize:10,fontWeight:700,cursor:"pointer"}}>{e.name.split(" ")[0]} {all?"✓":ds+"/"+ws.length}</button>);})}
           </div>
           <button onClick={()=>setShowEndConfirm(true)} style={{padding:"4px 12px",borderRadius:99,background:C.coral+"22",border:"1px solid "+C.coral+"44",color:C.coral,fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0,marginLeft:8}}>Encerrar</button>
-        </div>
         </div>
       </div>
 
