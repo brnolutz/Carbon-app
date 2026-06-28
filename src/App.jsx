@@ -4351,14 +4351,33 @@ function ProgressoScreen({onNavigate,savedCount=0,defaultCalendar=false}){
   }
 
   const muscleHeatProgresso=useMemo(()=>{
-    // Usa séries por grupo (últimos 7 dias) — 0 se não treinou, 100 se treinou muito
-    const maxSets=Math.max(...Object.values(weeklySetsByMuscle),1);
+    // Para cada grupo muscular, acha o último treino e calcula intensidade por dias
+    const SETS_EX_MAP={
+      "Peito":["Supino","Crucifixo","Peitoral"],"Costas":["Terra","Remada","Puxada","Barra Fixa"],
+      "Pernas":["Agachamento","Leg Press","Cadeira","Mesa Flexora","Afundo"],
+      "Ombros":["Desenvolvimento","Elevação Lateral","Aberturas"],"Braços":["Rosca","Tríceps","Martelo","Scott"],
+      "Core":["Abdominal","Core","Prancha"],
+      "Glúteos":["Agachamento","Afundo","Romeno","Leg Press"],"Panturrilha":["Panturrilha","Elevação de Panturrilha"],
+    };
+    const today=new Date();
+    today.setHours(0,0,0,0);
+    const cutoff=new Date(Date.now()-14*86400000).toISOString().slice(0,10); // 14 dias
+    const recentSessions=getAllSessions().filter(s=>s.date>=cutoff).sort((a,b)=>b.date.localeCompare(a.date));
     const heat={};
-    Object.entries(weeklySetsByMuscle).forEach(([g,sets])=>{
-      if(sets>0) heat[g]=Math.round((sets/maxSets)*100);
+    Object.entries(SETS_EX_MAP).forEach(([group,kws])=>{
+      // Achar a sessão mais recente com esse grupo
+      const lastSession=recentSessions.find(s=>
+        (s.exercises||[]).some(e=>kws.some(kw=>(e.name||"").toLowerCase().includes(kw.toLowerCase())))
+      );
+      if(!lastSession){heat[group]=0;return;}
+      const lastDate=new Date(lastSession.date+"T12:00:00");
+      const daysAgo=Math.round((today-lastDate)/86400000);
+      // 0 dias atrás = 100%, 1 dia = 80%, 2 = 60%, 3 = 40%, 4 = 20%, 5+ = 0%
+      const pct=Math.max(0,100-daysAgo*20);
+      heat[group]=pct;
     });
     return heat;
-  },[weeklySetsByMuscle]);
+  },[savedCount]);
 
   const GlassCard=({children,style={},onClick})=>(
     <div onClick={onClick} style={{background:C.card,backdropFilter:"blur(20px)",WebkitBackdropFilter:"blur(20px)",borderRadius:20,border:"1px solid "+C.border,boxShadow:"0 4px 24px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.05)",cursor:onClick?"pointer":undefined,...style}}>{children}</div>
@@ -4606,50 +4625,66 @@ const EX_TO_MUSCLES = {
 };
 
 function BodyDiagram({muscleHeat,width=320,savedCount=0}){
-  const MUSCLE_VIZ_KEY = "863ed60540msha869e2cf0791bd5p1ccf0cjsn2febf3210d99";
+  const KEY = "863ed60540msha869e2cf0791bd5p1ccf0cjsn2febf3210d99";
   const BASE = "https://muscle-visualizer-api.p.rapidapi.com";
-  const GROUP_TO_API = {
-    "Peito":       ["PECTORALS"],
-    "Costas":      ["LATISSIMUS DORSI","UPPER BACK","RHOMBOIDS"],
-    "Pernas":      ["QUADRICEPS","HAMSTRINGS"],
-    "Ombros":      ["DELTOIDS"],
-    "Braços":      ["BICEPS","TRICEPS"],
-    "Core":        ["ABS"],
-    "Glúteos":     ["GLUTES"],
-    "Panturrilha": ["CALVES"],
+
+  // Mapa grupo PT-BR → nome da API (um único nome por grupo para simplicidade)
+  const G2A = {
+    "Peito":"PECTORALS","Costas":"LATS","Pernas":"QUADS",
+    "Ombros":"DELTS","Braços":"BICEPS","Core":"ABS",
+    "Glúteos":"GLUTES","Panturrilha":"CALVES",
   };
-  function pctToColor(pct){
-    const v=Math.max(0.1,pct/100);
-    return `rgb(${Math.round(37*v)},${Math.round(99*v)},${Math.round(235*v)})`;
+
+  // Calcula cor por intensidade (pct 0-100)
+  // pct=100 → azul forte, pct=30 → azul fraco, pct=0 → sem cor
+  function pctToHex(pct){
+    if(pct<=0) return null;
+    const t=Math.max(0.15,pct/100);
+    const r=Math.round(14+t*23);   // 14→37
+    const g=Math.round(30+t*69);   // 30→99
+    const b=Math.round(80+t*155);  // 80→235
+    return "#"+[r,g,b].map(x=>x.toString(16).padStart(2,"0")).join("");
   }
+
+  // Monta URL do heatmap — formato: muscles=NOME1:COR1,NOME2:COR2
   function buildUrl(view){
-    const entries=[];
+    const parts=[];
     Object.entries(muscleHeat||{}).forEach(([group,pct])=>{
       if(pct<=0) return;
-      const names=GROUP_TO_API[group];
-      if(!names) return;
-      const color=pctToColor(pct);
-      names.forEach(n=>entries.push(`${n}:${color}`));
+      const apiName=G2A[group];
+      if(!apiName) return;
+      const hex=pctToHex(pct);
+      if(hex) parts.push(encodeURIComponent(apiName)+":"+encodeURIComponent(hex));
     });
-    if(!entries.length) return null;
-    const params=new URLSearchParams({muscles:entries.join(","),background:"#080A0E",size:"medium",format:"webp",gender:"male",view,"rapidapi-key":MUSCLE_VIZ_KEY});
-    return `${BASE}/api/v1/visualize/heatmap?${params.toString()}`;
+    if(!parts.length) return null;
+    return `${BASE}/api/v1/visualize/heatmap?muscles=${parts.join(",")}&background=%23080A0E&size=medium&format=webp&gender=male&view=${view}&rapidapi-key=${KEY}`;
   }
+
   const frontUrl=buildUrl("front");
   const backUrl=buildUrl("back");
-  const[frontErr,setFrontErr]=useState(false);
-  const[backErr,setBackErr]=useState(false);
+  const[frontOk,setFrontOk]=useState(true);
+  const[backOk,setBackOk]=useState(true);
   const hasData=Object.values(muscleHeat||{}).some(v=>v>0);
+
   if(!hasData) return(<div style={{padding:"24px 0",textAlign:"center",color:"#2A3550",fontSize:12}}>Nenhum treino recente</div>);
+
   return(
     <div style={{width:"100%"}}>
       <div style={{display:"flex",gap:8,justifyContent:"center"}}>
-        {!frontErr&&frontUrl&&(<div style={{flex:1,borderRadius:12,overflow:"hidden",background:"#080A0E"}}><img src={frontUrl} alt="Frente" style={{width:"100%",display:"block"}} onError={()=>setFrontErr(true)}/></div>)}
-        {!backErr&&backUrl&&(<div style={{flex:1,borderRadius:12,overflow:"hidden",background:"#080A0E"}}><img src={backUrl} alt="Costas" style={{width:"100%",display:"block"}} onError={()=>setBackErr(true)}/></div>)}
+        {frontOk&&frontUrl&&(
+          <div style={{flex:1,borderRadius:12,overflow:"hidden",background:"#080A0E",minHeight:120,display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <img src={frontUrl} alt="Frente" style={{width:"100%",display:"block"}} onError={()=>setFrontOk(false)}/>
+          </div>
+        )}
+        {backOk&&backUrl&&(
+          <div style={{flex:1,borderRadius:12,overflow:"hidden",background:"#080A0E",minHeight:120,display:"flex",alignItems:"center",justifyContent:"center"}}>
+            <img src={backUrl} alt="Costas" style={{width:"100%",display:"block"}} onError={()=>setBackOk(false)}/>
+          </div>
+        )}
       </div>
-      <div style={{display:"flex",alignItems:"center",gap:6,marginTop:10,justifyContent:"center"}}>
+      <div style={{display:"flex",alignItems:"center",gap:6,marginTop:8,justifyContent:"center"}}>
         <div style={{fontSize:9,color:"#4A5568"}}>Descansado</div>
-        <div style={{display:"flex",gap:2}}>{[0.1,0.3,0.5,0.7,0.9,1].map(v=>(<div key={v} style={{width:16,height:6,borderRadius:2,background:`rgb(${Math.round(37*v)},${Math.round(99*v)},${Math.round(235*v)})`}}/>))}</div>
+        <div style={{display:"flex",gap:2}}>{[0.15,0.35,0.55,0.75,0.95].map(v=>(<div key={v} style={{width:14,height:5,borderRadius:2,background:`#${Math.round(14+v*23).toString(16).padStart(2,"0")}${Math.round(30+v*69).toString(16).padStart(2,"0")}${Math.round(80+v*155).toString(16).padStart(2,"0")}`}}/>))}</div>
         <div style={{fontSize:9,color:"#3B82F6",fontWeight:700}}>Ativo</div>
       </div>
     </div>
