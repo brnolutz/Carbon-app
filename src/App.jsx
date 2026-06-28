@@ -5130,7 +5130,7 @@ function CorpoScreen({onNavigate,autoMeasure=false,savedCount=0}){
               </div>}
             </div>
             <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6}}>
-              <button onClick={()=>{setWeightDraft("");setShowAddWeight(true);}} style={{background:"linear-gradient(135deg,rgba(99,102,241,0.25),rgba(59,130,246,0.15))",border:"1px solid rgba(99,102,241,0.3)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",borderRadius:12,padding:"8px 16px",color:"rgba(165,180,252,0.9)",fontSize:12,fontWeight:600,cursor:"pointer"}}>＋ Registrar peso</button>
+              <button onClick={()=>{setWeightDraft("");setShowAddWeight(true);}} style={{background:"linear-gradient(135deg,rgba(99,102,241,0.25),rgba(59,130,246,0.15))",border:"1px solid rgba(99,102,241,0.3)",backdropFilter:"blur(8px)",WebkitBackdropFilter:"blur(8px)",borderRadius:12,padding:"8px 16px",color:"rgba(165,180,252,0.9)",fontSize:12,fontWeight:600,cursor:"pointer"}}>Registrar peso</button>
               <button onClick={()=>{setGoalDraft(String(weightGoal));setEditingGoal(true);}} style={{fontSize:11,color:C.muted,background:"none",border:"none",cursor:"pointer"}}>Meta: {weightGoal}kg ✎</button>
             </div>
           </div>
