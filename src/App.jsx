@@ -4600,14 +4600,14 @@ function BodyDiagram({muscleHeat,width=320,savedCount=0}){
 
     if(hasPush && hasPull && hasLegs) return "/body-semana-atual.png";
     if(hasPush && hasPull)            return "/body-push-pull.png";
-    if(hasPush && hasLegs)            return "/body-push-legs.png";
-    if(hasPull && hasLegs)            return "/body-pull-legs.png";
-    if(hasUpper && hasLegs)           return "/body-upper-legs.png";
+    if(hasPush && hasLegs)            return "/body-push-pull.png";
+    if(hasPull && hasLegs)            return "/body-semana-atual.png";
+    if(hasUpper && hasLegs)           return "/body-semana-atual.png";
     if(hasPush)                       return "/body-push.png";
-    if(hasPull)                       return "/body-pull.png";
-    if(hasLegs)                       return "/body-legs.png";
-    if(hasUpper)                      return "/body-upper.png";
-    return "/body-rest.png";
+    if(hasPull)                       return "/body-costas.png";
+    if(hasLegs)                       return "/body-pernas.png";
+    if(hasUpper)                      return "/body-push-pull.png";
+    return "/body-base.png";
   },[savedCount]);
 
   return(
