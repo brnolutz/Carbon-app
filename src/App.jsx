@@ -3751,7 +3751,7 @@ function MultiLineAreaChart({series, height=160, range}){
   const xOf=d=>((allDates.indexOf(d))/(allDates.length-1))*W;
   const yOf=v=>H-pad-((v-mn)/(mx-mn))*(H-pad*2);
 
-  const[selDate,setSelDate]=useState(allDates[allDates.length-1]);
+  const[selDate,setSelDate]=useState(()=>allDates[allDates.length-1]||null);
   const[tooltip,setTooltip]=useState(null);
 
   const handleTouch=(e)=>{
@@ -3865,16 +3865,16 @@ function ProgressGlobalChart(){
     return mon.toISOString().slice(0,10);
   }
 
-  // Gera série temporal por grupo muscular
+  // Gera série temporal por grupo muscular — usa FEED (já reativo via refreshDerivedData)
   const groupSeries=useMemo(()=>{
-    const sessions=(_sessionsCache||[]).filter(s=>!cutoff||s.date>=cutoff);
+    const sessions=(FEED||[]).filter(s=>!cutoff||s.date>=cutoff);
     const byGroupWeek={};
     sessions.forEach(s=>{
       const wk=weekKey(s.date);
-      s.exercises?.forEach(ex=>{
+      (s.exercises||[]).forEach(ex=>{
         const g=EX_GROUP[ex.name]||getExMuscle(ex.name)||"Outros";
         if(!byGroupWeek[g]) byGroupWeek[g]={};
-        if(!byGroupWeek[g][wk]) byGroupWeek[g][wk]={vol:0,sets:0,carga:0,orm:0,n:0};
+        if(!byGroupWeek[g][wk]) byGroupWeek[g][wk]={vol:0,sets:0,carga:0,orm:0};
         const entry=byGroupWeek[g][wk];
         entry.vol+=(ex.vol||0)/1000;
         entry.sets+=(ex.sets||0);
@@ -3884,7 +3884,6 @@ function ProgressGlobalChart(){
             if(ss.r>0){const v=orm(ss.w,ss.r);if(v>entry.orm)entry.orm=v;}
           }
         });
-        entry.n++;
       });
     });
     return GROUP_ORDER
@@ -3896,13 +3895,13 @@ function ProgressGlobalChart(){
           .sort(([a],[b])=>a.localeCompare(b))
           .map(([wk,v])=>({x:wk,y:Math.round(v[metric]*10)/10,yFmt:(METRICS.find(m=>m.k===metric)||METRICS[0]).fmt(Math.round(v[metric]*10)/10)}))
       }));
-  },[metric,range,_sessionsCache?.length]);
+  },[metric,range]);
 
   // Gera série temporal por exercício
   const exerciseSeries=useMemo(()=>{
     const allEx=Object.keys(HIST).filter(ex=>(HIST[ex]?.length||0)>=2)
       .sort((a,b)=>(HIST[b]?.length||0)-(HIST[a]?.length||0))
-      .slice(0,8); // top 8 mais treinados
+      .slice(0,8);
     return allEx.map(ex=>{
       const hist=(HIST[ex]||[]).filter(s=>!cutoff||s.d>=cutoff);
       const data=hist.map(s=>{
@@ -3911,11 +3910,12 @@ function ProgressGlobalChart(){
         else if(metric==="orm") y=(s.sets||[]).filter(ss=>ss.w>0&&ss.r>0).reduce((a,ss)=>{const v=orm(ss.w,ss.r);return v>a?v:a},0);
         else if(metric==="sets") y=s.sets?.length||0;
         else if(metric==="vol") y=(s.sets||[]).reduce((a,ss)=>a+(ss.w||0)*(ss.r||0),0)/1000;
-        return{x:s.d,y:Math.round(y*10)/10,yFmt:(METRICS.find(m=>m.k===metric)||METRICS[0]).fmt(Math.round(y*10)/10)};
+        const fmt=(METRICS.find(m=>m.k===metric)||METRICS[0]).fmt;
+        return{x:s.d,y:Math.round(y*10)/10,yFmt:fmt(Math.round(y*10)/10)};
       }).filter(d=>d.y>0).sort((a,b)=>a.x.localeCompare(b.x));
       return{label:(ex.replace(/\s*\([^)]*\)\s*$/,"").trim()||ex).slice(0,18),color:GC[EX_GROUP[ex]]||C.blueXL,data};
     }).filter(s=>s.data.length>=2);
-  },[metric,range,HIST]);
+  },[metric,range]);
 
   const activeSeries=(view==="grupo"?groupSeries:exerciseSeries);
 
@@ -3997,6 +3997,7 @@ function ProgressGlobalChart(){
 function ExerciseDetailModal({exName, onClose}){
   const[mode,setMode]=useState("carga");
   const[range,setRange]=useState("3m");
+  const[selBar,setSelBar]=useState(null);
   const hist=(exName&&HIST[exName])||[];
   const gc=GC[EX_GROUP[exName]]||C.blueXL;
 
@@ -4038,56 +4039,53 @@ function ExerciseDetailModal({exName, onClose}){
   }));
   const sortedRecs=Object.entries(repRecords).sort((a,b)=>+a[0]-+b[0]);
 
-  const BarChart=(()=>{
-    const[selBar,setSelBar]=useState(null);
-    const chartH=110;
-    const yTicks=[0,0.25,0.5,0.75,1].map(f=>Math.round(maxY*f));
-    return(
-      <div style={{marginTop:10,marginBottom:4}}>
-        <div style={{display:"flex",gap:4}}>
-          <div style={{display:"flex",flexDirection:"column",justifyContent:"space-between",alignItems:"flex-end",height:chartH,paddingBottom:16,flexShrink:0}}>
-            {[yTicks[4],yTicks[3],yTicks[2],yTicks[1],yTicks[0]].map((v,i)=>(
-              <span key={i} style={{fontSize:8,color:C.muted,lineHeight:1}}>{v>0?v+"kg":""}</span>
-            ))}
+  const chartH=110;
+  const yTicks=[0,0.25,0.5,0.75,1].map(f=>Math.round(maxY*f));
+  const BarChartJSX=(
+    <div style={{marginTop:10,marginBottom:4}}>
+      <div style={{display:"flex",gap:4}}>
+        <div style={{display:"flex",flexDirection:"column",justifyContent:"space-between",alignItems:"flex-end",height:chartH,paddingBottom:16,flexShrink:0}}>
+          {[yTicks[4],yTicks[3],yTicks[2],yTicks[1],yTicks[0]].map((v,i)=>(
+            <span key={i} style={{fontSize:8,color:C.muted,lineHeight:1}}>{v>0?v+"kg":""}</span>
+          ))}
+        </div>
+        <div style={{flex:1}}>
+          <div style={{position:"relative",height:chartH-16}}>
+            <div style={{position:"absolute",inset:0,display:"flex",gap:2,alignItems:"flex-end"}}>
+              {barData.map((d,i)=>{
+                const pct=d.y/maxY;
+                const isLast=i===barData.length-1;
+                const isSel=selBar===i;
+                const barH=Math.max(pct*(chartH-16),d.y>0?3:0);
+                return(
+                  <div key={i} onClick={()=>setSelBar(isSel?null:i)}
+                    style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",height:"100%",cursor:"pointer",position:"relative"}}>
+                    {isSel&&(
+                      <div style={{position:"absolute",bottom:barH+4,left:"50%",transform:"translateX(-50%)",
+                        background:"rgba(0,0,0,0.92)",border:"1px solid "+gc,borderRadius:6,
+                        padding:"3px 6px",whiteSpace:"nowrap",zIndex:10,pointerEvents:"none"}}>
+                        <div style={{fontSize:10,fontWeight:800,color:gc}}>{d.y}kg</div>
+                        <div style={{fontSize:8,color:C.muted}}>{fmtDate(d.x)}</div>
+                      </div>
+                    )}
+                    <div style={{width:"100%",height:barH,
+                      background:isSel?gc:(isLast?gc+"CC":gc+"44"),
+                      borderRadius:"3px 3px 0 0",transition:"all 0.15s",
+                      boxShadow:isSel?"0 0 8px "+gc+"88":"none"}}/>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <div style={{flex:1}}>
-            <div style={{position:"relative",height:chartH-16}}>
-              <div style={{position:"absolute",inset:0,display:"flex",gap:2,alignItems:"flex-end"}}>
-                {barData.map((d,i)=>{
-                  const pct=d.y/maxY;
-                  const isLast=i===barData.length-1;
-                  const isSel=selBar===i;
-                  const barH=Math.max(pct*(chartH-16),d.y>0?3:0);
-                  return(
-                    <div key={i} onClick={()=>setSelBar(isSel?null:i)}
-                      style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"flex-end",height:"100%",cursor:"pointer",position:"relative"}}>
-                      {isSel&&(
-                        <div style={{position:"absolute",bottom:barH+4,left:"50%",transform:"translateX(-50%)",
-                          background:"rgba(0,0,0,0.92)",border:"1px solid "+gc,borderRadius:6,
-                          padding:"3px 6px",whiteSpace:"nowrap",zIndex:10,pointerEvents:"none"}}>
-                          <div style={{fontSize:10,fontWeight:800,color:gc}}>{d.y}kg</div>
-                          <div style={{fontSize:8,color:C.muted}}>{fmtDate(d.x)}</div>
-                        </div>
-                      )}
-                      <div style={{width:"100%",height:barH,
-                        background:isSel?gc:(isLast?gc+"CC":gc+"44"),
-                        borderRadius:"3px 3px 0 0",transition:"all 0.15s",
-                        boxShadow:isSel?"0 0 8px "+gc+"88":"none"}}/>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            <div style={{display:"flex",justifyContent:"space-between",marginTop:4,height:16}}>
-              <span style={{fontSize:8,color:C.muted}}>{fmtDate(barData[0]?.x)}</span>
-              {barData.length>2&&<span style={{fontSize:8,color:C.muted}}>{fmtDate(barData[Math.floor(barData.length/2)]?.x)}</span>}
-              <span style={{fontSize:8,color:C.muted}}>{fmtDate(barData[barData.length-1]?.x)}</span>
-            </div>
+          <div style={{display:"flex",justifyContent:"space-between",marginTop:4,height:16}}>
+            <span style={{fontSize:8,color:C.muted}}>{fmtDate(barData[0]?.x)}</span>
+            {barData.length>2&&<span style={{fontSize:8,color:C.muted}}>{fmtDate(barData[Math.floor(barData.length/2)]?.x)}</span>}
+            <span style={{fontSize:8,color:C.muted}}>{fmtDate(barData[barData.length-1]?.x)}</span>
           </div>
         </div>
       </div>
-    );
-  });
+    </div>
+  );
 
   return(
     <div style={{position:"fixed",inset:0,zIndex:10000,background:"rgba(0,0,0,0.7)",
@@ -4124,7 +4122,7 @@ function ExerciseDetailModal({exName, onClose}){
                 ))}
               </div>
             </div>
-            <BarChart/>
+            {BarChartJSX}
             <div style={{display:"flex",gap:6,marginTop:10}}>
               {[{k:"carga",l:"Maior Peso"},{k:"1rm",l:"1RM Est."}].map(m=>(
                 <button key={m.k} onClick={()=>setMode(m.k)} style={{padding:"6px 14px",borderRadius:99,fontSize:11,fontWeight:700,
