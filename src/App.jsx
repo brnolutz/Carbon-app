@@ -4029,7 +4029,11 @@ function ExerciseCarouselCard({exName, onOpen}){
 function ProgressDetailScreen({onBack,onNavigate}){
   const[selectedEx,setSelectedEx]=useState(null);
 
-  useEffect(()=>{refreshDerivedData();},[]);
+  useEffect(()=>{
+    refreshDerivedData();
+    document.body.classList.add("hide-carbon-header");
+    return()=>document.body.classList.remove("hide-carbon-header");
+  },[]);
 
   // Montar grupos com exercícios que têm histórico
   const allEx=Object.keys(HIST).filter(ex=>(HIST[ex]?.length||0)>0);
@@ -4065,7 +4069,10 @@ function ProgressDetailScreen({onBack,onNavigate}){
 
       {/* Header */}
       <div style={{flexShrink:0,background:"rgba(6,8,12,0.98)",backdropFilter:"blur(20px)",
-        borderBottom:"1px solid "+C.border,padding:"14px 16px 12px",paddingTop:8,position:"sticky",top:0,zIndex:10}}>
+        borderBottom:"1px solid "+C.border,
+        paddingTop:"calc(env(safe-area-inset-top, 0px) + 10px)",
+        paddingBottom:12,paddingLeft:16,paddingRight:16,
+        position:"sticky",top:0,zIndex:10}}>
         <div style={{display:"flex",alignItems:"center",gap:12}}>
           <button onClick={onBack} style={{width:36,height:36,borderRadius:"50%",
             background:C.card,border:"1px solid "+C.border,color:C.text,
