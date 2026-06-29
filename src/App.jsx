@@ -3734,103 +3734,142 @@ function MuscleDetailScreen({muscles,onBack,onNavigate}){
 // PROGRESS DETAIL SCREEN — visão global + carrosséis por grupo muscular
 // ══════════════════════════════════════════════════════════════
 
-// ── MultiLineAreaChart — gráfico de área multi-série ──
-function MultiLineAreaChart({series, height=160, range}){
-  // series: [{label, color, data:[{x,y}]}]
+// ── MultiLineChart — gráfico de linhas limpo, sem área ──
+function MultiLineAreaChart({series, height=170}){
   if(!series||series.length===0) return null;
   const allVals=series.flatMap(s=>s.data.map(d=>d.y));
   if(allVals.length===0) return null;
-  const mn=0, mx=Math.max(...allVals)||1;
-  const W=300, H=height, pad=8;
 
-  // Normalizar todas as séries para o mesmo eixo X (por semana/mês)
-  // Usar as datas únicas de todas as séries ordenadas
   const allDates=[...new Set(series.flatMap(s=>s.data.map(d=>d.x)))].sort();
   if(allDates.length<2) return null;
 
-  const xOf=d=>((allDates.indexOf(d))/(allDates.length-1))*W;
-  const yOf=v=>H-pad-((v-mn)/(mx-mn))*(H-pad*2);
+  const[selIdx,setSelIdx]=useState(allDates.length-1);
+  const selDate=allDates[Math.min(selIdx,allDates.length-1)];
 
-  const[selDate,setSelDate]=useState(()=>allDates[allDates.length-1]||null);
-  const[tooltip,setTooltip]=useState(null);
+  const mx=Math.max(...allVals)||1;
+  const mn=0;
+  const W=300, H=height;
+  const padT=12, padB=20, padL=0, padR=0;
+  const chartH=H-padT-padB;
 
-  const handleTouch=(e)=>{
-    const svg=e.currentTarget.getBoundingClientRect();
-    const tx=(e.touches?e.touches[0]:e).clientX-svg.left;
-    const pct=Math.max(0,Math.min(1,tx/svg.width));
-    const idx=Math.round(pct*(allDates.length-1));
-    setSelDate(allDates[idx]);
+  const xOf=i=>(i/(allDates.length-1))*(W-padL-padR)+padL;
+  const yOf=v=>padT+chartH-((v-mn)/(mx-mn))*chartH;
+
+  const handleInteract=e=>{
+    const el=e.currentTarget;
+    const r=el.getBoundingClientRect();
+    const clientX=(e.touches?e.touches[0]:e).clientX;
+    const pct=Math.max(0,Math.min(1,(clientX-r.left)/r.width));
+    setSelIdx(Math.round(pct*(allDates.length-1)));
   };
 
-  const selX=xOf(selDate);
+  // Grid Y — 3 linhas leves
+  const gridVals=[mx*0.33,mx*0.66,mx].map(v=>Math.round(v));
 
   return(
     <div>
-      <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none"
-        style={{overflow:"visible",cursor:"crosshair"}}
-        onMouseMove={e=>{const r=e.currentTarget.getBoundingClientRect();const pct=(e.clientX-r.left)/r.width;const idx=Math.round(Math.max(0,Math.min(1,pct))*(allDates.length-1));setSelDate(allDates[idx]);}}
-        onTouchMove={handleTouch}>
-        <defs>
-          {series.map((s,i)=>(
-            <linearGradient key={i} id={`mlg${i}`} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={s.color} stopOpacity="0.25"/>
-              <stop offset="100%" stopColor={s.color} stopOpacity="0"/>
-            </linearGradient>
-          ))}
-        </defs>
+      {/* Valores na data selecionada */}
+      <div style={{marginBottom:14}}>
+        <div style={{fontSize:11,color:"rgba(255,255,255,0.3)",fontWeight:600,marginBottom:8}}>
+          {fmtDate(selDate)}
+        </div>
+        <div style={{display:"flex",flexWrap:"wrap",gap:"6px 16px"}}>
+          {series.map((s,si)=>{
+            const closest=s.data.reduce((a,b)=>
+              Math.abs(allDates.indexOf(b.x)-selIdx)<Math.abs(allDates.indexOf(a.x)-selIdx)?b:a
+            ,s.data[0]);
+            return(
+              <div key={si} style={{display:"flex",alignItems:"center",gap:6,minWidth:120}}>
+                <div style={{width:16,height:2,borderRadius:1,background:s.color,flexShrink:0}}/>
+                <span style={{fontSize:11,color:"rgba(255,255,255,0.45)",fontWeight:500,
+                  overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:80}}>
+                  {s.label}
+                </span>
+                <span style={{fontSize:12,color:s.color,fontWeight:800,marginLeft:"auto"}}>
+                  {closest?closest.yFmt||closest.y:"—"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
-        {/* Grid lines */}
-        {[0.25,0.5,0.75].map(f=>(
-          <line key={f} x1="0" y1={yOf(mx*f)} x2={W} y2={yOf(mx*f)}
-            stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
+      {/* SVG */}
+      <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none"
+        style={{overflow:"visible",cursor:"crosshair",touchAction:"pan-y"}}
+        onMouseMove={handleInteract}
+        onTouchMove={handleInteract}>
+
+        {/* Grid horizontal */}
+        {gridVals.map((v,i)=>(
+          <g key={i}>
+            <line x1={padL} y1={yOf(v)} x2={W-padR} y2={yOf(v)}
+              stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
+            <text x={W-padR} y={yOf(v)-3} fontSize="7" fill="rgba(255,255,255,0.2)"
+              textAnchor="end" fontFamily="Inter,sans-serif">{v}</text>
+          </g>
         ))}
 
-        {/* Área + linha por série */}
+        {/* Linhas */}
         {series.map((s,si)=>{
           if(s.data.length<2) return null;
-          const pts=s.data.map(d=>({x:xOf(d.x),y:yOf(d.y)}));
-          const linePath=pts.map((p,i)=>(i===0?"M":"L")+p.x.toFixed(1)+","+p.y.toFixed(1)).join(" ");
-          const areaPath=linePath+" L"+pts[pts.length-1].x.toFixed(1)+","+H+" L"+pts[0].x.toFixed(1)+","+H+" Z";
+          const pts=s.data.map(d=>({
+            x:xOf(allDates.indexOf(d.x)),
+            y:yOf(d.y),
+            d
+          }));
+          // Smooth line com curva suave
+          const path=pts.map((p,i)=>{
+            if(i===0) return `M${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+            const prev=pts[i-1];
+            const cx=(prev.x+p.x)/2;
+            return `C${cx.toFixed(1)},${prev.y.toFixed(1)} ${cx.toFixed(1)},${p.y.toFixed(1)} ${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+          }).join(" ");
+          return(
+            <path key={si} d={path} fill="none" stroke={s.color}
+              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              opacity="0.9"/>
+          );
+        })}
+
+        {/* Linha vertical de cursor */}
+        {selDate&&(
+          <line
+            x1={xOf(selIdx)} y1={padT}
+            x2={xOf(selIdx)} y2={H-padB}
+            stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="4,3"/>
+        )}
+
+        {/* Pontos na linha de cursor */}
+        {series.map((s,si)=>{
+          if(!s.data.length) return null;
+          const closest=s.data.reduce((a,b)=>
+            Math.abs(allDates.indexOf(b.x)-selIdx)<Math.abs(allDates.indexOf(a.x)-selIdx)?b:a
+          ,s.data[0]);
+          if(!closest) return null;
+          const cx=xOf(allDates.indexOf(closest.x));
+          const cy=yOf(closest.y);
           return(
             <g key={si}>
-              <path d={areaPath} fill={`url(#mlg${si})`}/>
-              <path d={linePath} fill="none" stroke={s.color} strokeWidth="2"
-                strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx={cx} cy={cy} r="4" fill="#080A0E" stroke={s.color} strokeWidth="2"/>
+              <circle cx={cx} cy={cy} r="2" fill={s.color}/>
             </g>
           );
         })}
 
-        {/* Linha vertical de seleção */}
-        <line x1={selX} y1={pad} x2={selX} y2={H}
-          stroke="rgba(255,255,255,0.2)" strokeWidth="1" strokeDasharray="3,3"/>
+        {/* Eixo X — datas */}
+        <text x={padL} y={H} fontSize="8" fill="rgba(255,255,255,0.2)"
+          fontFamily="Inter,sans-serif">{fmtDate(allDates[0])}</text>
+        <text x={W/2} y={H} fontSize="8" fill="rgba(255,255,255,0.2)"
+          fontFamily="Inter,sans-serif" textAnchor="middle">
+          {fmtDate(allDates[Math.floor(allDates.length/2)])}
+        </text>
+        <text x={W-padR} y={H} fontSize="8" fill="rgba(255,255,255,0.2)"
+          fontFamily="Inter,sans-serif" textAnchor="end">{fmtDate(allDates[allDates.length-1])}</text>
 
-        {/* Pontos na linha de seleção */}
-        {series.map((s,si)=>{
-          const pt=s.data.find(d=>d.x===selDate)||s.data.reduce((a,b)=>Math.abs(allDates.indexOf(b.x)-allDates.indexOf(selDate))<Math.abs(allDates.indexOf(a.x)-allDates.indexOf(selDate))?b:a);
-          if(!pt) return null;
-          return <circle key={si} cx={xOf(pt.x)} cy={yOf(pt.y)} r="4"
-            fill={s.color} stroke="#080A0E" strokeWidth="2"/>;
-        })}
+        {/* Hit area transparente para toque */}
+        <rect x={0} y={0} width={W} height={H} fill="transparent"/>
       </svg>
-
-      {/* Tooltip valores na data selecionada */}
-      <div style={{display:"flex",gap:12,marginTop:10,flexWrap:"wrap"}}>
-        {series.map((s,si)=>{
-          const pt=s.data.find(d=>d.x===selDate)||s.data[s.data.length-1];
-          return(
-            <div key={si} style={{display:"flex",alignItems:"center",gap:6}}>
-              <div style={{width:8,height:8,borderRadius:"50%",background:s.color,flexShrink:0}}/>
-              <div style={{fontSize:11,color:"rgba(255,255,255,0.5)",fontWeight:600}}>{s.label}</div>
-              <div style={{fontSize:13,color:s.color,fontWeight:800}}>{pt?pt.yFmt||pt.y:"-"}</div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Data selecionada */}
-      <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",marginTop:6,textAlign:"center"}}>
-        {selDate?fmtDate(selDate):""}
-      </div>
     </div>
   );
 }
@@ -3969,24 +4008,11 @@ function ProgressGlobalChart(){
 
       {/* Gráfico */}
       {activeSeries.length>=1?(
-        <MultiLineAreaChart series={activeSeries} height={150} range={range}/>
+        <MultiLineAreaChart series={activeSeries} height={160}/>
       ):(
-        <div style={{height:150,display:"flex",alignItems:"center",justifyContent:"center",
+        <div style={{height:160,display:"flex",alignItems:"center",justifyContent:"center",
           color:"rgba(255,255,255,0.2)",fontSize:12}}>
           Registre mais treinos para ver a evolução
-        </div>
-      )}
-
-      {/* Legenda */}
-      {activeSeries.length>0&&(
-        <div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:12,paddingTop:10,
-          borderTop:"1px solid rgba(255,255,255,0.05)"}}>
-          {activeSeries.map((s,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"center",gap:5}}>
-              <div style={{width:10,height:3,borderRadius:2,background:s.color}}/>
-              <span style={{fontSize:10,color:"rgba(255,255,255,0.4)",fontWeight:600}}>{s.label}</span>
-            </div>
-          ))}
         </div>
       )}
     </div>
