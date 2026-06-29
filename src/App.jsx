@@ -3731,8 +3731,267 @@ function MuscleDetailScreen({muscles,onBack,onNavigate}){
 }
 
 // ══════════════════════════════════════════════════════════════
-// PROGRESS DETAIL SCREEN — visão global por grupo muscular com carrosséis
+// PROGRESS DETAIL SCREEN — visão global + carrosséis por grupo muscular
 // ══════════════════════════════════════════════════════════════
+
+// ── MultiLineAreaChart — gráfico de área multi-série ──
+function MultiLineAreaChart({series, height=160, range}){
+  // series: [{label, color, data:[{x,y}]}]
+  if(!series||series.length===0) return null;
+  const allVals=series.flatMap(s=>s.data.map(d=>d.y));
+  if(allVals.length===0) return null;
+  const mn=0, mx=Math.max(...allVals)||1;
+  const W=300, H=height, pad=8;
+
+  // Normalizar todas as séries para o mesmo eixo X (por semana/mês)
+  // Usar as datas únicas de todas as séries ordenadas
+  const allDates=[...new Set(series.flatMap(s=>s.data.map(d=>d.x)))].sort();
+  if(allDates.length<2) return null;
+
+  const xOf=d=>((allDates.indexOf(d))/(allDates.length-1))*W;
+  const yOf=v=>H-pad-((v-mn)/(mx-mn))*(H-pad*2);
+
+  const[selDate,setSelDate]=useState(allDates[allDates.length-1]);
+  const[tooltip,setTooltip]=useState(null);
+
+  const handleTouch=(e)=>{
+    const svg=e.currentTarget.getBoundingClientRect();
+    const tx=(e.touches?e.touches[0]:e).clientX-svg.left;
+    const pct=Math.max(0,Math.min(1,tx/svg.width));
+    const idx=Math.round(pct*(allDates.length-1));
+    setSelDate(allDates[idx]);
+  };
+
+  const selX=xOf(selDate);
+
+  return(
+    <div>
+      <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none"
+        style={{overflow:"visible",cursor:"crosshair"}}
+        onMouseMove={e=>{const r=e.currentTarget.getBoundingClientRect();const pct=(e.clientX-r.left)/r.width;const idx=Math.round(Math.max(0,Math.min(1,pct))*(allDates.length-1));setSelDate(allDates[idx]);}}
+        onTouchMove={handleTouch}>
+        <defs>
+          {series.map((s,i)=>(
+            <linearGradient key={i} id={`mlg${i}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={s.color} stopOpacity="0.25"/>
+              <stop offset="100%" stopColor={s.color} stopOpacity="0"/>
+            </linearGradient>
+          ))}
+        </defs>
+
+        {/* Grid lines */}
+        {[0.25,0.5,0.75].map(f=>(
+          <line key={f} x1="0" y1={yOf(mx*f)} x2={W} y2={yOf(mx*f)}
+            stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
+        ))}
+
+        {/* Área + linha por série */}
+        {series.map((s,si)=>{
+          if(s.data.length<2) return null;
+          const pts=s.data.map(d=>({x:xOf(d.x),y:yOf(d.y)}));
+          const linePath=pts.map((p,i)=>(i===0?"M":"L")+p.x.toFixed(1)+","+p.y.toFixed(1)).join(" ");
+          const areaPath=linePath+" L"+pts[pts.length-1].x.toFixed(1)+","+H+" L"+pts[0].x.toFixed(1)+","+H+" Z";
+          return(
+            <g key={si}>
+              <path d={areaPath} fill={`url(#mlg${si})`}/>
+              <path d={linePath} fill="none" stroke={s.color} strokeWidth="2"
+                strokeLinecap="round" strokeLinejoin="round"/>
+            </g>
+          );
+        })}
+
+        {/* Linha vertical de seleção */}
+        <line x1={selX} y1={pad} x2={selX} y2={H}
+          stroke="rgba(255,255,255,0.2)" strokeWidth="1" strokeDasharray="3,3"/>
+
+        {/* Pontos na linha de seleção */}
+        {series.map((s,si)=>{
+          const pt=s.data.find(d=>d.x===selDate)||s.data.reduce((a,b)=>Math.abs(allDates.indexOf(b.x)-allDates.indexOf(selDate))<Math.abs(allDates.indexOf(a.x)-allDates.indexOf(selDate))?b:a);
+          if(!pt) return null;
+          return <circle key={si} cx={xOf(pt.x)} cy={yOf(pt.y)} r="4"
+            fill={s.color} stroke="#080A0E" strokeWidth="2"/>;
+        })}
+      </svg>
+
+      {/* Tooltip valores na data selecionada */}
+      <div style={{display:"flex",gap:12,marginTop:10,flexWrap:"wrap"}}>
+        {series.map((s,si)=>{
+          const pt=s.data.find(d=>d.x===selDate)||s.data[s.data.length-1];
+          return(
+            <div key={si} style={{display:"flex",alignItems:"center",gap:6}}>
+              <div style={{width:8,height:8,borderRadius:"50%",background:s.color,flexShrink:0}}/>
+              <div style={{fontSize:11,color:"rgba(255,255,255,0.5)",fontWeight:600}}>{s.label}</div>
+              <div style={{fontSize:13,color:s.color,fontWeight:800}}>{pt?pt.yFmt||pt.y:"-"}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Data selecionada */}
+      <div style={{fontSize:10,color:"rgba(255,255,255,0.3)",marginTop:6,textAlign:"center"}}>
+        {selDate?fmtDate(selDate):""}
+      </div>
+    </div>
+  );
+}
+
+// ── ProgressGlobalChart — gráfico macro no topo da tela ──
+function ProgressGlobalChart(){
+  const[metric,setMetric]=useState("vol");      // vol | sets | carga | orm
+  const[view,setView]=useState("grupo");         // grupo | exercicio
+  const[range,setRange]=useState("3m");          // 1m | 3m | 1a | tudo
+  const[selGroups,setSelGroups]=useState(null);  // null = todos
+  const[selExs,setSelExs]=useState(null);
+
+  const METRICS=[
+    {k:"vol",l:"Volume",fmt:v=>v.toFixed(1)+"t"},
+    {k:"sets",l:"Séries",fmt:v=>v+""},
+    {k:"carga",l:"Carga Máx",fmt:v=>v+"kg"},
+    {k:"orm",l:"1RM Est.",fmt:v=>v+"kg"},
+  ];
+
+  const GROUP_ORDER=["Peito","Costas","Pernas","Ombros","Biceps","Triceps","Core","Panturrilha"];
+
+  // Calcular séries por semana agrupadas
+  const rangeDays={all:9999,"1a":365,"3m":91,"1m":30}[range]||91;
+  const cutoff=new Date(Date.now()-rangeDays*86400000).toISOString().slice(0,10);
+
+  // Agrupa sessões por semana (segunda-feira)
+  function weekKey(dateStr){
+    const d=new Date(dateStr+"T12:00:00");
+    const day=d.getDay();
+    const diff=d.getDate()-(day===0?6:day-1);
+    const mon=new Date(d.setDate(diff));
+    return mon.toISOString().slice(0,10);
+  }
+
+  // Gera série temporal por grupo muscular
+  const groupSeries=useMemo(()=>{
+    const sessions=(_sessionsCache||[]).filter(s=>!cutoff||s.date>=cutoff);
+    const byGroupWeek={};
+    sessions.forEach(s=>{
+      const wk=weekKey(s.date);
+      s.exercises?.forEach(ex=>{
+        const g=EX_GROUP[ex.name]||getExMuscle(ex.name)||"Outros";
+        if(!byGroupWeek[g]) byGroupWeek[g]={};
+        if(!byGroupWeek[g][wk]) byGroupWeek[g][wk]={vol:0,sets:0,carga:0,orm:0,n:0};
+        const entry=byGroupWeek[g][wk];
+        entry.vol+=(ex.vol||0)/1000;
+        entry.sets+=(ex.sets||0);
+        (ex.setData||[]).forEach(ss=>{
+          if(ss&&ss.w>0){
+            if(ss.w>entry.carga) entry.carga=ss.w;
+            if(ss.r>0){const v=orm(ss.w,ss.r);if(v>entry.orm)entry.orm=v;}
+          }
+        });
+        entry.n++;
+      });
+    });
+    return GROUP_ORDER
+      .filter(g=>byGroupWeek[g]&&Object.keys(byGroupWeek[g]).length>0)
+      .map(g=>({
+        label:g,
+        color:GC[g]||C.blueXL,
+        data:Object.entries(byGroupWeek[g])
+          .sort(([a],[b])=>a.localeCompare(b))
+          .map(([wk,v])=>({x:wk,y:Math.round(v[metric]*10)/10,yFmt:(METRICS.find(m=>m.k===metric)||METRICS[0]).fmt(Math.round(v[metric]*10)/10)}))
+      }));
+  },[metric,range,_sessionsCache?.length]);
+
+  // Gera série temporal por exercício
+  const exerciseSeries=useMemo(()=>{
+    const allEx=Object.keys(HIST).filter(ex=>(HIST[ex]?.length||0)>=2)
+      .sort((a,b)=>(HIST[b]?.length||0)-(HIST[a]?.length||0))
+      .slice(0,8); // top 8 mais treinados
+    return allEx.map(ex=>{
+      const hist=(HIST[ex]||[]).filter(s=>!cutoff||s.d>=cutoff);
+      const data=hist.map(s=>{
+        let y=0;
+        if(metric==="carga") y=(s.sets||[]).filter(ss=>ss.w>0).reduce((a,ss)=>ss.w>a?ss.w:a,0);
+        else if(metric==="orm") y=(s.sets||[]).filter(ss=>ss.w>0&&ss.r>0).reduce((a,ss)=>{const v=orm(ss.w,ss.r);return v>a?v:a},0);
+        else if(metric==="sets") y=s.sets?.length||0;
+        else if(metric==="vol") y=(s.sets||[]).reduce((a,ss)=>a+(ss.w||0)*(ss.r||0),0)/1000;
+        return{x:s.d,y:Math.round(y*10)/10,yFmt:(METRICS.find(m=>m.k===metric)||METRICS[0]).fmt(Math.round(y*10)/10)};
+      }).filter(d=>d.y>0).sort((a,b)=>a.x.localeCompare(b.x));
+      return{label:(ex.replace(/\s*\([^)]*\)\s*$/,"").trim()||ex).slice(0,18),color:GC[EX_GROUP[ex]]||C.blueXL,data};
+    }).filter(s=>s.data.length>=2);
+  },[metric,range,HIST]);
+
+  const activeSeries=(view==="grupo"?groupSeries:exerciseSeries);
+
+  return(
+    <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:20,padding:16,margin:"0 16px 4px"}}>
+      {/* Título + range */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+        <div style={{fontSize:12,fontWeight:800,color:"rgba(255,255,255,0.9)",letterSpacing:"0.05em",textTransform:"uppercase"}}>
+          Evolução Geral
+        </div>
+        <div style={{display:"flex",gap:4}}>
+          {[{k:"1m",l:"1M"},{k:"3m",l:"3M"},{k:"1a",l:"Ano"},{k:"all",l:"Tudo"}].map(r=>(
+            <button key={r.k} onClick={()=>setRange(r.k)} style={{
+              padding:"3px 8px",borderRadius:99,fontSize:10,fontWeight:700,cursor:"pointer",
+              background:range===r.k?"rgba(255,255,255,0.12)":"transparent",
+              border:"1px solid "+(range===r.k?"rgba(255,255,255,0.2)":C.border),
+              color:range===r.k?"#fff":"rgba(255,255,255,0.4)"}}>
+              {r.l}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Toggle Grupo / Exercício */}
+      <div style={{display:"flex",gap:4,marginBottom:12,background:"rgba(255,255,255,0.04)",
+        borderRadius:10,padding:3}}>
+        {[{k:"grupo",l:"Por Grupo"},{k:"exercicio",l:"Por Exercício"}].map(v=>(
+          <button key={v.k} onClick={()=>setView(v.k)} style={{
+            flex:1,padding:"6px 0",borderRadius:8,fontSize:11,fontWeight:700,cursor:"pointer",
+            background:view===v.k?"rgba(255,255,255,0.1)":"transparent",
+            border:"none",color:view===v.k?"#fff":"rgba(255,255,255,0.35)",
+            transition:"all 0.15s"}}>
+            {v.l}
+          </button>
+        ))}
+      </div>
+
+      {/* Toggle de métrica */}
+      <div style={{display:"flex",gap:5,marginBottom:14,overflowX:"auto",paddingBottom:2}}>
+        {METRICS.map(m=>(
+          <button key={m.k} onClick={()=>setMetric(m.k)} style={{
+            padding:"5px 12px",borderRadius:99,fontSize:11,fontWeight:700,
+            cursor:"pointer",flexShrink:0,
+            background:metric===m.k?"rgba(59,130,246,0.2)":"transparent",
+            border:"1px solid "+(metric===m.k?"#3B82F6":"rgba(255,255,255,0.08)"),
+            color:metric===m.k?C.blueXL:"rgba(255,255,255,0.4)"}}>
+            {m.l}
+          </button>
+        ))}
+      </div>
+
+      {/* Gráfico */}
+      {activeSeries.length>=1?(
+        <MultiLineAreaChart series={activeSeries} height={150} range={range}/>
+      ):(
+        <div style={{height:150,display:"flex",alignItems:"center",justifyContent:"center",
+          color:"rgba(255,255,255,0.2)",fontSize:12}}>
+          Registre mais treinos para ver a evolução
+        </div>
+      )}
+
+      {/* Legenda */}
+      {activeSeries.length>0&&(
+        <div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:12,paddingTop:10,
+          borderTop:"1px solid rgba(255,255,255,0.05)"}}>
+          {activeSeries.map((s,i)=>(
+            <div key={i} style={{display:"flex",alignItems:"center",gap:5}}>
+              <div style={{width:10,height:3,borderRadius:2,background:s.color}}/>
+              <span style={{fontSize:10,color:"rgba(255,255,255,0.4)",fontWeight:600}}>{s.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ── ExerciseDetailModal — detalhe completo de um exercício (drawer) ──
 function ExerciseDetailModal({exName, onClose}){
@@ -3837,12 +4096,10 @@ function ExerciseDetailModal({exName, onClose}){
       <div onClick={e=>e.stopPropagation()}
         style={{width:"100%",maxHeight:"90vh",background:C.bg,borderRadius:"20px 20px 0 0",
           overflowY:"auto",paddingBottom:"env(safe-area-inset-bottom,0px)"}}>
-        {/* Handle bar */}
         <div style={{display:"flex",justifyContent:"center",padding:"12px 0 4px"}}>
           <div style={{width:40,height:4,borderRadius:2,background:"rgba(255,255,255,0.2)"}}/>
         </div>
         <div style={{padding:"0 16px 24px"}}>
-          {/* Cabeçalho */}
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
             <div>
               <div style={{fontSize:11,fontWeight:700,color:gc,textTransform:"uppercase",letterSpacing:"0.08em"}}>{EX_GROUP[exName]||"Exercício"}</div>
@@ -3853,7 +4110,6 @@ function ExerciseDetailModal({exName, onClose}){
               display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
           </div>
 
-          {/* Chart card */}
           <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:18,padding:14,marginBottom:12}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:2}}>
               <div>
@@ -3878,7 +4134,6 @@ function ExerciseDetailModal({exName, onClose}){
             </div>
           </div>
 
-          {/* Stats */}
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:12}}>
             {[{l:"Último",v:last>0?last+"kg":"—",c:gc},{l:"Recorde",v:best>0?best+"kg":"—",c:C.amber},{l:"Sessões",v:hist.length,c:C.mint}].map(s=>(
               <div key={s.l} style={{background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:"10px 8px",textAlign:"center"}}>
@@ -3888,7 +4143,6 @@ function ExerciseDetailModal({exName, onClose}){
             ))}
           </div>
 
-          {/* Records por repetição */}
           {sortedRecs.length>0&&(
             <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:14,padding:14,marginBottom:12}}>
               <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Recordes de Série</div>
@@ -3905,7 +4159,6 @@ function ExerciseDetailModal({exName, onClose}){
             </div>
           )}
 
-          {/* Histórico de sessões */}
           {hist.length>0&&(
             <>
               <div style={{fontSize:11,fontWeight:700,color:C.sub,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:10}}>Histórico</div>
@@ -3935,12 +4188,11 @@ function ExerciseDetailModal({exName, onClose}){
   );
 }
 
-// ── ExerciseCarouselCard — card individual no carrossel ──
+// ── ExerciseCarouselCard — card redesenhado ──
 function ExerciseCarouselCard({exName, onOpen}){
   const hist=(exName&&HIST[exName])||[];
   const gc=GC[EX_GROUP[exName]]||C.blueXL;
 
-  // Últimas 6 sessões para mini gráfico
   const last6=[...hist].slice(0,6).reverse();
   const miniData=last6.map(s=>{
     const wSets=(s.sets||[]).filter(ss=>ss&&ss.w>0);
@@ -3948,84 +4200,102 @@ function ExerciseCarouselCard({exName, onOpen}){
   }).filter(v=>v>0);
   const miniMax=miniData.length>0?Math.max(...miniData):1;
 
-  // KPIs
   const allWeights=hist.flatMap(s=>(s.sets||[]).filter(ss=>ss&&ss.w>0).map(ss=>ss.w));
   const bestWeight=allWeights.length>0?Math.max(...allWeights):0;
-  const lastWeight=allWeights.length>0?(hist[0]?.sets||[]).filter(ss=>ss&&ss.w>0).reduce((a,ss)=>ss.w>a?ss.w:a,0):0;
+  const lastWeight=hist.length>0?(hist[0]?.sets||[]).filter(ss=>ss&&ss.w>0).reduce((a,ss)=>ss.w>a?ss.w:a,0):0;
 
-  // Delta últimas 2 sessões
-  const s0=hist[0]; const s1=hist[1];
   const getBestW=s=>s?(s.sets||[]).filter(ss=>ss&&ss.w>0).reduce((a,ss)=>ss.w>a?ss.w:a,0):0;
-  const w0=getBestW(s0); const w1=getBestW(s1);
+  const w0=getBestW(hist[0]); const w1=getBestW(hist[1]);
   const delta=w1>0?Math.round((w0-w1)/w1*100):0;
 
   const shortName=exName.replace(/\s*\([^)]+\)\s*/g,"").trim();
+  const isRecord=lastWeight>0&&lastWeight===bestWeight&&hist.length>1;
 
   return(
     <div onClick={()=>onOpen(exName)}
-      style={{flexShrink:0,width:155,background:C.card,border:"1px solid "+C.border,
-        borderRadius:16,padding:"13px 13px 11px",cursor:"pointer",
-        transition:"border-color 0.15s, transform 0.15s",
-        WebkitTapHighlightColor:"transparent"}}
-      onTouchStart={e=>e.currentTarget.style.transform="scale(0.97)"}
+      style={{flexShrink:0,width:160,background:"rgba(255,255,255,0.03)",
+        border:"1px solid rgba(255,255,255,0.07)",
+        borderRadius:18,padding:"14px 14px 12px",cursor:"pointer",
+        transition:"transform 0.15s",WebkitTapHighlightColor:"transparent",
+        position:"relative",overflow:"hidden"}}
+      onTouchStart={e=>e.currentTarget.style.transform="scale(0.96)"}
       onTouchEnd={e=>e.currentTarget.style.transform="scale(1)"}>
 
-      {/* Tag do grupo + delta */}
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-        <div style={{width:8,height:8,borderRadius:"50%",background:gc,flexShrink:0}}/>
-        {delta!==0&&w1>0&&(
-          <div style={{fontSize:10,fontWeight:700,color:delta>0?C.mint:C.coral}}>
-            {delta>0?"↑":"↓"}{Math.abs(delta)}%
-          </div>
+      {/* Barra de cor no topo */}
+      <div style={{position:"absolute",top:0,left:0,right:0,height:3,
+        background:`linear-gradient(90deg,${gc},${gc}88)`,borderRadius:"18px 18px 0 0"}}/>
+
+      {/* Header — grupo + PR badge */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:9}}>
+        <div style={{fontSize:9,fontWeight:700,color:gc,textTransform:"uppercase",
+          letterSpacing:"0.08em"}}>{EX_GROUP[exName]||""}</div>
+        {isRecord&&(
+          <div style={{fontSize:8,fontWeight:800,color:C.amber,
+            background:C.amber+"18",borderRadius:4,padding:"1px 5px",
+            border:"1px solid "+C.amber+"44"}}>PR ★</div>
         )}
       </div>
 
       {/* Nome */}
-      <div style={{fontSize:12,fontWeight:800,color:C.text,lineHeight:1.25,marginBottom:10,
+      <div style={{fontSize:12,fontWeight:800,color:"rgba(255,255,255,0.9)",lineHeight:1.3,
+        marginBottom:11,minHeight:30,
         display:"-webkit-box",WebkitLineClamp:2,WebkitBoxOrient:"vertical",overflow:"hidden"}}>
         {shortName}
       </div>
 
       {/* Mini gráfico de barras */}
       {miniData.length>0&&(
-        <div style={{display:"flex",alignItems:"flex-end",gap:2,height:32,marginBottom:10}}>
+        <div style={{display:"flex",alignItems:"flex-end",gap:3,height:30,marginBottom:11}}>
           {miniData.map((v,i)=>{
             const pct=v/miniMax;
             const isLast=i===miniData.length-1;
             return(
-              <div key={i} style={{flex:1,height:Math.max(pct*32,3),
-                background:isLast?gc:gc+"44",borderRadius:"2px 2px 0 0"}}/>
+              <div key={i} style={{flex:1,
+                height:Math.max(pct*30,2),
+                background:isLast?gc:gc+"33",
+                borderRadius:"2px 2px 0 0",
+                transition:"height 0.3s"}}/>
             );
           })}
         </div>
       )}
 
       {/* KPIs */}
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",marginBottom:9}}>
         <div>
-          <div style={{fontSize:9,color:C.muted,fontWeight:600,marginBottom:1}}>ÚLTIMO</div>
-          <div style={{fontSize:16,fontWeight:900,color:gc,letterSpacing:"-0.5px"}}>
+          <div style={{fontSize:8,color:"rgba(255,255,255,0.3)",fontWeight:700,
+            textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:2}}>Último</div>
+          <div style={{fontSize:18,fontWeight:900,color:gc,letterSpacing:"-0.5px",lineHeight:1}}>
             {lastWeight>0?lastWeight+"kg":"—"}
           </div>
         </div>
         <div style={{textAlign:"right"}}>
-          <div style={{fontSize:9,color:C.muted,fontWeight:600,marginBottom:1}}>RECORDE</div>
-          <div style={{fontSize:13,fontWeight:800,color:C.amber}}>
+          <div style={{fontSize:8,color:"rgba(255,255,255,0.3)",fontWeight:700,
+            textTransform:"uppercase",letterSpacing:"0.05em",marginBottom:2}}>Recorde</div>
+          <div style={{fontSize:14,fontWeight:800,color:C.amber,lineHeight:1}}>
             {bestWeight>0?bestWeight+"kg":"—"}
           </div>
         </div>
       </div>
 
-      {/* Sessões */}
-      <div style={{marginTop:8,paddingTop:8,borderTop:"1px solid "+C.border+"66",
-        fontSize:10,color:C.muted,fontWeight:600}}>
-        {hist.length} {hist.length===1?"sessão":"sessões"}
+      {/* Footer — sessões + delta */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",
+        paddingTop:8,borderTop:"1px solid rgba(255,255,255,0.05)"}}>
+        <div style={{fontSize:10,color:"rgba(255,255,255,0.25)",fontWeight:600}}>
+          {hist.length} sessões
+        </div>
+        {delta!==0&&w1>0&&(
+          <div style={{fontSize:11,fontWeight:800,
+            color:delta>0?C.mint:C.coral}}>
+            {delta>0?"↑":"↓"}{Math.abs(delta)}%
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-// ── ProgressDetailScreen — tela global com carrosséis por grupo ──
+// ── ProgressDetailScreen — tela global com gráfico + carrosséis ──
 function ProgressDetailScreen({onBack,onNavigate}){
   const[selectedEx,setSelectedEx]=useState(null);
 
@@ -4035,16 +4305,10 @@ function ProgressDetailScreen({onBack,onNavigate}){
     return()=>document.body.classList.remove("hide-carbon-header");
   },[]);
 
-  // Montar grupos com exercícios que têm histórico
   const allEx=Object.keys(HIST).filter(ex=>(HIST[ex]?.length||0)>0);
-
-  // Ordem dos grupos
-  const GROUP_ORDER=["Peito","Costas","Pernas","Ombros","Biceps","Triceps","Core","Panturrilha","Outros"];
-
-  // Mapear exercício → grupo
+  const GROUP_ORDER=["Peito","Costas","Pernas","Ombros","Biceps","Triceps","Core","Panturrilha"];
   const getGroup=ex=>EX_GROUP[ex]||getExMuscle(ex)||"Outros";
 
-  // Agrupar exercícios por grupo muscular, ordenados por número de sessões
   const groupedExercises=GROUP_ORDER.reduce((acc,g)=>{
     const exs=allEx.filter(ex=>getGroup(ex)===g)
       .sort((a,b)=>(HIST[b]?.length||0)-(HIST[a]?.length||0));
@@ -4052,7 +4316,6 @@ function ProgressDetailScreen({onBack,onNavigate}){
     return acc;
   },[]);
 
-  // Grupos que têm exercícios mas não estão na ordem — adicionar ao final
   const knownGroups=new Set(GROUP_ORDER);
   const extraGroups=[...new Set(allEx.map(getGroup))].filter(g=>!knownGroups.has(g));
   extraGroups.forEach(g=>{
@@ -4080,64 +4343,79 @@ function ProgressDetailScreen({onBack,onNavigate}){
             justifyContent:"center",flexShrink:0}}>‹</button>
           <div>
             <div style={{fontSize:19,fontWeight:900,color:C.text,letterSpacing:"-0.5px",lineHeight:1}}>Progressão</div>
-            <div style={{fontSize:11,color:C.muted,marginTop:2}}>{totalExercises} exercícios · {totalSessions} registros</div>
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.3)",marginTop:2}}>
+              {totalExercises} exercícios · {totalSessions} registros
+            </div>
           </div>
         </div>
       </div>
 
       {/* Conteúdo */}
       <div style={{flex:1,overflowY:"auto",paddingBottom:100}}>
+
+        {/* Gráfico global no topo */}
+        <div style={{paddingTop:16,paddingBottom:8}}>
+          <ProgressGlobalChart/>
+        </div>
+
+        {/* Divisor */}
+        <div style={{margin:"8px 16px 4px",display:"flex",alignItems:"center",gap:10}}>
+          <div style={{flex:1,height:1,background:"rgba(255,255,255,0.05)"}}/>
+          <div style={{fontSize:10,fontWeight:700,color:"rgba(255,255,255,0.2)",
+            textTransform:"uppercase",letterSpacing:"0.1em"}}>Por Exercício</div>
+          <div style={{flex:1,height:1,background:"rgba(255,255,255,0.05)"}}/>
+        </div>
+
+        {/* Carrosséis por grupo */}
         {groupedExercises.length===0&&(
           <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-            height:300,gap:12,padding:32}}>
-            <div style={{fontSize:40}}>📊</div>
-            <div style={{fontSize:16,fontWeight:700,color:C.text}}>Sem dados ainda</div>
-            <div style={{fontSize:13,color:C.muted,textAlign:"center"}}>Complete alguns treinos para ver sua progressão aqui.</div>
+            height:200,gap:12,padding:32}}>
+            <div style={{fontSize:36}}>📊</div>
+            <div style={{fontSize:15,fontWeight:700,color:C.text}}>Sem dados ainda</div>
+            <div style={{fontSize:12,color:"rgba(255,255,255,0.3)",textAlign:"center"}}>
+              Complete alguns treinos para ver sua progressão aqui.
+            </div>
           </div>
         )}
 
         {groupedExercises.map(({group,exercises})=>{
           const gc=GC[group]||C.blueXL;
           return(
-            <div key={group} style={{marginBottom:8}}>
+            <div key={group} style={{marginBottom:6}}>
               {/* Header do grupo */}
-              <div style={{display:"flex",alignItems:"center",gap:10,padding:"20px 16px 10px"}}>
-                <div style={{width:10,height:10,borderRadius:"50%",background:gc,flexShrink:0}}/>
-                <div style={{fontSize:13,fontWeight:800,color:gc,textTransform:"uppercase",
-                  letterSpacing:"0.1em",flex:1}}>{group}</div>
-                <div style={{fontSize:11,color:C.muted,fontWeight:600}}>
-                  {exercises.length} {exercises.length===1?"ex":"exercícios"}
+              <div style={{display:"flex",alignItems:"center",gap:8,padding:"16px 16px 10px"}}>
+                <div style={{width:8,height:8,borderRadius:"50%",background:gc,flexShrink:0,
+                  boxShadow:`0 0 6px ${gc}88`}}/>
+                <div style={{fontSize:12,fontWeight:800,color:"rgba(255,255,255,0.7)",
+                  textTransform:"uppercase",letterSpacing:"0.1em",flex:1}}>{group}</div>
+                <div style={{fontSize:10,color:"rgba(255,255,255,0.25)",fontWeight:600}}>
+                  {exercises.length} ex
                 </div>
               </div>
 
-              {/* Carrossel horizontal */}
-              <div style={{overflowX:"auto",paddingLeft:16,paddingRight:16,paddingBottom:4,
+              {/* Carrossel */}
+              <div style={{overflowX:"auto",paddingLeft:16,paddingRight:4,paddingBottom:4,
                 scrollbarWidth:"none",WebkitOverflowScrolling:"touch"}}>
-                <div style={{display:"flex",gap:10,width:"max-content"}}>
+                <div style={{display:"flex",gap:10,width:"max-content",paddingRight:12}}>
                   {exercises.map(ex=>(
                     <ExerciseCarouselCard key={ex} exName={ex} onOpen={setSelectedEx}/>
                   ))}
-                  {/* Spacer final */}
-                  <div style={{width:4,flexShrink:0}}/>
                 </div>
               </div>
 
-              {/* Separador */}
-              <div style={{height:1,background:C.border,margin:"10px 0 0",opacity:0.5}}/>
+              <div style={{height:1,background:"rgba(255,255,255,0.04)",margin:"10px 0 0"}}/>
             </div>
           );
         })}
       </div>
 
-      {/* Modal de detalhe do exercício */}
+      {/* Modal exercício */}
       {selectedEx&&(
         <ExerciseDetailModal exName={selectedEx} onClose={()=>setSelectedEx(null)}/>
       )}
     </div>
   );
 }
-
-// ══════════════════════════════════════════════════════════════
 // TRAINING PROGRESSION CARD — 1RM por exercício ao longo do tempo
 // ══════════════════════════════════════════════════════════════
 // These must be functions (not constants) so they always read the live HIST
