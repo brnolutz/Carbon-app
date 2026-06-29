@@ -3734,8 +3734,8 @@ function MuscleDetailScreen({muscles,onBack,onNavigate}){
 // PROGRESS DETAIL SCREEN — visão global + carrosséis por grupo muscular
 // ══════════════════════════════════════════════════════════════
 
-// ── MultiLineChart — gráfico de linhas limpo, sem área ──
-function MultiLineAreaChart({series, height=170}){
+// ── MultiLineChart — gráfico limpo estilo dashboard profissional ──
+function MultiLineAreaChart({series, height=200}){
   if(!series||series.length===0) return null;
   const allVals=series.flatMap(s=>s.data.map(d=>d.y));
   if(allVals.length===0) return null;
@@ -3747,78 +3747,59 @@ function MultiLineAreaChart({series, height=170}){
   const selDate=allDates[Math.min(selIdx,allDates.length-1)];
 
   const mx=Math.max(...allVals)||1;
-  const mn=0;
   const W=300, H=height;
-  const padT=12, padB=20, padL=0, padR=0;
-  const chartH=H-padT-padB;
+  const padT=8, padB=18, padL=28, padR=8;
+  const chartW=W-padL-padR, chartH=H-padT-padB;
 
-  const xOf=i=>(i/(allDates.length-1))*(W-padL-padR)+padL;
-  const yOf=v=>padT+chartH-((v-mn)/(mx-mn))*chartH;
+  const xOf=i=>padL+(i/(allDates.length-1))*chartW;
+  const yOf=v=>padT+chartH-((v/mx)*chartH);
 
   const handleInteract=e=>{
     const el=e.currentTarget;
     const r=el.getBoundingClientRect();
     const clientX=(e.touches?e.touches[0]:e).clientX;
-    const pct=Math.max(0,Math.min(1,(clientX-r.left)/r.width));
+    const pct=Math.max(0,Math.min(1,(clientX-r.left-padL*(r.width/W))/(r.width*(chartW/W))));
     setSelIdx(Math.round(pct*(allDates.length-1)));
   };
 
-  // Grid Y — 3 linhas leves
-  const gridVals=[mx*0.33,mx*0.66,mx].map(v=>Math.round(v));
+  // Pontos de cada série na data selecionada
+  const selPoints=series.map(s=>{
+    if(!s.data.length) return null;
+    return s.data.reduce((a,b)=>
+      Math.abs(allDates.indexOf(b.x)-selIdx)<Math.abs(allDates.indexOf(a.x)-selIdx)?b:a
+    ,s.data[0]);
+  });
+
+  // Grid Y
+  const yTicks=[0.25,0.5,0.75,1].map(f=>Math.round(mx*f));
 
   return(
-    <div>
-      {/* Valores na data selecionada */}
-      <div style={{marginBottom:14}}>
-        <div style={{fontSize:11,color:"rgba(255,255,255,0.3)",fontWeight:600,marginBottom:8}}>
-          {fmtDate(selDate)}
-        </div>
-        <div style={{display:"flex",flexWrap:"wrap",gap:"6px 16px"}}>
-          {series.map((s,si)=>{
-            const closest=s.data.reduce((a,b)=>
-              Math.abs(allDates.indexOf(b.x)-selIdx)<Math.abs(allDates.indexOf(a.x)-selIdx)?b:a
-            ,s.data[0]);
-            return(
-              <div key={si} style={{display:"flex",alignItems:"center",gap:6,minWidth:120}}>
-                <div style={{width:16,height:2,borderRadius:1,background:s.color,flexShrink:0}}/>
-                <span style={{fontSize:11,color:"rgba(255,255,255,0.45)",fontWeight:500,
-                  overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:80}}>
-                  {s.label}
-                </span>
-                <span style={{fontSize:12,color:s.color,fontWeight:800,marginLeft:"auto"}}>
-                  {closest?closest.yFmt||closest.y:"—"}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* SVG */}
+    <div style={{position:"relative"}}>
       <svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none"
-        style={{overflow:"visible",cursor:"crosshair",touchAction:"pan-y"}}
-        onMouseMove={handleInteract}
-        onTouchMove={handleInteract}>
+        style={{overflow:"visible",display:"block",touchAction:"pan-y"}}
+        onMouseMove={handleInteract} onTouchMove={handleInteract}>
 
-        {/* Grid horizontal */}
-        {gridVals.map((v,i)=>(
+        {/* Grid Y */}
+        {yTicks.map((v,i)=>(
           <g key={i}>
             <line x1={padL} y1={yOf(v)} x2={W-padR} y2={yOf(v)}
-              stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
-            <text x={W-padR} y={yOf(v)-3} fontSize="7" fill="rgba(255,255,255,0.2)"
+              stroke="rgba(255,255,255,0.04)" strokeWidth="1"/>
+            <text x={padL-4} y={yOf(v)+3} fontSize="7" fill="rgba(255,255,255,0.18)"
               textAnchor="end" fontFamily="Inter,sans-serif">{v}</text>
           </g>
         ))}
 
-        {/* Linhas */}
+        {/* Linha base */}
+        <line x1={padL} y1={H-padB} x2={W-padR} y2={H-padB}
+          stroke="rgba(255,255,255,0.06)" strokeWidth="1"/>
+
+        {/* Linhas das séries */}
         {series.map((s,si)=>{
           if(s.data.length<2) return null;
           const pts=s.data.map(d=>({
             x:xOf(allDates.indexOf(d.x)),
-            y:yOf(d.y),
-            d
+            y:yOf(d.y)
           }));
-          // Smooth line com curva suave
           const path=pts.map((p,i)=>{
             if(i===0) return `M${p.x.toFixed(1)},${p.y.toFixed(1)}`;
             const prev=pts[i-1];
@@ -3827,49 +3808,92 @@ function MultiLineAreaChart({series, height=170}){
           }).join(" ");
           return(
             <path key={si} d={path} fill="none" stroke={s.color}
-              strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-              opacity="0.9"/>
+              strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" opacity="0.9"/>
           );
         })}
 
-        {/* Linha vertical de cursor */}
-        {selDate&&(
-          <line
-            x1={xOf(selIdx)} y1={padT}
-            x2={xOf(selIdx)} y2={H-padB}
-            stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="4,3"/>
-        )}
+        {/* Cursor vertical */}
+        <line x1={xOf(selIdx)} y1={padT} x2={xOf(selIdx)} y2={H-padB}
+          stroke="rgba(255,255,255,0.12)" strokeWidth="1" strokeDasharray="3,3"/>
 
-        {/* Pontos na linha de cursor */}
+        {/* Pontos no cursor */}
         {series.map((s,si)=>{
-          if(!s.data.length) return null;
-          const closest=s.data.reduce((a,b)=>
-            Math.abs(allDates.indexOf(b.x)-selIdx)<Math.abs(allDates.indexOf(a.x)-selIdx)?b:a
-          ,s.data[0]);
-          if(!closest) return null;
-          const cx=xOf(allDates.indexOf(closest.x));
-          const cy=yOf(closest.y);
+          const pt=selPoints[si];
+          if(!pt) return null;
+          const cx=xOf(allDates.indexOf(pt.x));
+          const cy=yOf(pt.y);
           return(
             <g key={si}>
-              <circle cx={cx} cy={cy} r="4" fill="#080A0E" stroke={s.color} strokeWidth="2"/>
-              <circle cx={cx} cy={cy} r="2" fill={s.color}/>
+              <circle cx={cx} cy={cy} r="3.5" fill="#080A0E" stroke={s.color} strokeWidth="1.8"/>
             </g>
           );
         })}
 
-        {/* Eixo X — datas */}
+        {/* Eixo X */}
         <text x={padL} y={H} fontSize="8" fill="rgba(255,255,255,0.2)"
           fontFamily="Inter,sans-serif">{fmtDate(allDates[0])}</text>
-        <text x={W/2} y={H} fontSize="8" fill="rgba(255,255,255,0.2)"
+        {allDates.length>4&&<text x={W/2} y={H} fontSize="8" fill="rgba(255,255,255,0.2)"
           fontFamily="Inter,sans-serif" textAnchor="middle">
           {fmtDate(allDates[Math.floor(allDates.length/2)])}
-        </text>
+        </text>}
         <text x={W-padR} y={H} fontSize="8" fill="rgba(255,255,255,0.2)"
-          fontFamily="Inter,sans-serif" textAnchor="end">{fmtDate(allDates[allDates.length-1])}</text>
+          fontFamily="Inter,sans-serif" textAnchor="end">Hoje</text>
 
-        {/* Hit area transparente para toque */}
-        <rect x={0} y={0} width={W} height={H} fill="transparent"/>
+        {/* Área hit transparente */}
+        <rect x={padL} y={padT} width={chartW} height={chartH+padB}
+          fill="transparent" style={{cursor:"crosshair"}}/>
       </svg>
+
+      {/* Tooltip flutuante posicionado na linha do cursor */}
+      <div style={{
+        position:"absolute",
+        left:`${Math.min(Math.max((xOf(selIdx)/W)*100,20),75)}%`,
+        top:padT+4,
+        transform:"translateX(-50%)",
+        background:"rgba(10,13,20,0.95)",
+        border:"1px solid rgba(255,255,255,0.1)",
+        borderRadius:10,
+        padding:"8px 10px",
+        pointerEvents:"none",
+        minWidth:110,
+        backdropFilter:"blur(12px)",
+        zIndex:5
+      }}>
+        <div style={{fontSize:9,color:"rgba(255,255,255,0.35)",fontWeight:700,
+          textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:6}}>
+          {fmtDate(selDate)}
+        </div>
+        {series.map((s,si)=>{
+          const pt=selPoints[si];
+          if(!pt||pt.y===0) return null;
+          return(
+            <div key={si} style={{display:"flex",alignItems:"center",
+              justifyContent:"space-between",gap:10,marginBottom:3}}>
+              <div style={{display:"flex",alignItems:"center",gap:5,minWidth:0}}>
+                <div style={{width:6,height:6,borderRadius:"50%",
+                  background:s.color,flexShrink:0}}/>
+                <span style={{fontSize:10,color:"rgba(255,255,255,0.45)",
+                  fontWeight:500,overflow:"hidden",textOverflow:"ellipsis",
+                  whiteSpace:"nowrap",maxWidth:60}}>{s.label}</span>
+              </div>
+              <span style={{fontSize:11,color:s.color,fontWeight:800,
+                flexShrink:0}}>{pt.yFmt||pt.y}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Legenda compacta abaixo */}
+      <div style={{display:"flex",flexWrap:"wrap",gap:"4px 12px",marginTop:8}}>
+        {series.map((s,si)=>(
+          <div key={si} style={{display:"flex",alignItems:"center",gap:5}}>
+            <div style={{width:12,height:2,borderRadius:1,background:s.color}}/>
+            <span style={{fontSize:10,color:"rgba(255,255,255,0.3)",fontWeight:500}}>
+              {s.label}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
