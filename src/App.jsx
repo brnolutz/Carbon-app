@@ -3532,6 +3532,34 @@ function ExercicioScreen({name,onNavigate,onBack,noHideHeader=false}){
 // ══════════════════════════════════════════════════════════════
 // HISTÓRICO SCREEN
 // ══════════════════════════════════════════════════════════════
+const WEEKDAY_LABELS=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+function csvEscape(v){
+  const s=String(v??"");
+  return /[",\n;]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;
+}
+function exportHistoryCSV(sessions){
+  if(!sessions||sessions.length===0){alert("Nenhum treino pra exportar ainda.");return;}
+  const rows=[["data","dia_semana","treino","exercicio","grupo_muscular","series","melhor_carga_kg","melhor_reps","volume_exercicio_kg","duracao_sessao_min","rpe_medio_sessao","volume_total_sessao_t","prs_na_sessao"]];
+  const sorted=[...sessions].sort((a,b)=>a.date.localeCompare(b.date));
+  sorted.forEach(s=>{
+    const weekday=WEEKDAY_LABELS[new Date(s.date+"T12:00:00").getDay()];
+    const exs=s.exercises&&s.exercises.length>0?s.exercises:[{name:"—",sets:"",bestW:"",bestR:"",vol:""}];
+    exs.forEach(ex=>{
+      rows.push([s.date,weekday,s.name,ex.name,EX_GROUP[ex.name]||"",ex.sets??"",ex.bestW??"",ex.bestR??"",ex.vol??"",s.duration??"",s.avgRpe??"",s.totalVol??"",s.prs??0]);
+    });
+  });
+  const csv=rows.map(r=>r.map(csvEscape).join(";")).join("\n");
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="carbon_historico_"+new Date().toISOString().slice(0,10)+".csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 function HistoricoScreen({onNavigate}){
   const[filter,setFilter]=useState("todos");
   const[detail,setDetail]=useState(null);
@@ -3552,8 +3580,14 @@ function HistoricoScreen({onNavigate}){
             <div style={{fontSize:22,fontWeight:900,color:C.blueXL,letterSpacing:"-0.5px"}}>{FEED.length}<span style={{fontSize:11,color:C.sub,fontWeight:500}}> treinos</span></div>
           </div>
         </div>
-        <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:2}}>
-          {filters.map(f=><button key={f} onClick={()=>setFilter(f)} style={{padding:"6px 16px",borderRadius:99,flexShrink:0,cursor:"pointer",background:filter===f?"#1E40AF30":C.card,border:"1px solid "+(filter===f?C.blueL+"60":C.border),color:filter===f?C.blueXL:"#4A5568",fontSize:11,fontWeight:filter===f?700:500,textTransform:"uppercase",letterSpacing:"0.06em"}}>{f==="todos"?"Todos":f.toUpperCase()}</button>)}
+        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+          <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:2,flex:1}}>
+            {filters.map(f=><button key={f} onClick={()=>setFilter(f)} style={{padding:"6px 16px",borderRadius:99,flexShrink:0,cursor:"pointer",background:filter===f?"#1E40AF30":C.card,border:"1px solid "+(filter===f?C.blueL+"60":C.border),color:filter===f?C.blueXL:"#4A5568",fontSize:11,fontWeight:filter===f?700:500,textTransform:"uppercase",letterSpacing:"0.06em"}}>{f==="todos"?"Todos":f.toUpperCase()}</button>)}
+          </div>
+          <button onClick={()=>exportHistoryCSV(FEED)} style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,padding:"7px 12px",borderRadius:99,cursor:"pointer",background:C.card,border:"1px solid "+C.border,color:"#9CA8C4",fontSize:11,fontWeight:700}}>
+            <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            Exportar
+          </button>
         </div>
       </div>
       <div style={{padding:"16px 16px 100px"}}>
@@ -3573,7 +3607,6 @@ function HistoricoScreen({onNavigate}){
   );
 }
 
-const WEEKDAY_LABELS=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
 function WeeklyPatternCard({sessions}){
   if(!sessions||sessions.length===0)return null;
   const byDay=WEEKDAY_LABELS.map((label,idx)=>{
