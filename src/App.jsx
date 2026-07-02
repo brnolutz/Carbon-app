@@ -3565,9 +3565,46 @@ function HistoricoScreen({onNavigate}){
             </div>
           ))}
         </div>
+        <WeeklyPatternCard sessions={FEED}/>
         {filtered.map((session,i)=><FeedCard key={i} session={session} onOpen={setDetail}/>)}
       </div>
       <BottomNav active="progresso" onNavigate={onNavigate}/>
+    </div>
+  );
+}
+
+const WEEKDAY_LABELS=["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"];
+function WeeklyPatternCard({sessions}){
+  if(!sessions||sessions.length===0)return null;
+  const byDay=WEEKDAY_LABELS.map((label,idx)=>{
+    const daySessions=sessions.filter(s=>new Date(s.date+"T12:00:00").getDay()===idx);
+    const groupCounts={};
+    daySessions.forEach(s=>(s.exercises||[]).forEach(ex=>{
+      const g=EX_GROUP[ex.name];
+      if(g)groupCounts[g]=(groupCounts[g]||0)+1;
+    }));
+    const topGroup=Object.entries(groupCounts).sort((a,b)=>b[1]-a[1])[0]?.[0];
+    return{label,count:daySessions.length,topGroup};
+  });
+  const maxCount=Math.max(...byDay.map(d=>d.count),1);
+  return(
+    <div style={{background:C.card,border:"1px solid "+C.border,borderRadius:16,padding:16,marginBottom:16}}>
+      <div style={{fontSize:11,fontWeight:700,color:"#2A3550",letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:12}}>Padrão Semanal</div>
+      <div style={{display:"flex",gap:6,alignItems:"flex-end",height:70}}>
+        {byDay.map(d=>(
+          <div key={d.label} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>
+            <div style={{width:"100%",maxWidth:28,height:Math.max(5,(d.count/maxCount)*48),borderRadius:5,background:d.count>0?(GC[d.topGroup]||C.blueXL):"#1A2030",opacity:d.count>0?1:0.5}}/>
+            <div style={{fontSize:9,color:"#4A5568",fontWeight:700}}>{d.label}</div>
+          </div>
+        ))}
+      </div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:8,marginTop:12}}>
+        {byDay.filter(d=>d.count>0).map(d=>(
+          <div key={d.label} style={{fontSize:10,color:"#4A5568"}}>
+            <span style={{color:"#fff",fontWeight:700}}>{d.label}</span> · {d.topGroup||"—"} ({d.count}x)
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
