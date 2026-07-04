@@ -3560,6 +3560,31 @@ function exportHistoryCSV(sessions){
   URL.revokeObjectURL(url);
 }
 
+const MEASURE_EXPORT_FIELDS=["Peso","Braço D","Braço E","Peito","Cintura","Coxa D","Panturrilha D"];
+function exportBodyCSV(measureHistory){
+  if(!measureHistory||measureHistory.length===0)return;
+  const rows=[["data",...MEASURE_EXPORT_FIELDS]];
+  [...measureHistory].sort((a,b)=>a.date.localeCompare(b.date)).forEach(h=>{
+    rows.push([h.date,...MEASURE_EXPORT_FIELDS.map(f=>h[f]??"")]);
+  });
+  const csv=rows.map(r=>r.map(csvEscape).join(";")).join("\n");
+  const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="carbon_peso_medidas_"+new Date().toISOString().slice(0,10)+".csv";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function exportAll(){
+  exportHistoryCSV(FEED);
+  const mh=loadMeasureHistory();
+  if(mh&&mh.length>0)setTimeout(()=>exportBodyCSV(mh),300);
+  else alert("Treino exportado. Nenhum registro de peso/medidas encontrado ainda — use \"Registrar peso\" na tela Corpo.");
+}
+
 function HistoricoScreen({onNavigate}){
   const[filter,setFilter]=useState("todos");
   const[detail,setDetail]=useState(null);
@@ -3584,7 +3609,7 @@ function HistoricoScreen({onNavigate}){
           <div style={{display:"flex",gap:6,overflowX:"auto",paddingBottom:2,flex:1}}>
             {filters.map(f=><button key={f} onClick={()=>setFilter(f)} style={{padding:"6px 16px",borderRadius:99,flexShrink:0,cursor:"pointer",background:filter===f?"#1E40AF30":C.card,border:"1px solid "+(filter===f?C.blueL+"60":C.border),color:filter===f?C.blueXL:"#4A5568",fontSize:11,fontWeight:filter===f?700:500,textTransform:"uppercase",letterSpacing:"0.06em"}}>{f==="todos"?"Todos":f.toUpperCase()}</button>)}
           </div>
-          <button onClick={()=>exportHistoryCSV(FEED)} style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,padding:"7px 12px",borderRadius:99,cursor:"pointer",background:C.card,border:"1px solid "+C.border,color:"#9CA8C4",fontSize:11,fontWeight:700}}>
+          <button onClick={exportAll} style={{flexShrink:0,display:"flex",alignItems:"center",gap:5,padding:"7px 12px",borderRadius:99,cursor:"pointer",background:C.card,border:"1px solid "+C.border,color:"#9CA8C4",fontSize:11,fontWeight:700}}>
             <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16" strokeLinecap="round" strokeLinejoin="round"/></svg>
             Exportar
           </button>
